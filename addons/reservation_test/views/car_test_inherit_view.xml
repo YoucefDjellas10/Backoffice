@@ -1,0 +1,18 @@
+<odoo>
+    <data>
+        <record id="car_test_view_form_inherit" model="ir.ui.view">
+            <field name="name">car.test.form.inherit</field>
+            <field name="model">car.test</field>
+            <field name="inherit_id" ref="gestion_parc_test.car_test_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet" position="inside">
+                    <notebook>
+                        <page string="Reservations">
+                            <field name="reservations"/>
+                        </page>
+                    </notebook>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

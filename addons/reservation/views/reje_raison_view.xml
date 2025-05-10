@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_reje_raison_form" model="ir.ui.view">
+        <field name="name">reje.raison.form</field>
+        <field name="model">reje.raison</field>
+        <field name="arch" type="xml">
+            <form string="reje raison">
+                <sheet>
+                    <group class="custom-group" >
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_reje_raison_tree" model="ir.ui.view">
+        <field name="name">reje.raison.tree</field>
+        <field name="model">reje.raison</field>
+        <field name="arch" type="xml">
+            <tree string="reje raison">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Définition de l'action -->
+    <record id="action_reje_raison" model="ir.actions.act_window">
+        <field name="name">Raison de rejet</field>
+        <field name="res_model">reje.raison</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_reje_raison_sub_menu"
+              name="Raison de rejet"
+              sequence="4"
+              parent="menu_configuration_sub"
+              action="action_reje_raison"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

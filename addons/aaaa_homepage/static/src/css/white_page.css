@@ -1,0 +1,8 @@
+.o_white_page {
+    background-color: white;
+    min-height: 100vh; /* Assure que la page couvre la totalité de la fenêtre */
+}
+
+.white-page-content {
+    padding: 20px;
+}

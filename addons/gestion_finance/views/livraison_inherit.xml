@@ -1,0 +1,64 @@
+<odoo>
+
+    <record id="view_livraison_form_inherit" model="ir.ui.view">
+        <field name="name">livraison.form.inherit.revenue</field>
+        <field name="model">livraison</field>
+        <field name="inherit_id" ref="reservation.view_livraison_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//details[summary[contains(text(), 'Paiement')]]/groupe" position="inside">
+
+                <group invisible="stage == 'livre'">
+                    <group string="Tarifs en Euro" invisible="stage == 'livre'">
+                        <field name="currency_id" invisible="1"/>
+                        <field name="total_payer" style="font-weight: bold; font-size: 18px;"/>
+                        <field name="montant_euro_pay"/>
+                        <field name="montant_euro_ecart"/>
+                    </group>
+                    <group string="Tarifs en Dinar" invisible="stage == 'livre'">
+                        <field name="currency_da" invisible="1"/>
+                        <field name="total_payer_dz" style="font-weight: bold; font-size: 18px;"/>
+                        <field name="montant_dz_pay"/>
+                        <field name="montant_dz_ecart"/>
+                    </group>
+                </group>
+
+                <field name="revenue_ids" readonly="1" invisible="1">
+                    <tree>
+                        <field name="mode_paiement"/>
+                        <field name="montant"/>
+                        <field name="ecart_eur"/>
+                        <field name="total_reduit_euro"/>
+                    </tree>
+                </field>
+                <br/>
+            </xpath>
+            <xpath expr="//details[summary[contains(text(), 'Paiements')]]/groupe" position="inside">
+                <group invisible="stage == 'livre'">
+                    <group string="Tarifs en Euro" invisible="stage == 'livre'">
+                        <field name="currency_id" invisible="1"/>
+                        <field name="total_payer" style="font-weight: bold; font-size: 18px;"/>
+                        <field name="montant_euro_pay"/>
+                        <field name="montant_euro_ecart"/>
+                    </group>
+                    <group string="Tarifs en Dinar" invisible="stage == 'livre'">
+                        <field name="currency_da" invisible="1"/>
+                        <field name="total_payer_dz" style="font-weight: bold; font-size: 18px;"/>
+                        <field name="montant_dz_pay"/>
+                        <field name="montant_dz_ecart"/>
+                    </group>
+                </group>
+
+                <field name="revenue_ids" readonly="1" invisible="1">
+                    <tree>
+                        <field name="mode_paiement"/>
+                        <field name="montant"/>
+                        <field name="ecart_eur"/>
+                        <field name="total_reduit_euro"/>
+                    </tree>
+                </field>
+                <br/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

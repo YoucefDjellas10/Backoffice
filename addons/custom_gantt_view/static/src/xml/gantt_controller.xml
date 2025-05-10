@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Template of the Controller displays the control panel with Layout-->
+<templates xml:space="preserve">
+    <t t-name="custom_gantt_view.GanttView">
+        <div t-att-class="className" t-ref="root">
+            <Layout className="model.useSampleModel ? 'o_view_sample_data' : ''" display="display">
+                <t t-set-slot="control-panel-create-button">
+                    <t t-if="!model.root.editedRecord and create and (!model.root.isGrouped or !editable) and !env.inDialog">
+                        <button type="button" class="btn btn-primary o_list_button_add" data-hotkey="c" t-on-click="props.createRecord" data-bounce-button="">
+                            New
+                        </button>
+                    </t>
+                    <t t-if="state.isLayoutChanged">
+                        <button type="button" class="btn btn-primary o_list_button_add" data-hotkey="s" t-on-click="onClickSave" data-bounce-button="">
+                            Save
+                        </button>
+                    </t>
+                </t>
+                <t t-set-slot="layout-actions">
+                    <SearchBar autofocus="firstLoad"/>
+                </t>
+                <t t-set-slot="control-panel-navigation-additional">
+                    <t t-component="searchBarToggler.component" t-props="searchBarToggler.props"/>
+                </t>
+                <t t-set-slot="control-panel-additional-actions">
+                    <CogMenu/>
+                </t>
+                <t t-component="props.Renderer"
+                    list="model.root"
+                    archInfo="props.archInfo"
+                    Compiler="props.Compiler"
+                    readonly="true"
+                    openRecord.bind="openRecord"
+                    layoutChanged.bind="layoutChanged"
+                    noContentHelp="props.info.noContentHelp"
+                />
+            </Layout>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_news_letter_form" model="ir.ui.view">
+        <field name="name">news.letter.form</field>
+        <field name="model">news.letter</field>
+        <field name="arch" type="xml">
+            <form string="news.letter">
+                <sheet>
+                    <group class="custom-group">
+                        <field name="name"/>
+                        <field name="email"/>
+                        <field name="subscribe"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_news_letter_tree" model="ir.ui.view">
+        <field name="name">news.letter.tree</field>
+        <field name="model">news.letter</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" decoration-bf="name != ''"/>
+                <field name="email" decoration-bf="name != ''"/>
+                <field name="subscribe" decoration-bf="name != ''"/>
+
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_news_letter" model="ir.actions.act_window">
+        <field name="name">News letter list</field>
+        <field name="res_model">news.letter</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+
+    <menuitem id="menu_news_letter_sub"
+              sequence="100"
+              name="News Letter"
+              parent="menu_configuration"
+              action="action_news_letter"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

@@ -1,0 +1,22 @@
+<odoo>
+    <record id="view_liste_client_form_pop_up" model="ir.ui.view">
+        <field name="name">liste.client.form</field>
+        <field name="model">liste.client</field>
+        <field name="arch" type="xml">
+            <form string="liste client">
+                <sheet>
+                    <group>
+                        <field name="civilite"/>
+                        <field name="nom"/>
+                        <field name="prenom"/>
+                        <field name="email"/>
+                        <field name="date_de_naissance"/>
+                        <field name="date_de_permis"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+</odoo>

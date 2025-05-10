@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="view_taux_change_tree" model="ir.ui.view">
+        <field name="name">taux.change.tree</field>
+        <field name="model">taux.change</field>
+        <field name="arch" type="xml">
+            <tree string="taux change">
+                <field name="devise"/>
+                <field name="currency_dzd"/>
+                <field name="montant"/>
+                <field name="primaire"/>
+
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_taux_change_form" model="ir.ui.view">
+        <field name="name">taux.change.form</field>
+        <field name="model">taux.change</field>
+        <field name="arch" type="xml">
+            <form string="taux.change">
+                <sheet> <group>
+                    <group> <groupe>
+                        <group class="custom-group">
+                            <field name="devise" readonly="1"/>
+                            <field name="primaire" readonly="1"/>
+                        </group></groupe>
+                        <group class="custom-group">
+                            <field name="currency_dzd" readonly="1"/>
+                            <field name="montant"/>
+                        </group>
+
+                    </group> <group></group> </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_taux_change" model="ir.actions.act_window">
+        <field name="name">Taux de change</field>
+        <field name="res_model">taux.change</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_taux_change_two" model="ir.actions.act_window">
+        <field name="name">Taux de Change 2</field>
+        <field name="res_model">taux.change</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_taux_change_form"/>
+        <field name="target">current</field>
+        <field name="context">{'default_id': 2, 'create': 0, 'delete': 0}</field>
+        <field name="res_id">2</field>
+    </record>
+
+    <menuitem id="menu_taux_change_two_sub"
+              name="Taux de change"
+              sequence="101"
+              action="action_taux_change_two"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+<!--        <menuitem id="menu_taux_change_sub"-->
+<!--                  name="Taux de change"-->
+<!--                  sequence="100"-->
+<!--                  action="action_taux_change" groups="access_rights_groups.group_admin"/>-->
+
+</odoo>

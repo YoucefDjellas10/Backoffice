@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_liste_client_form_inherit_buttons" model="ir.ui.view">
+        <field name="name">liste.client.inherit</field>
+        <field name="model">liste.client</field>
+        <field name="inherit_id" ref="liste_clients.view_liste_client_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/sheet" >
+
+
+<!--                <header>-->
+<!--                    <button name="send_email_newsletter" type="object" string="newsletter"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="send_email_parrainag_sans" type="object" string="parrainage"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="send_email_parrainag" type="object" string="parrainage"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="send_email_prime_exellent_t" type="object" string="prime exellent"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="send_email_prime_vip" type="object" string="prime vip"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="send_email_prime_essentiel" type="object" string="prime essentiel"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="send_email_mise_ajour" type="object" string="carte fidélité"-->
+<!--                            class="oe_highlight"/>-->
+
+<!--                    <button name="send_email_mise_ajour_sans" type="object" string="carte fidélité"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="send_email_activer_compte" type="object" string="activer le compte"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="send_email_card_essentiel" type="object" string="essentiel avis"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="send_email_card_essentiel_sans" type="object" string="essentiel "-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="send_email_prime_diver" type="object" string="prime driver"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="send_email_card_exellent_sans" type="object" string="exellent sans"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="send_email_card_exellent" type="object" string="exellent avis"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="send_email_card_vip_sans" type="object" string="vip sans"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="send_email_card_vip" type="object" string="vip avis"-->
+<!--                            class="oe_highlight"/>-->
+
+<!--                    <button name="send_email_prime_diver" type="object" string="prime driver"-->
+<!--                            class="oe_highlight"/>-->
+<!--                </header>-->
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

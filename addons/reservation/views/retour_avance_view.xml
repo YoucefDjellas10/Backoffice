@@ -1,0 +1,104 @@
+<odoo>
+    <!-- Form View -->
+    <record id="view_retour_avance_form" model="ir.ui.view">
+        <field name="name">retour.avance.form</field>
+        <field name="model">retour.avance</field>
+        <field name="arch" type="xml">
+            <form string="Retour Avance">
+                <sheet>
+                    <group> <groupe>
+                        <group string="information" class="custom-group" >
+                            <field name="name"/>
+                            <field name="reservation"/>
+                            <field name="date_retour_avance"/>
+                            <field name="date_heure_fin"/>
+                        </group> </groupe>
+                        <group string="la differance" class="custom-group" >
+                            <field name="differance_heure"/>
+                            <field name="Differance_jour"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="reservation" invisible="1">
+                            <sheet>
+                                <group>
+                                    <group>
+                                        <group>
+                                            <field name="reservation"/>
+                                            <field name="status"/>
+                                            <field name="etat_reservation"/>
+                                            <field name="date_heure_debut"/>
+                                            <field name="date_heure_fin"/>
+                                            <field name="total"/>
+                                        </group>
+                                        <group>
+                                            <field name="nbr_jour_reservation"/>
+                                            <field name="duree_dereservation"/>
+                                            <field name="lieu_depart"/>
+                                            <field name="zone"/>
+                                            <field name="lieu_retour"/>
+                                            <field name="retour_tard"/>
+                                        </group>
+                                    </group>
+                                    <group>
+                                        <group>
+                                            <field name="vehicule"/>
+                                            <field name="modele"/>
+                                            <field name="categorie"/>
+                                            <field name="prix_jour"/>
+                                            <field name="prix_jour_two"/>
+                                            <field name="supplements"/>
+                                        </group>
+                                        <group>
+                                            <field name="nbr_jour_two"/>
+                                            <field name="nbr_jour_one"/>
+                                            <field name="frais_de_livraison"/>
+                                            <field name="options" widget="many2many_tags"/>
+                                            <field name="options_total"/>
+                                            <field name="prix_jour_afficher"/>
+                                            <field name="total_afficher"/>
+                                        </group>
+                                    </group>
+                                </group>
+                            </sheet>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree View -->
+    <record id="view_retour_avance_tree" model="ir.ui.view">
+        <field name="name">retour.avance.tree</field>
+        <field name="model">retour.avance</field>
+        <field name="arch" type="xml">
+            <tree string="Retour Avance">
+                <field name="name"/>
+                <field name="reservation"/>
+                <field name="date_heure_debut"/>
+                <field name="date_heure_fin"/>
+                <field name="duree_dereservation"/>
+                <field name="lieu_depart"/>
+                <field name="lieu_retour"/>
+                <field name="vehicule"/>
+                <field name="modele"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_retour_avance" model="ir.actions.act_window">
+        <field name="name">Retour Avance</field>
+        <field name="res_model">retour.avance</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_retour_avance"
+              name="Retour Avance"
+              parent="menu_configuration_sub"
+              action="action_retour_avance"
+              sequence="1"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

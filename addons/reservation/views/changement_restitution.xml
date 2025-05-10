@@ -1,0 +1,27 @@
+<odoo>
+    <record id="view_livraison_form_change_heure_lieu" model="ir.ui.view">
+        <field name="name">livraison.form</field>
+        <field name="model">livraison</field>
+        <field name="arch" type="xml">
+            <form string="reservation">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="change_lieu_retour"/>
+                            <field name="lieu_retour_one"/>
+                            <field name="total_rduit_one"/>
+                            <field name="ecart_a_paye"/>
+                        </group>
+                        <group>
+                            <field name="change_heure_retour"/>
+                            <field name="date_retour_one"/>
+                            <field name="total_rduit_one"/>
+                            <field name="ecart_a_paye"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+</odoo>

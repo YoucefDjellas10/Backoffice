@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_car_test_form" model="ir.ui.view">
+        <field name="name">test.car.form</field>
+        <field name="model">test.car</field>
+        <field name="arch" type="xml">
+            <form string="car test">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_car_test_tree" model="ir.ui.view">
+        <field name="name">test.car.tree</field>
+        <field name="model">test.car</field>
+        <field name="arch" type="xml">
+            <tree string="car test">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Définition de l'action -->
+    <record id="action_car_test" model="ir.actions.act_window">
+        <field name="name">Car Test</field>
+        <field name="res_model">test.car</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_carl_test_sub" name="Car Test" parent="menu_model_test" action="action_car_test"/>
+</odoo>

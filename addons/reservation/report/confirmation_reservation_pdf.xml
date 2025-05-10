@@ -1,0 +1,346 @@
+<odoo>
+    <data>
+        <record id="paperformat_portrait" model="report.paperformat">
+            <field name="name">Portrait A4</field>
+            <field name="default" eval="False"/>
+            <field name="format">A4</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">5</field>  <!-- Réduire les marges -->
+            <field name="margin_bottom">5</field>
+            <field name="margin_left">5</field>
+            <field name="margin_right">5</field>
+        </record>
+        <template id="report_reservation_template">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.basic_layout">
+
+                        <div class="page"
+                             style="font-family: Arial, sans-serif; color: #000; font:normal; font-style: normal;font-family: Arial, Helvetica, sans-serif; line-height:150% ;"
+                             t-att-style="'background-image: url(/reservation/static/src/img/back.png); background-size: cover; background-position: center; opacity: 0.2; z-index: -1;'">
+
+                            <table style="width: 100%; border-color:#ffffff">
+                                <tr>
+                                    <th>
+                                        <img t-att-src="'/reservation/static/src/img/cartedevisitenew.png'"
+                                             style="width: 6.5cm; height: 1.59cm; margin-right: 11cm; margin-top:0.7cm;"
+                                             alt="Logo"/>
+
+                                    </th>
+                                    <th>
+                                        <h6 style="text-align: right">
+                                            <t t-esc="o.lieu_depart.rendez_vous"/>
+                                            - Algérie
+                                            <br/>
+
+                                            Service Livraison : 0561 61 18 98
+                                            <br/>
+                                        </h6>
+
+                                    </th>
+                                </tr>
+                            </table>
+                            <br/>
+                            <br/>
+                            <h1 style="color: #000000; font-size: 24px; text-align: center;">CONFIRMATION DE
+                                RESERVATION
+                                <br/>
+                                <t t-esc="o.name"/>
+
+                            </h1>
+
+                            <!-- Informations Conducteur -->
+                            <h3 style="font-size: 20px; color: #092b6b;">Informations Conducteur:</h3>
+
+
+                            <table class="tftable" border="1">
+                                <tr>
+                                    <th style="background-color: rgb(203,230,255);  ;padding: 6px  ; border-left:4px solid rgb(203,230,255) ;border-top-right-radius: 20px; border-bottom-right-radius: 20px ;">
+                                        <h5>
+                                            Conducteur Principal:
+                                            <t t-esc="o.nom"/>
+                                            <t t-esc="o.prenom"/>
+
+                                        </h5>
+                                    </th>
+                                    <th style="color:#ffffff">-</th>
+                                    <th style="background-color: rgb(255,173,173);   ;padding:6px  ; border-left:2px solid rgb(255,173,173); #ff7474;border-top-right-radius: 20px; border-bottom-right-radius: 20px ;">
+                                        <t t-if="o.nom_nd_condicteur">
+                                            <h5>
+                                                2ème conducteur:
+                                                <t t-esc="o.nom_nd_condicteur"/>
+                                                <t t-esc="o.prenom_nd_condicteur"/>
+
+
+                                            </h5>
+                                        </t>
+                                    </th>
+                                </tr>
+
+                                <tr>
+                                    <td style=" padding-left: 15px  ; padding-top: 8px; border-left:2px solid #74b0ff ;    ">
+
+
+                                        <h8>Date de naissance:
+                                            <t t-esc="o.client.date_de_naissance"/>
+
+                                        </h8>
+
+                                    </td>
+                                    <th></th>
+                                    <td style=" padding-left: 15px  ;border-left: 2px solid #ff7474;">
+                                        <t t-if="o.nom_nd_condicteur">
+                                            <h8>Date de naissance:
+                                                <t t-esc="o.client.date_nd_condicteur"/>
+                                            </h8>
+                                        </t>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style=" padding-left: 15px  ; border-left:2px solid #74b0ff ;  ">
+
+                                        <h8>Date permis:
+                                            <t t-esc="o.client.date_de_permis"/>
+
+                                        </h8>
+                                    </td>
+                                    <th></th>
+                                    <td style=" padding-left: 15px;border-left: 2px solid #ff7474;">
+                                        <t t-if="o.nom_nd_condicteur">
+                                            <h8>Date permis:
+                                                <t t-esc="o.date_de_permis"/>
+                                            </h8>
+                                        </t>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style=" padding-left: 15px  ; border-left:2px solid #74b0ff ;    ">
+                                        <h8>N° de vol :
+                                            <t t-esc="o.reservation.num_vol"/>
+                                        </h8>
+                                    </td>
+                                    <th/>
+                                    <td style="padding-left: 15px ;border-left: 2px solid #ff7474;"/>
+                                </tr>
+
+                            </table>
+
+                            <hr style="border: 1px solid #092b6b;"/>
+
+                            <h3 style="font-size: 20px; color: #092b6b;">Informations Location :</h3>
+
+<style type="text/css">
+    .tftable {font-size:15px;color:#313131;width:100%;border-width: 1px;border-color:
+    #ffffffb0;border-collapse: collapse;}
+    .tftable th {font-size:15px;background-color:rgba(0,0,0,0);border-width: 1px;
+    border-style: solid;border-color: rgba(0,0,0,0);text-align:left;}
+    .tftable tr {background-color:rgba(0,0,0,0);margin-bottom:50px}
+    .tftable td {font-size:15px;border-width: 1px;border-style:
+    solid;border-color: rgba(0,0,0,0);}
+    .tftable tr:hover {background-color: rgba(0,0,0,0);}
+</style>
+
+<table class="tftable" border="1">
+    <tr> <td>  <h8>♦ Montant total :  350,00 € </h8> </td>
+         <td> <h8>♦ Période de location : de   <t t-esc="o.date_heure_debut"/>    au   <t t-esc="o.date_heure_fin"/>  </h8></td>
+    </tr>
+
+    <tr>
+        <td> <h8>♦  Montant versé  : 250,00 €</h8> </td>                   <!-- -->
+        <td><h8> ♦ Durée :<t t-esc="o.nbr_jour_reservation"/> jours / 2000 km inclus  kilométrage limité  -750km inclus</h8>  </td>
+    </tr>
+
+
+    <tr>
+        <td><h8>  ♦ Reste à payer à votre arrivée: 100,00 € </h8>  </td>                   <!-- -->
+        <td><h8>  ♦ Lieu de départ: Alger - Aéroport Houari Boumedienne </h8>   </td>
+    </tr>
+    <tr>
+        <td><h8> ♦ Caution: 400,00 € </h8>  </td>
+        <td><h8> ♦ Lieu de retour:    <t t-esc="o.lieu_retour.name"/>  </h8>
+        </td>
+    </tr>
+    <tr>
+        <td><h8> ♦ Modèle:  <t t-esc="o.vehicule.modele.name"/>           </h8>
+        </td>
+        <td><h8> ♦ Heure prise: 03:00 </h8>
+
+        </td>
+    </tr>
+    <tr>
+        <td>
+
+        </td>  <!-- -->
+        <td> ♦ Heure retour: 03:00
+        </td>
+    </tr>
+    <tr><td colspan="2"><h8 style="color: brown;"> "Veuillez noter que les prix affichés en euros sont donnés à titre indicatif." </h8></td></tr>
+</table>
+
+<hr style="border: 1px solid #092b6b;"/>
+                            <!-- Inclus -->
+                            <h3 style="font-size: 20px; color: #092b6b;">Inclus / options:</h3>
+                            <ul style="font-size: 15px; list-style-type: disc; padding-left: 20px;">
+                                <t t-if="o.opt_protection">
+                                    <li style="margin-bottom: 4px;">Protection
+                                        <t t-esc="o.opt_protection"/>
+                                    </li>
+                                </t>
+                                <t t-if="o.opt_klm and o.opt_klm.name">
+                                    <li style="margin-bottom: 4px;">
+                                        <t t-esc="o.opt_klm.name"/>
+                                    </li>
+                                </t>
+                                <t t-if="o.opt_carburant and o.opt_carburant.name">
+                                    <li style="margin-bottom: 4px;">
+                                        <t t-esc="o.opt_carburant.name"/>
+                                    </li>
+                                </t>
+                                <t t-if="o.opt_nd_driver and o.opt_nd_driver.name">
+                                    <li style="margin-bottom: 4px;">
+                                        <t t-esc="o.opt_nd_driver.name"/>
+                                    </li>
+                                </t>
+                                <t t-if="o.opt_sb_a and o.opt_sb_a.name">
+                                    <li style="margin-bottom: 4px;">
+                                        <t t-esc="o.opt_sb_a.name"/>
+                                    </li>
+                                </t>
+                                <t t-if="o.opt_sb_b and o.opt_sb_b.name">
+                                    <li style="margin-bottom: 4px;">
+                                        <t t-esc="o.opt_sb_b.name"/>
+                                    </li>
+                                </t>
+                                <t t-if="o.opt_sb_c and o.opt_sb_c.name">
+                                    <li style="margin-bottom: 4px;">
+                                        <t t-esc="o.opt_sb_c.name"/>
+                                    </li>
+                                </t>
+                            </ul>
+                            <!-- Traits de séparation -->
+                            <hr style="border: 0.35px solid black;; width: 90%; margin: 15px auto;"/>
+
+                            <!-- Important -->
+                            <h3 style="font-size: 20px; color: #092b6b;">Important :</h3>
+                            <p style="font-size: 15px;">Pour la prise du véhicule, merci de préparer les éléments
+                                suivants :
+                            </p>
+                            <ul>
+                                <li style=" margin-bottom: 4px ; ">Permis de conduire original valide (de tous les
+                                    conducteurs mentionnés sur la
+                                    réservation)
+                                </li>
+                                <li style=" margin-bottom: 4px ; ">Dépôt d'une pièce d’identité originale valide de
+                                    votre lieu de résidence.
+                                </li>
+                                <li style=" margin-bottom: 4px ; ">La caution à déposer et le reste à payer en espèces
+                                    uniquement.
+                                </li>
+                                <li style="color: red; margin-bottom: 4px ;">Si toutes ces conditions ne seront pas
+                                    réunies, votre location
+                                    pourrait être annulée
+                                    avec des frais.
+                                </li>
+                                <li style="color: red;">Si le client ne se manifeste pas au bout d'une heure après le
+                                    rendez-vous et sans
+                                    nous en avertir du retard, la réservation serait
+                                    automatiquement annulée avec des frais.
+                                </li>
+                            </ul>
+                            <hr style="border: 0.35px solid black;; width: 90%; margin: 15px auto;"/>
+
+
+                            <h3 style="font-size: 20px; color: #092b6b;">Annulation Gratuite : Conditions par
+                                Saisons
+                            </h3>
+                            <table class="tftable">
+                                <tr>
+                                    <td>
+                                        <p style="margin:2px;">
+                                            <strong>
+                                                <u>Basse saison : du 1er Septembre au 30 Juin</u>
+                                            </strong>
+                                            - Toute annulation effectuée plus de 7 jours avant la date de prise en
+                                            charge du véhicule sera gratuite, avec un remboursement intégral de la somme
+                                            versée (hors frais bancaires). Passé ce délai, des frais d'annulation
+                                            équivalents à une journée de location seront appliqués.
+                                            <br/>
+
+                                        </p>
+                                    </td>
+                                    <td rowspan="5">
+                                        <div style="height: 110px; width: 110px;background-color: rgb(182, 182, 182); border-radius: 8px; padding: 2px;">
+                                            <img t-att-src="'/reservation/static/src/img/q_r.jpg'"
+                                                 style="width: 100px; height: 100px;"/>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p style="margin:2px;">
+                                            <strong>
+                                                <u>Haute saison : du 1er Juillet au 31 Août</u>
+                                            </strong>
+                                            - Toute annulation effectuée plus de 14 jours avant la date de prise en
+                                            charge du véhicule sera gratuite, avec un remboursement intégral de la somme
+                                            versée (hors frais bancaires). Passé ce délai, des frais d'annulation
+                                            équivalents à une journée de location seront appliqués.
+                                            <br/>
+                                            - Remarque : Le remboursement s'effectue dans un délai maximum de 30 jours.
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p style="font-size: 15px;margin: 0;">Pour plus de détails concernant nos
+                                            conditions de location et d’annulation, veuillez visiter ces liens :
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p style="font-size: 15px;margin: 0;">
+                                            <a href="url_conditions_annulation" target="_blank" style="color:#6da9cf;">
+                                                Conditions d'annulation
+                                            </a>
+                                            - -
+                                            <a href="url_conditions_location" target="_blank" style="color: #6da9cf;">
+                                                Conditions de location
+                                            </a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            <hr style="border: 1px solid #092b6b;"/>
+
+                            <h3 style="font-size: 20px; color: #092b6b;">Votre contact :</h3>
+                            <p style="font-size: 16px;margin: 0; background-color: rgb(234, 247, 236);padding: 8px;">
+                                Un agent vous accueillera avec une pancarte à votre nom devant le comptoir d'Air
+                                Algérie.
+                                <br/>
+                                Notez ce numéro de téléphone
+                                <mark>
+                                    <strong>( +213 556-12-11-67 )</strong>
+                                </mark>
+                                pour une remise rapide et efficace du véhicule.
+                            </p>
+                        </div>
+                    </t>
+                </t>
+            </t>
+
+        </template>
+        <record id="report_reservation" model="ir.actions.report">
+            <field name="name">Reservation Report</field>
+            <field name="model">livraison</field>  <!-- Correction ici -->
+            <field name="report_type">qweb-pdf</field>
+            <field name="paperformat_id" ref="reservation.paperformat_portrait"/>
+            <field name="report_name">reservation.report_reservation_template</field>
+            <field name="report_file">reservation.report_reservation_template</field>
+            <field name="print_report_name">'Reservation Report - %s' % (object.name)</field>
+            <field name="binding_model_id" ref="model_livraison"/> <!-- Correction ici aussi -->
+        </record>
+
+    </data>
+</odoo>
+

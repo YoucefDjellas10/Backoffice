@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="view_tarifs_form_popup" model="ir.ui.view">
+        <field name="name">tarifs.form</field>
+        <field name="model">tarifs</field>
+        <field name="arch" type="xml">
+            <form string="Tarifs">
+                <sheet>
+                    <group>
+                        <field name="saison"/>
+                        <field name="modele"/>
+                        <field name="prix"/>
+                        <field name="nb_jour"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

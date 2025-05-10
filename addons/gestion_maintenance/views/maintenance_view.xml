@@ -1,0 +1,120 @@
+<odoo>
+    <record id="action_maintenance" model="ir.actions.act_window">
+        <field name="name">Maintenance</field>
+        <field name="res_model">maintenance.record</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_maintenance_form" model="ir.ui.view">
+        <field name="name">maintenance.form</field>
+        <field name="model">maintenance.record</field>
+        <field name="arch" type="xml">
+            <form string="Maintenance">
+                <sheet>
+
+                    <groupe>
+                        <group class="custom-group">
+                            <field name="date" readonly="1"/>
+                            <field name="alert_id" readonly="1" invisible="1"/>
+                            <field name="vehicule_id"/>
+                            <field name="kilometrage"/>
+                            <field name="type_maintenance_id"/>
+                            <field name="type" decoration-bf="type" invisible="1"/>
+                            <field name="prix_da"/>
+                            <field name="fournisseur"/>
+                            <field name="fournisseur_payer" widget="radio" invisible="not fournisseur"/>
+                            <field name="create_uid"/>
+                            <field name="prix_eur" invisible="1"/>
+                            <field name="dinar" invisible="1"/>
+                            <field name="dernier_kilometrage" invisible="1"/>
+                            <field name="alert_km" invisible="1"/>
+
+                            <field name="note"/>
+                        </group>
+                    </groupe>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_maintenance_tree" model="ir.ui.view">
+        <field name="name">maintenance.tree</field>
+        <field name="model">maintenance.record</field>
+        <field name="arch" type="xml">
+            <tree string="Maintenance">
+                <button name="action_set_verifie" type="object" string="Vérifié" class="btn-info"
+                        invisible="status != 'realise'"/>
+                <field name="reference_id"/>
+                <field name="status" widget="badge" decoration-primary="status == 'en_cours'"
+                       decoration-success="status == 'realise'"
+                       decoration-info="status == 'verifie'"/>
+                <field name="date"/>
+                <field name="type_maintenance_id"/>
+                <field name="numero" widget="badge"/>
+                <field name="prix_da" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                <field name="dinar" invisible="1" optional="hide"/>
+                <field name="note"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_maintenance_search" model="ir.ui.view">
+        <field name="name">maintenance.search</field>
+        <field name="model">maintenance.record</field>
+        <field name="arch" type="xml">
+            <search string="Search Maintenance Records">
+                <searchpanel>
+                    <field name="zone" icon="fa-map-marker"/>
+                    <field name="status" icon="fa-tags"/>
+                    <field name="vehicule_id" icon="fa-car"/>
+                </searchpanel>
+                <field name="reference_id"/>
+                <field name="vehicule_id"/>
+                <field name="type_maintenance_id"/>
+                <field name="status"/>
+                <field name="date"/>
+                <field name="alert_km"/>
+                <filter name="filter_maintenance_created" string="alert creè"
+                        domain="[('alert_created', '=', True)]"/>
+                <filter name="filter_maintenance_not_created" string="alert non crèe"
+                        domain="[('alert_created', '=', False)]"/>
+                <separator/>
+
+                <filter name="ouest" string="OUEST" domain="[('zone', '=', 1)]"/>
+                <filter name="centre" string="CENTRE" domain="[('zone', '=', 2)]"/>
+                <filter name="est" string="EST" domain="[('zone', '=', 3)]"/>
+                <separator/>
+                <filter string="Aujourd'hui" name="today" domain="[('date_prochaine_alerte', '=', context_today())]"/>
+                <filter string="Cette semaine" name="this_week"
+                        domain="[('date_prochaine_alerte', '&gt;=', context_today()), ('date_prochaine_alerte', '&lt;=', (context_today() + datetime.timedelta(days=7)))]"/>
+                <filter string="Ce mois" name="this_month"
+                        domain="[('date_prochaine_alerte', '&gt;=', context_today().replace(day=1)), ('date_prochaine_alerte', '&lt;=', (context_today().replace(day=1) + relativedelta(months=+1, days=-1)))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Zone" name="group_zone" context="{'group_by':'zone'}"/>
+                    <filter string="Vehicule" name="group_vehicule" context="{'group_by':'vehicule_id'}"/>
+                    <filter string="Type Maintenance" name="group_type_maintenance"
+                            context="{'group_by':'type_maintenance_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="maintenance_agent_rule" model="ir.rule">
+        <field name="name">Restriction d'accès aux maintenance par zone pour les agents</field>
+        <field name="model_id" ref="gestion_maintenance.model_maintenance_record"/>
+        <field name="groups" eval="[(4, ref('access_rights_groups.group_agent'))]"/>
+        <field name="domain_force">[('zone', 'in', user.zone_ids.ids)]</field>
+    </record>
+
+
+    <record id="action_maintenance" model="ir.actions.act_window">
+        <field name="name">Maintenance</field>
+        <field name="res_model">maintenance.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_maintenance_search"/>
+    </record>
+    <menuitem id="maintenance_menu" name="Maintenances" parent="maintenance_menu_root" action="action_maintenance"
+              sequence="3"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_agent"/>
+
+</odoo>

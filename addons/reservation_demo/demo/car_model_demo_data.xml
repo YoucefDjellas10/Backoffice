@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+    <record id="car_model_demo_1" model="car.model.demo">
+        <field name="name">Renault Symbol</field>
+    </record>
+    <record id="car_model_demo_2" model="car.model.demo">
+        <field name="name">Dacia Stepway</field>
+    </record>
+    <record id="car_model_demo_3" model="car.model.demo">
+        <field name="name">Renault Clio 4</field>
+    </record>
+    <record id="car_model_demo_4" model="car.model.demo">
+        <field name="name">Peugeot 208</field>
+    </record>
+</odoo>

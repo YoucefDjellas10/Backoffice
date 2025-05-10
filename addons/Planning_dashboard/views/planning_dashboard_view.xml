@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="planning_dashboard_raison_form" model="ir.ui.view">
+        <field name="name">planning.dashboard.form</field>
+        <field name="model">planning.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="planning.dashboard">
+                <header>
+                    <button name="get_availibality_planning" type="object" string="Planning test" class="oe_highlight"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_planning_dashboard_tree" model="ir.ui.view">
+        <field name="name">planning.dashboard.tree</field>
+        <field name="model">planning.dashboard</field>
+        <field name="arch" type="xml">
+            <tree string="planning.dashboard">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_planning_dashboard" model="ir.actions.act_window">
+        <field name="name">Raison d'annulation</field>
+        <field name="res_model">planning.dashboard</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="planning_dashboard_ouest_action" model="ir.actions.client">
+        <field name="name">Ouest</field>
+        <field name="tag">planning_dashboard_ouest</field>
+    </record>
+    <record id="tree_reservation_action" model="ir.actions.client">
+        <field name="name">Reservation</field>
+        <field name="tag">tree_reservation</field>
+    </record>
+
+    <menuitem id="planning_menu_dashboard"
+              name="Planning"
+              sequence="0"
+              action="planning_dashboard_ouest_action"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_reservation"/>
+
+    <menuitem id="menu_planning_dashboard_sub_menu"
+              name="planning dashboard"
+              sequence="100"
+              parent="planning_menu_dashboard"
+              action="action_planning_dashboard"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+    <menuitem id="menu_tree_reservation_sub_menu_"
+              name=" Reservation "
+              sequence="100"
+              action="tree_reservation_action"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_reservation"/>
+
+
+</odoo>

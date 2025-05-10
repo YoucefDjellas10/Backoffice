@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_annuler_raison_form" model="ir.ui.view">
+        <field name="name">annuler.raison.form</field>
+        <field name="model">annuler.raison</field>
+        <field name="arch" type="xml">
+            <form string="annuler raison">
+                <sheet>
+                    <group class="custom-group" >
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <!-- Définition de la vue arborescente -->
+    <record id="view_annuler_raison_tree" model="ir.ui.view">
+        <field name="name">annuler.raison.tree</field>
+        <field name="model">annuler.raison</field>
+        <field name="arch" type="xml">
+            <tree string="annuler raison">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Définition de l'action -->
+    <record id="action_annuler_raison" model="ir.actions.act_window">
+        <field name="name">Raison d'annulation</field>
+        <field name="res_model">annuler.raison</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_configuration_sub"
+              name="Configuration"
+              sequence="10"
+              parent="menu_reservation"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+    <menuitem id="menu_annuler_raison_sub_menu"
+              name="Raison d'annulation"
+              sequence="3"
+              parent="menu_configuration_sub"
+              action="action_annuler_raison"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

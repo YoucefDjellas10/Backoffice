@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <record id="calendar_view_test_form" model="ir.ui.view">
+            <field name="name">calendar.view.test.form</field>
+            <field name="model">calendar.view.test</field>
+            <field name="arch" type="xml">
+                <form string="Calendar View Test">
+                    <group>
+                        <field name="name"/>
+                        <field name="date_depart"/>
+                        <field name="date_retoure"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <!-- Vue Tree -->
+        <record id="calendar_view_test_tree" model="ir.ui.view">
+            <field name="name">calendar.view.test.tree</field>
+            <field name="model">calendar.view.test</field>
+            <field name="arch" type="xml">
+                <tree string="Calendar View Test">
+                    <field name="name"/>
+                    <field name="date_depart"/>
+                    <field name="date_retoure"/>
+                </tree>
+            </field>
+        </record>
+
+
+        <record id="view_calendar_test_calendar" model="ir.ui.view">
+            <field name="name">calendar.view.test.calendar</field>
+            <field name="model">calendar.view.test</field>
+            <field name="arch" type="xml">
+                <calendar string="Calendar View Test" date_start="date_depart" date_stop="date_retoure">
+                    <field name="name"/>
+                    <field name="date_depart"/>
+                    <field name="date_retoure"/>
+                </calendar>
+            </field>
+        </record>
+
+        <record id="calendar_view_test_gantt" model="ir.ui.view">
+            <field name="name">calendar.view.test.gantt</field>
+            <field name="model">calendar.view.test</field>
+            <field name="priority">10</field>
+            <field name="arch" type="xml">
+                <gantt string="Calendar View Test" date_start="date_depart" date_stop="date_retoure">
+                    <!-- Ajoutez vos champs ici -->
+                    <field name="name"/>
+                    <field name="date_depart"/>
+                    <field name="date_retoure"/>
+                    <!-- Ajoutez d'autres champs au besoin -->
+
+                    <!-- Modifiez ou ajoutez des attributs selon vos besoins -->
+                    <templates>
+                        <!-- Modifiez ou ajoutez des templates pour le popover si nécessaire -->
+                    </templates>
+                </gantt>
+            </field>
+        </record>
+
+        <record id="action_calendar_test" model="ir.actions.act_window">
+            <field name="name">Calendar View Test</field>
+            <field name="res_model">calendar.view.test</field>
+            <field name="view_mode">tree,form,calendar,gantt</field>
+            <field name="view_id" ref="calendar_view_test_gantt"/>
+            <field name="context">{'search_default_my_filter': 1}</field>
+        </record>
+
+        <!-- Menu pour l'action du calendrier -->
+        <menuitem id="menu_calendar_test" name="Calendar View Test" sequence="10"/>
+        <menuitem id="menu_calendar_test_action" name="Calendar View Test" parent="menu_calendar_test"
+                  action="action_calendar_test"/>
+
+    </data>
+</odoo>

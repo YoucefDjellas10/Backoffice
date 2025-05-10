@@ -1,0 +1,129 @@
+/* Général */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #FFFFFF;
+    color: #2f336b;
+}
+
+/* En-tête */
+.o_main_navbar {
+    background-color: #000000;
+    color: #FFFFFF;
+}
+
+.o_main_navbar .o_menu_brand {
+    font-size: 1.5em;
+    color: #FFFFFF;
+}
+
+.o_main_navbar a {
+    color: #FFFFFF;
+}
+
+.o_main_navbar .o_menu_toggle {
+    background-color: #2f336b;
+}
+
+/* Barre latérale */
+.o_app_icon {
+    background-color: #2f336b;
+    border-radius: 50%;
+    color: #FFFFFF;
+}
+
+.o_app_icon img {
+    filter: brightness(0) invert(1);
+}
+
+.o_navbar_item, .o_navbar_item a {
+    color: #FFFFFF;
+}
+
+/* Formulaires */
+.o_form_label {
+    color: #000000;
+    font-weight: bold;
+}
+
+.o_form_input {
+    border: 1px solid #2f336b;
+    background-color: #FFFFFF;
+    color: #000000;
+}
+
+.o_form_button {
+    background-color: #2f336b;
+    border: none;
+    color: #FFFFFF;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.o_form_button:hover {
+    background-color: #000000;
+}
+
+/* Tableaux */
+.o_list_view th {
+    background-color: #2f336b ;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+.o_list_view td {
+    border: 1px solid #2f336b ;
+    color: #000000;
+}
+
+.o_list_view tr:nth-child(even) {
+    background-color: #F5F5F5;
+}
+
+.o_list_view tr:hover {
+    background-color: #DDDDDD;
+}
+
+/* Boutons */
+.btn-primary {
+    background-color: #2f336b ;
+    border: none;
+    color: #FFFFFF;
+}
+
+.btn-primary:hover {
+    background-color: #000000;
+}
+
+.btn-secondary {
+    background-color: #000000;
+    border: none;
+    color: #FFFFFF;
+}
+
+.btn-secondary:hover {
+    background-color: #2f336b ;
+}
+
+/* Modales */
+.modal-content {
+    background-color: #FFFFFF;
+    border: 1px solid #2f336b ;
+}
+
+.modal-header {
+    background-color: #2f336b ;
+    color: #FFFFFF;
+}
+
+.modal-footer {
+    background-color: #F5F5F5;
+}
+
+/* Pied de page */
+.o_main_footer {
+    background-color: #2f336b ;
+    color: #FFFFFF;
+    padding: 10px;
+    text-align: center;
+}

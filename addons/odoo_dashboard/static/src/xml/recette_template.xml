@@ -1,0 +1,178 @@
+<template>
+    <t t-name="RecetteDashBoardMain">
+
+
+        <div class="dashboard-container">
+            <h4 class="dashboard-title">Tableau de Bord des Recettes</h4>
+            <br/>
+            <br/>
+            <div class="row justify-content-center">
+                <div class="col-lg-12">
+                    <form class="form-inline d-flex flex-wrap justify-content-center">
+                        <div class="form-group col-lg-1 mx-1 mb-1">
+                            <label for="date_debut" class="text-center font-weight-bold w-100">
+                                <strong>Date Début</strong>
+                            </label>
+                            <input type="date" id="date_debut" class="form-control w-100"/>
+                        </div>
+                        <div class="form-group col-lg-1 mx-1 mb-1">
+                            <label for="date_fin" class="text-center font-weight-bold w-100">
+                                <strong>Date Fin</strong>
+                            </label>
+                            <input type="date" id="date_fin" class="form-control w-100"/>
+                        </div>
+                        <div class="form-group col-lg-1 mx-1 mb-1">
+                            <label for="zone" class="text-center font-weight-bold w-100">
+                                <strong>Zone</strong>
+                            </label>
+                            <select id="zone" class="form-control w-100">
+                                <option value="">Sélectionnez</option>
+                                <t t-foreach="state.zones" t-as="zone" t-key="zone.name">
+                                    <option t-esc="zone.name" t-att-value="zone.id"/>
+                                </t>
+                            </select>
+                        </div>
+                        <div class="form-group col-lg-1 mx-1 mb-1">
+                            <label for="modele" class="text-center font-weight-bold w-100">
+                                <strong>Modèle</strong>
+                            </label>
+                            <select id="modele" class="form-control w-100">
+                                <option value="">Sélectionnez</option>
+                                <t t-foreach="state.models" t-as="modele" t-key="modele.name">
+                                    <option t-esc="modele.name" t-att-value="modele.id"/>
+                                </t>
+                            </select>
+                        </div>
+                        <div class="form-group col-lg-1 mx-1 mb-1">
+                            <label for="vehicule" class="text-center font-weight-bold w-100">
+                                <strong>Véhicule</strong>
+                            </label>
+                            <select id="vehicule" class="form-control w-100">
+                                <option value="">Sélectionnez</option>
+                                <t t-foreach="state.vehicules" t-as="vehicule" t-key="vehicule.name">
+                                    <option t-esc="vehicule.name" t-att-value="vehicule.id"/>
+                                </t>
+                            </select>
+                        </div>
+                        <div class="form-group col-lg-1 mx-1 mb-1">
+                            <br/>
+                            <button type="submit" class="btn btn-primary w-100" t-on-click="applyFilter">Appliquer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <br/>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="row">
+                        <div class="row">
+                            <div class="col-4 mb-1">
+                                <div class="project_box card"
+                                     style="border: 1px solid #dee2e6; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: #f5ddc1; border-radius: 8px;">
+                                    <div class="card-body text-center">
+                                        <img src="odoo_dashboard/static/src/images/recette_dzd.png"
+                                             class="img-fluid mb-2"
+                                             alt="search" style="max-width: 40px;"/>
+                                        <h3 class="project_count" id="total_projects" style="color: black;">
+                                            <strong>
+                                                <t t-esc="this.state.totalEncaisse"/>
+                                            </strong>
+                                        </h3>
+                                        <p class="project_box_title small" style="font-weight: bold;">Total (DZD)</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4 mb-1">
+                                <div class="project_box card"
+                                     style="border: 1px solid #dee2e6; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: #f5ddc1; border-radius: 8px;">
+                                    <div class="card-body text-center">
+                                        <img src="odoo_dashboard/static/src/images/euroeuro.png"
+                                             class="img-fluid mb-2"
+                                             alt="search" style="max-width: 40px;"/>
+                                        <h3 class="project_count" id="total_projects" style="color: black;">
+                                            <strong>
+                                                0
+                                            </strong>
+                                        </h3>
+                                        <p class="project_box_title small" style="font-weight: bold;">Total (€)</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4 mb-1">
+                                <div class="project_box card"
+                                     style="border: 1px solid #dee2e6; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: #f5ddc1; border-radius: 8px;">
+                                    <div class="card-body text-center">
+                                        <img src="odoo_dashboard/static/src/images/euroeuro.png"
+                                             class="img-fluid mb-2"
+                                             alt="search" style="max-width: 40px;"/>
+                                        <h3 class="project_count" id="total_projects" style="color: black;">
+                                            <strong>
+                                                0
+                                            </strong>
+                                        </h3>
+                                        <p class="project_box_title small" style="font-weight: bold;">Total (€)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 mb-1">
+                                <div class="project_box card"
+                                     style="border: 1px solid #dee2e6; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: #befac7; border-radius: 8px;">
+                                    <div class="card-body text-center">
+                                        <img src="odoo_dashboard/static/src/images/panier_moyen.png"
+                                             class="img-fluid mb-2" alt="search" style="max-width: 40px;"/>
+                                        <h3 class="project_count" id="total_projects" style="color: black;">
+                                            <strong>
+                                                0
+                                            </strong>
+                                        </h3>
+                                        <p class="project_box_title small" style="font-weight: bold;">Panier moyen
+                                            (DZD)
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4 mb-1">
+                                <div class="project_box card"
+                                     style="border: 1px solid #dee2e6; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: #befac7; border-radius: 8px;">
+                                    <div class="card-body text-center">
+                                        <img src="odoo_dashboard/static/src/images/panier_moyen.png"
+                                             class="img-fluid mb-2" alt="search" style="max-width: 40px;"/>
+                                        <h3 class="project_count" id="total_projects" style="color: black;">
+                                            <strong>
+                                                0
+                                            </strong>
+                                        </h3>
+                                        <p class="project_box_title small" style="font-weight: bold;">Panier moyen
+                                            (DZD)
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4 mb-1">
+                                <div class="project_box card"
+                                     style="border: 1px solid #dee2e6; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: #befac7; border-radius: 8px;">
+                                    <div class="card-body text-center">
+                                        <img src="odoo_dashboard/static/src/images/panier_moyen.png"
+                                             class="img-fluid mb-2" alt="search" style="max-width: 40px;"/>
+                                        <h3 class="project_count" id="total_projects" style="color: black;">
+                                            <strong>
+                                                0
+                                            </strong>
+                                        </h3>
+                                        <p class="project_box_title small" style="font-weight: bold;">Panier moyen
+                                            (DZD)
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="height: 20em;"/>
+            </div>
+        </div>
+    </t>
+</template>

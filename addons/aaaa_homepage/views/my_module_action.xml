@@ -1,0 +1,12 @@
+<odoo>
+
+    <record id="action_white_page" model="ir.actions.client">
+        <field name="name">White Page</field>
+        <field name="tag">white_page_action</field>
+        <field name="target">main</field>
+    </record>
+    <menuitem id="menu_white_page"
+              name="White Page"
+              action="action_white_page"/>
+
+</odoo>

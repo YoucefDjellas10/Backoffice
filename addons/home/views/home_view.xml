@@ -1,0 +1,45 @@
+<odoo>
+    <data>
+        <record id="view_form_photo" model="ir.ui.view">
+            <field name="name">photo.model.form</field>
+            <field name="model">photo.model</field>
+            <field name="arch" type="xml">
+                <form string="Acceuil" decoration-bf="True">
+                    <div class="oe_full oe_form_container">
+                        <img src="home\static\src\img\homepage.png"
+                             style="width: 50%; height: auto; display: block; margin-left: auto; margin-right: auto;"/>
+                    </div>
+                    <group invisible="1">
+                        <field name="test"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_tree_photo" model="ir.ui.view">
+            <field name="name">photo.model.tree</field>
+            <field name="model">photo.model</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="test"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_photo" model="ir.actions.act_window">
+            <field name="name">Acceuil</field>
+            <field name="res_model">photo.model</field>
+            <field name="view_mode">form</field>
+            <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+            <field name="res_id">1</field>
+        </record>
+
+        <record id="action_photo_" model="ir.actions.act_window">
+            <field name="name">Acceuil</field>
+            <field name="res_model">photo.model</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        <menuitem id="menu_photo_root" name="Acceuil" action="action_photo" sequence="0"/>
+<!--        <menuitem id="menu_photo_root_" name="Acceuil" action="action_photo_" sequence="0"/>-->
+    </data>
+</odoo>

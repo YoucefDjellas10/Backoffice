@@ -1,0 +1,29 @@
+<odoo>
+    <record id="view_retour_avance_pop_up_form" model="ir.ui.view">
+        <field name="name">retour.avance.form</field>
+        <field name="model">retour.avance</field>
+        <field name="arch" type="xml">
+            <form string="Retour Avance">
+                <sheet>
+                    <group>
+                        <group string="information">
+                            <field name="name"/>
+                            <field name="reservation"/>
+                            <field name="date_retour_avance"/>
+                            <field name="date_heure_fin"/>
+                        </group>
+                        <group string="la differance">
+                            <field name="differance_heure"/>
+                            <field name="Differance_jour"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Save" type="object" name="action_save_and_close" class="oe_highlight"/>
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

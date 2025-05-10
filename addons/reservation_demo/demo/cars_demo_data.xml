@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+    <record id="car_demo_1" model="cars.demo">
+        <field name="name">2654-122-16 (01)</field>
+        <field name="model" ref="car_model_demo_1" />
+    </record>
+    <record id="car_demo_2" model="cars.demo">
+        <field name="name">2665-122-16 (02)</field>
+        <field name="model" ref="car_model_demo_1" />
+    </record>
+    <record id="car_demo_3" model="cars.demo">
+        <field name="name">2685-122-16 (03)</field>
+        <field name="model" ref="car_model_demo_1" />
+    </record>
+    <record id="car_demo_4" model="cars.demo">
+        <field name="name">2675-122-16 (04)</field>
+        <field name="model" ref="car_model_demo_1" />
+    </record>
+    <record id="car_demo_5" model="cars.demo">
+        <field name="name">9554-122-16 (05)</field>
+        <field name="model" ref="car_model_demo_2" />
+    </record>
+    <record id="car_demo_6" model="cars.demo">
+        <field name="name">9512-122-16 (06)</field>
+        <field name="model" ref="car_model_demo_2" />
+    </record>
+    <record id="car_demo_7" model="cars.demo">
+        <field name="name">95458-122-16 (07)</field>
+        <field name="model" ref="car_model_demo_2" />
+    </record>
+    <record id="car_demo_8" model="cars.demo">
+        <field name="name">95852-122-16 (08)</field>
+        <field name="model" ref="car_model_demo_2" />
+    </record>
+    <record id="car_demo_9" model="cars.demo">
+        <field name="name">95754-122-16 (09)</field>
+        <field name="model" ref="car_model_demo_3" />
+    </record>
+    <record id="car_demo_10" model="cars.demo">
+        <field name="name">95326-122-16 (10)</field>
+        <field name="model" ref="car_model_demo_3" />
+    </record>
+    <record id="car_demo_11" model="cars.demo">
+        <field name="name">95124-122-16 (11)</field>
+        <field name="model" ref="car_model_demo_3" />
+    </record>
+    <record id="car_demo_12" model="cars.demo">
+        <field name="name">9586-122-16 (12)</field>
+        <field name="model" ref="car_model_demo_4" />
+    </record>
+    <record id="car_demo_13" model="cars.demo">
+        <field name="name">498-122-16 (13)</field>
+        <field name="model" ref="car_model_demo_4" />
+    </record>
+</odoo>

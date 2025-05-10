@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_bareme_degradation_form" model="ir.ui.view">
+        <field name="name">bareme.degradation.form</field>
+        <field name="model">bareme.degradation</field>
+        <field name="arch" type="xml">
+            <form string="Bareme degradation">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="type"/>
+                            <field name="name"/>
+                            <field name="categorie"/>
+                        </group>
+                        <group>
+                            <field name="prix"/>
+                            <field name="prix_eur"/>
+                        </group>
+                        <field name="devise" invisible="1"/>
+                        <field name="devise_eur" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_bareme_degradation_tree" model="ir.ui.view">
+        <field name="name">bareme.degradation.tree</field>
+        <field name="model">bareme.degradation</field>
+        <field name="arch" type="xml">
+            <tree string="Bareme degradation" >
+                <field name="type"/>
+                <field name="name"/>
+                <field name="categorie"/>
+                <field name="devise" optional="hide"/>
+                <field name="prix"/>
+                <field name="devise_eur" optional="hide"/>
+                <field name="prix_eur"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_bareme_degradation_saison" model="ir.ui.view">
+        <field name="name">bareme.degradation.search</field>
+        <field name="model">bareme.degradation</field>
+        <field name="arch" type="xml">
+            <search>
+                <searchpanel view_types="list,kanban">
+                    <field name="categorie"/>
+                    <field name="type"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+
+    <!-- Définition de l'action -->
+    <record id="action_bareme_degradation" model="ir.actions.act_window">
+        <field name="name">Bareme Frais retour</field>
+        <field name="res_model">bareme.degradation</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_bareme_degradation_sub_menu"
+              name="bareme frais retour"
+              sequence="11"
+              parent="menu_tarifications"
+              action="action_bareme_degradation"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

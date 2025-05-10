@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_contact_message_form" model="ir.ui.view">
+        <field name="name">contact.message.form</field>
+        <field name="model">contact.message</field>
+        <field name="arch" type="xml">
+            <form string="contact.message">
+                <sheet>
+                    <group>
+                        <field name="name" readonly="1"/>
+                        <field name="nom_complet" readonly="1"/>
+                        <field name="email" readonly="1"/>
+                        <field name="message" readonly="1"/>
+                        <field name="client" readonly="1"/>
+                        <field name="create_date" readonly="1" string="Date"/>
+
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_contact_message_tree" model="ir.ui.view">
+        <field name="name">contact.message.tree</field>
+        <field name="model">contact.message</field>
+        <field name="arch" type="xml">
+            <tree string="contact.message">
+                <field name="name"/>
+                <field name="nom_complet"/>
+                <field name="email"/>
+                <field name="message"/>
+                <field name="client"/>
+                <field name="create_date" string="Date"/>
+
+            </tree>
+        </field>
+    </record>
+
+    <!-- Définition de l'action -->
+    <record id="action_contact_message" model="ir.actions.act_window">
+        <field name="name">Messages du site</field>
+        <field name="res_model">contact.message</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_contact_message_sub_menu"
+              name="contact message"
+              sequence="50"
+              parent="menu_configuration_sub"
+              action="action_contact_message"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+    <menuitem id="menu_contact_message_sub_menu_resa"
+              name="contact message"
+              sequence="500"
+              action="action_contact_message"
+              groups="access_rights_groups.group_reservation"/>
+</odoo>

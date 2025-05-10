@@ -1,0 +1,241 @@
+<odoo>
+    <record id="paperformat_portrait" model="report.paperformat">
+        <field name="name">Portrait A4</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">5</field>
+        <field name="margin_bottom">5</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+    </record>
+    <template id="report_livraison_template_">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.basic_layout">
+
+<table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style=" padding: 0;">
+                <img src="/reservation/static/src/img/cartedevisitenew.png" alt="Carte de visite" style="width: 5cm; height: auto;"/>
+            </td>
+            <td style="width: 40%; text-align: center; padding: 0;">
+                <p style="font-size: 10px; margin: 0; font-family: Arial, Helvetica, sans-serif; line-height: 1.4;">  EURL SAFAR EL AMIR</p>
+            </td>
+            <td style="width: 30%; text-align: right; padding: 0;">
+                <p style="font-size: 10px; margin: 0; font-family: Arial, Helvetica, sans-serif; line-height: 1.4;">
+
+                    Service Livraison : 0561 61 14 15<br/>
+                    Service Réservation : +213 560 65 93 09
+                </p>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="3" style="text-align: center;">
+                <h4 style="margin: 0; font-family:Verdana, Geneva, Tahoma, sans-serif; #1d3c44">  CONTRAT DE LOCATION <br/> <em>N° SEA004167</em>  </h4>
+            </td>
+        </tr>
+    </table>
+
+
+
+                    <div style="font-size:13px;font-family: Arial, Helvetica, sans-serif; text-align: justify; ; margin-left:4px; margin-right:2px; "
+                         t-att-style="'background-image: url(/reservation/static/src/img/back.png);background-size: cover; background-position: center;'">
+
+                        <br/>
+
+
+                        <style>
+
+
+                            ul{ margin-left: -18px;}
+                            b {font-size: 15px; color: rgb(51, 39, 125);}
+
+                            li { margin-bottom: 8px;}
+
+                        </style>
+
+
+                        <ul>
+                            <li>
+                                <b>Identité du client :</b>
+                                <b style="font-size: 18px">
+                                    <mark>
+                                        <t t-esc="o.nom"/>
+                                        <t t-esc="o.prenom"/>
+                                    </mark>
+                                </b>
+                                - Né le
+                                <t t-esc="o.date_de_naissance"/>
+
+                            </li>
+                            <li>
+                                <b>Permis de conduire délivré le
+                                    <t t-esc="o.client.date_de_permis"/>
+                                </b>
+                            </li>
+                            <li>
+                                <b>2ème conducteur :</b>
+                                <t t-esc="o.nom_nd_condicteur"/>
+                                - Permis de conduire délivré le : 09/2015.
+                            </li>
+                            <li><b>Durée de location :</b>Du 12 déc. 2023 à 10:00 Au 15 déc. 2023 à 10:00
+                            </li>
+
+                            <li><b>Références du véhicule :</b>FIAT 500X Coupé Automatique Immatriculation :
+                                03534-123-31
+                            </li>
+                            <li><b>Montant de la location :</b>28 160 Dz algériens.
+                            </li>
+                            <li><b>Caution :</b>Le client doit déposer sa pièce d'identité originale valide + 77000 Dz
+                                de caution en espèces.
+                            </li>
+                            <li>
+                                <b>Carburant :</b>
+                                Votre véhicule est fourni avec le plein et doit être rendu avec le
+                                plein. Sinon, vous devrez régler 3000 Dz de frais,
+                            </li>
+                            <li><b>Prolongation :</b>Aucune demande de prolongation n'est garantie sauf si une
+                                autorisation préalable de Safar El Amir est obtenue. Toute prolongation non autorisée
+                                est soumise à une
+                                pénalité de 25000 Dz en plus du montant de la prolongation
+                            </li>
+                            <li>
+                                <b>Restitution avant délai :</b>
+                                Un remboursement des jours restants est possible
+                                uniquement si le véhicule est retourné plus de 4 jours avant la fin de la location. Le
+                                montant remboursé sera de 50% des jours non
+                                utilisés et crédité sur votre compte SAFAR EL AMIR pour une prochaine location, sans
+                                possibilité de remboursement en espèces.
+                            </li>
+
+                            <li><b>Heure et lieu de restitution :</b>Le véhicule doit être restitué à l'heure et au lieu
+                                mentionnés sur votre réservation. Tout retard est facturé au prix de 2000 Dz/heur. Tout
+                                changement d'heure de restitution peut entraîner des frais.
+                            </li>
+                            <li><b>Cas de Sinistre :</b> Le client s'engage à prendre en charge tout dégât constaté sur le véhicule, qu’il en soit responsable ou non, selon le constat établi par nos agents lors de la restitution. Le barème des dégradations est joint aux papiers du véhicule. <br/>
+Dans tous les cas, le montant réclamé ne peut en aucun cas dépasser le montant de la caution déposée. <br/> Nb :Les réparations du véhicule de location ne peuvent en aucun cas être effectuées par le locataire. Toute tentative de réparation par le locataire entraînera la perte des
+            protections souscrites et de la caution. <br/>
+        <strong style="color:  #1d3c44;">  En cas d’accident entraînant la mise hors service complète du véhicule, le contrat de location prendra fin immédiatement, sans préavis. Le locataire s’engage à informer SAFAR EL AMIR dans les plus brefs délais et à remplir tous les documents relatifs à l’incident (constat amiable, rapport de police, etc.).</strong>
+
+                            </li>
+                            <li>
+                                <b>Assurances :</b>
+                                Seuls le ou les conducteurs mentionnés sur le contrat bénéficient
+                                de l'assurance. Tout prêt ou sous-location à d'autres personnes est strictement
+                                interdit. En cas de sinistre survenant alors que le conducteur est en état d'ivresse ou
+                                n'est pas mentionné sur le contrat, le
+                                locataire sera tenu de rembourser intégralement les dommages du véhicule.
+                            </li>
+                            <li>
+                                <b>Assurance Protection Maximale:</b>
+                                Cette couverture inclut la protection des pneus
+                                et des vitres de portes , ainsi qu’une garantie contre le bris de glace. Elle permet
+                                également de bénéficier d’une caution réduite
+                                par rapport à l'assurance standard.
+                            </li>
+
+                            <li>
+                                <b>Rapatriement et dépannage :</b>
+                                En cas d'immobilisation du véhicule, quelle qu'en
+                                soit la cause (sauf en cas de panne due à une usure normale), les frais de dépannage
+                                seront entièrement à la charge du client pour un
+                                rapatriement jusqu'à nos garages. Aucun véhicule de substitution ou de remplacement ne
+                                sera fourni.
+                            </li>
+
+                            <li><b>Kilométrage :</b>Si vous n'avez pas souscrit à l'option de kilométrage illimité,
+                                veuillez noter que lekilométrage est limité à 250 km par jour ! Dépasser cette limite
+                                vous coûtera 120Dz par
+                                kilomètre. Les clients VIP bénéficient d'un quota de 270 km par jour.
+                            </li>
+
+                            <li>
+                                <b>Contravention :</b>
+                                Pendant la période de location, le client assume l'entière
+                                responsabilité des contraventions, des amendes, ainsi que du transport de produits
+                                interdits ou de toute activité non
+                                conforme à la loi.
+                            </li>
+
+
+                            <li>
+                                <b>Utilisation du véhicule : Le locataire s'engage à :</b>
+
+
+                                <br/>- Ne pas utiliser le véhicule pour des activités illégales ou douteuses, en
+                                violation
+                                de la loi
+                                nationale.
+                                <br/>- Ne pas conduire le véhicule sous l'influence de l'alcool, de drogues ou de tout
+                                autre
+                                produit
+                                stupéfiant.
+                                <br/>- Ne pas transporter de boissons alcoolisées, de drogues ou de tout autre produit
+                                stupéfiant
+                                dans le véhicule.
+
+                            </li>
+
+                            <li>
+                                <b>Conséquences en cas de non-respect du contrat : SAFAR EL AMIR se réserve le droit
+                                    de:
+                                </b>
+                                <br/>- Résilier le contrat de location avec effet immédiat, sans aucun remboursement
+                                pour les
+                                jours restants.
+                                <br/>- Bloquer la caution en vue du paiement des frais (sinistre, retard,
+
+                                nettoyage,pénalités,
+                                prolongation).
+                                <br/>- Refuser de louer un véhicule au locataire à l'avenir.
+                            </li>
+
+
+                        </ul>
+
+
+                        <table style="width: 100%; border-collapse: collapse;border-color: rgba(255,255,255,0); ">
+                            <tr>
+                                <td style="text-align: left; vertical-align: top; padding-right: 20px;">
+                                    <p>E.U.RL SAFAR EL AMIR
+                                        <br/>
+                                        <strong>Le Mar. 12/12/2023</strong>
+                                    </p>
+                                    <div style="height: 200px; width: 200px;">
+                                        <img t-att-src="'/reservation/static/src/img/cahchee.png'"
+                                             style="width: 4cm; height: 4cm; opacity: 1; background-position: 0cm -4cm;"/>
+                                    </div>
+                                </td>
+                                <td style="text-align: right; vertical-align: top;">
+                                    <p>LE LOCATAIRE
+                                        <br/>
+                                        <strong>(Signature avec mention 'Lu et approuvé')</strong>
+                                    </p>
+                                    <t t-if="o.signature">
+                                        <img t-att-src="'data:image/png;base64,' + (o.signature.decode('utf-8') if isinstance(o.signature, bytes) else o.signature)"
+                                             alt="Signature" style="max-width: 200px;"/>
+                                    </t>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </div>
+
+
+                </t>
+            </t>
+        </t>
+    </template>
+
+<record id="report_livraison" model="ir.actions.report">
+    <field name="name">Livraison Report</field>
+    <field name="model">livraison</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">reservation.report_livraison_template_</field>
+    <field name="report_file">reservation.report_livraison_template_</field>
+    <field name="print_report_name">'Contrat_Livraison_%s_%d' % (object.name.replace(' ', '_'), object.id)</field>
+    <field name="paperformat_id" ref="reservation.paperformat_portrait"/>
+    <field name="attachment_use" eval="False"/> <!-- Optionnel: désactive le stockage en pièce jointe -->
+</record></odoo>

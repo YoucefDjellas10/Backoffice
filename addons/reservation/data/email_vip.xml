@@ -1,0 +1,522 @@
+<odoo>
+    <data noupdate="1">
+        <record id="reservation.template_vippp" model="mail.template">
+            <field name="name">mise ajour card fidelite- vip</field>
+            <field name="model_id" ref="model_reservation"/>
+            <field name="subject">mise ajour card fidelite- vip</field>
+            <field name="email_from">djellasyoucef10@gmail.com</field>
+            <field name="email_to">samahdjellas10@gmail.com</field>
+            <field name="body_html" type="html">
+                <head>
+                    <meta charset="UTF-8"/>
+                    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+                    <meta name="x-apple-disable-message-reformatting"/>
+                    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+                    <meta content="telephone=no" name="format-detection"/>
+                    <title>mise a jour carte V I P</title>
+
+
+                </head>
+                <body class="body" style="width:100%;height:100%;padding:0;Margin:0">
+                    <div dir="ltr" class="es-wrapper-color" lang="fr" style="background-color:#FAFAFA">
+                        <table width="100%" cellspacing="0" cellpadding="0" class="es-wrapper"
+                               style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;padding:0;Margin:0;width:100%;height:100%;background-repeat:repeat;background-position:center top;background-color:#FAFAFA">
+                            <tr>
+                                <td valign="top" style="padding:0;Margin:0">
+                                    <table cellpadding="0" cellspacing="0" align="center" class="es-content"
+                                           style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important">
+                                        <tr>
+                                            <td align="center" class="es-info-area" style="padding:0;Margin:0">
+                                                <table align="center" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF"
+                                                       class="es-content-body"
+                                                       style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:transparent;width:600px">
+                                                    <tr>
+                                                        <td align="left" style="padding:10px;Margin:0">
+                                                            <table cellpadding="0" cellspacing="0" width="100%"
+                                                                   style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                                                                <tr>
+                                                                    <td align="center" valign="top"
+                                                                        style="padding:0;Margin:0;width:580px">
+                                                                        <table cellpadding="0" cellspacing="0"
+                                                                               width="100%"
+                                                                               style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                                                                            <tr>
+                                                                                <td align="center" class="es-infoblock"
+                                                                                    style="padding:0;Margin:0">
+                                                                                    <p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:18px;letter-spacing:0;color:#CCCCCC;font-size:12px">
+                                                                                        <a target="_blank" href=""
+                                                                                           style="mso-line-height-rule:exactly;text-decoration:underline;color:#CCCCCC;font-size:12px">
+                                                                                            www.safarelamir.com
+                                                                                        </a>
+                                                                                    </p>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table cellpadding="0" cellspacing="0" align="center" class="es-header"
+                                           style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important;background-color:transparent;background-repeat:repeat;background-position:center top">
+                                        <tr>
+                                            <td align="center" style="padding:0;Margin:0">
+                                                <table bgcolor="#ffffff" align="center" cellpadding="0" cellspacing="0"
+                                                       class="es-header-body"
+                                                       style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:transparent;width:600px">
+                                                    <tr>
+                                                        <td align="left"
+                                                            style="padding:0;Margin:0;padding-right:20px;padding-left:20px">
+                                                            <table cellpadding="0" cellspacing="0" width="100%"
+                                                                   style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                                                                <tr>
+                                                                    <td valign="top" align="center" class="es-m-p0r"
+                                                                        style="padding:0;Margin:0;width:560px">
+                                                                        <table cellpadding="0" cellspacing="0"
+                                                                               width="100%"
+                                                                               style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                                                                            <tr>
+                                                                                <td align="center"
+                                                                                    style="padding:0;Margin:0;padding-right:30px;padding-bottom:10px;padding-left:30px;font-size:0px"></td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td align="center"
+                                                                                    style="padding:2px;Margin:0;font-size:0">
+                                                                                    <table cellpadding="0"
+                                                                                           cellspacing="0" border="0"
+                                                                                           width="100%" height="100%"
+                                                                                           class="es-spacer"
+                                                                                           style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                                                                                        <tr>
+                                                                                            <td style="padding:0;Margin:0;background:none;height:1px;width:100%;margin:0px;border-bottom:1px solid #cccccc"></td>
+                                                                                        </tr>
+                                                                                    </table>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table cellpadding="0" cellspacing="0" align="center" class="es-content"
+                                           style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important">
+                                        <tr>
+                                            <td align="center" style="padding:0;Margin:0">
+                                                <table bgcolor="#ffffff" align="center" cellpadding="0" cellspacing="0"
+                                                       class="es-content-body"
+                                                       style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:#FFFFFF;width:600px">
+                                                    <tr>
+                                                        <td align="left"
+                                                            style="padding:0;Margin:0;padding-right:20px;padding-left:20px">
+                                                            <table cellpadding="0" cellspacing="0" width="100%"
+                                                                   style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                                                                <tr>
+                                                                    <td align="center" valign="top"
+                                                                        style="padding:0;Margin:0;width:560px">
+                                                                        <table cellpadding="0" cellspacing="0"
+                                                                               width="100%"
+                                                                               style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                                                                            <tr>
+                                                                                <td align="center"
+                                                                                    style="padding:0;Margin:0;padding-right:25px;padding-left:25px;font-size:0px">
+                                                                                    <img src="https://drive.google.com/uc?export=view&amp;id=1xatoAxUQMZGVUNYx1ezPGXuzTe6oEw5A"
+                                                                                         alt="" width="450"
+                                                                                         class="adapt-img"
+                                                                                         style="display:block;font-size:14px;border:0;outline:none;text-decoration:none"/>
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td align="center" class="es-m-txt-c"
+                                                                                    style="padding:0;Margin:0">
+
+                                                                                    <h1 style="Margin:0;padding-top: 15px; font-family:arial, 'helvetica neue', helvetica, sans-serif;mso-line-height-rule:exactly;letter-spacing:0;
+                      font-size:46px;font-style:normal;font-weight:bold;line-height:35px;color:#313131">Félicitations !,
+                                                                                    </h1>
+                                                                                    <h1 style="Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;mso-line-height-rule:exactly;letter-spacing:0;
+                      font-size:34px;font-style:normal;   font-weight:bold;line-height:65.2px; color:#f15f5f; padding-right: 4%;">
+                                                                                        [ 3020 points ]
+                                                                                    </h1>
+
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td align="left" class="es-m-txt-c"
+                                                                                    style="padding:0;Margin:0;padding-top:15px">
+                                                                                    <h3 style="font-family:arial, 'helvetica neue',
+                         helvetica, sans-serif;mso-line-height-rule:exactly;Margin:0;
+                         letter-spacing:0;font-size:18px;font-style:normal;font-weight:normal;line-height:24px;
+                         color:#333333">
+                                                                                        <strong>Bonjour <span t-field="object.client"/>,</strong>
+                                                                                    </h3>
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td align="left"
+                                                                                    style="padding:0;Margin:0;padding-bottom:10px;padding-top:10px">
+
+
+                                                                                    <p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue',
+                        helvetica, sans-serif;line-height:26px;letter-spacing:0;color:#333333;font-size:17px">Bravo pour
+                                                                                        avoir accumulé <strong>3020
+                                                                                            points</strong>!Vous faites
+                                                                                        partie de la catégorie
+
+                                                                                        <a href="#"
+                                                                                           title="programme Prime">
+                                                                                            <strong style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:24px;letter-spacing:0;color:#333333;font-size:18px">
+                                                                                                V I P
+                                                                                            </strong>
+                                                                                        </a>
+                                                                                        Cette étape
+                                                                                        franchie vous permet de profiter
+                                                                                        d’avantages uniques.
+                                                                                    </p>
+
+
+                                                                                    <h2 style="margin-top:50px;
+   text-align: center; margin-left: 25%; font-family:arial, 'helvetica neue', helvetica, sans-serif;mso-line-height-rule:exactly;letter-spacing:0;
+  font-size:20px;font-style:normal;
+  font-weight:bold;line-height:25px;
+  color:#ee4d4d; border-bottom:2px solid #ee4d4d; width: 40%; padding: 2.5%;text-align: center;">Mes avantages :
+                                                                                    </h2>
+
+
+                                                                                </td>
+                                                                            </tr>
+                                                                            <td style="padding:0;Margin:0">
+                                                                                <table style="width:100%; border-collapse:collapse;">
+                                                                                    <tr>
+
+                                                                                        <!-- Left Section with Image -->
+                                                                                        <td style="width:40%; vertical-align:top;">
+                                                                                            <img class="adapt-img"
+                                                                                                 src="https://drive.google.com/uc?export=view&amp;id=1-u6kq5aMNUA2GEnOUIxT9_RzImMNbqmx"
+                                                                                                 style="display:block; border:0; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; width:100%; "/>
+                                                                                        </td>
+
+                                                                                        <!-- Right Section with Text -->
+                                                                                        <td style="width:60%; ;  vertical-align:top;">
+
+                                                                                            <p style="margin-top: 8px;margin-left: 2px; mso-line-height-rule:exactly;font-family:arial, 'helvetica neue',
+                        helvetica, sans-serif;line-height:24px;letter-spacing:0; color:#10a55f; font-size:16px">
+                                                                                                &#x2714; Programmes de
+                                                                                                Points "💎"
+                                                                                                <br/>
+                                                                                                &#x2714; Ticket de
+                                                                                                parking inclus
+                                                                                                <br/>
+                                                                                                &#x2714; Lavage offert
+                                                                                                au retour
+                                                                                                <br/>
+                                                                                                &#x2714; Assistance
+                                                                                                dépannage 24/7
+                                                                                                <br/>
+                                                                                                &#x2714; Conducteur
+                                                                                                supplémentaire 🎁
+                                                                                                <br/>
+                                                                                                &#x2714; Kilométrage
+                                                                                                inclus : 275 km/jour.
+                                                                                                <br/>
+                                                                                                &#x2714; Assurance
+                                                                                                protection Maximale
+                                                                                                <br/>
+                                                                                                &#x2714; Siège bébé
+                                                                                                offert
+                                                                                                <br/>
+                                                                                                &#x2714; Remise² (-10%
+                                                                                                de Réduction)
+
+                                                                                            </p>
+
+
+                                                                                            <hr style="border:none; border-bottom:1px solid #cccccc; width:90%;"/>
+
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+
+
+                                                                            </td>
+
+
+                                                                            <tr>
+                                                                                <td align="left" class="es-text-7976"
+                                                                                    style="padding:0;Margin:0;padding-top:10px;padding-bottom:20px">
+
+                                                                                    <div style="text-align: center;">
+                                                                                        <a href="#" style="
+          text-decoration: none;
+          color: #fff;
+          background-color: #0cb151;
+          padding: 10px 20px;
+          border-radius: 5px;
+          font-size: 16px;
+          margin-top: 30px;
+          margin-bottom: 50px;
+          display: inline-block;
+          font-family: arial, 'helvetica neue', helvetica, sans-serif;
+          line-height: 16px;
+          letter-spacing: 0;
+      ">Accéder à mon compte
+                                                                                        </a>
+                                                                                    </div>
+
+
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+
+                                                                                <td align="left" class="es-text-1122"
+                                                                                    style="padding:0;Margin:0;padding-bottom:10px;padding-top:10px">
+
+                                                                                </td>
+                                                                            </tr>
+
+
+                                                                        </table>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td align="left"
+                                                            style="padding:0;Margin:0;padding-right:20px;padding-left:20px">
+                                                            <table cellpadding="0" cellspacing="0" width="100%"
+                                                                   style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                                                                <tr>
+                                                                    <td align="center" valign="top"
+                                                                        style="padding:0;Margin:0;width:560px">
+                                                                        <table cellpadding="0" cellspacing="0"
+                                                                               width="100%"
+                                                                               style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:separate;border-spacing:0px;border-radius:5px">
+                                                                            <tr>
+                                                                                <td align="left"
+                                                                                    style="padding:0;Margin:0;padding-bottom:10px">
+                                                                                    <p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:21px;letter-spacing:0;color:#333333;font-size:14px">
+                                                                                        ​
+                                                                                    </p>
+                                                                                    <p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:21px;letter-spacing:0;color:#333333;font-size:14px">
+                                                                                        Vous avez une question ?
+                                                                                        Envoyez-nous un e-mail à
+                                                                                        reservation@safarelamir.com
+                                                                                        ou appelez-nous sur Whatsapp :
+                                                                                    </p>
+                                                                                    <p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:21px;letter-spacing:0;color:#333333;font-size:14px">
+                                                                                        <br/>
+                                                                                        <a href="https://api.whatsapp.com/send?phone=213560659309"
+                                                                                           target="_blank"
+                                                                                           style="mso-line-height-rule:exactly;text-decoration:underline;color:#5C68E2;font-size:14px">
+                                                                                            WhatsApp : 00213 560 65 93
+                                                                                            09
+                                                                                        </a>
+                                                                                        <br/>
+                                                                                        WhatsApp : 00213 560
+                                                                                        74 39 33
+                                                                                    </p>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table cellpadding="0" cellspacing="0" align="center" class="es-footer"
+                                           style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important;background-color:transparent;background-repeat:repeat;background-position:center top">
+                                        <tr>
+                                            <td align="center" style="padding:0;Margin:0">
+                                                <table align="center" cellpadding="0" cellspacing="0"
+                                                       class="es-footer-body"
+                                                       style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:transparent;width:640px">
+                                                    <tr>
+                                                        <td align="left"
+                                                            style="padding:0;Margin:0;padding-right:20px;padding-left:20px;padding-bottom:20px">
+                                                            <table cellpadding="0" cellspacing="0" width="100%"
+                                                                   style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                                                                <tr>
+                                                                    <td align="left"
+                                                                        style="padding:0;Margin:0;width:560px">
+                                                                        <table cellpadding="0" cellspacing="0"
+                                                                               width="100%"
+                                                                               style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                                                                            <tr>
+                                                                                <td align="center"
+                                                                                    style="padding:0;Margin:0;padding-top:15px;padding-bottom:15px;font-size:0">
+                                                                                    <table cellpadding="0"
+                                                                                           cellspacing="0"
+                                                                                           class="es-table-not-adapt es-social"
+                                                                                           style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                                                                                        <tr>
+                                                                                            <td align="center"
+                                                                                                valign="top"
+                                                                                                style="padding:0;Margin:0;padding-right:40px">
+                                                                                                <a target="_blank"
+                                                                                                   href="https://www.facebook.com/safarelamir?_rdc=2_rdr"
+                                                                                                   style="mso-line-height-rule:exactly;text-decoration:underline;color:#333333;font-size:12px">
+                                                                                                    <img title="Facebook"
+                                                                                                         src="https://drive.google.com/uc?export=view&amp;id=1nWhMlh8UGZU_ZTQ8jI1OUuTTa5vhqZru"
+                                                                                                         alt="Fb"
+                                                                                                         width="32"
+                                                                                                         style="display:block;font-size:14px;border:0;outline:none;text-decoration:none"/>
+                                                                                                </a>
+                                                                                            </td>
+                                                                                            <td align="center"
+                                                                                                valign="top"
+                                                                                                style="padding:0;Margin:0;padding-right:40px">
+                                                                                                <a target="_blank"
+                                                                                                   href="https://www.instagram.com/safarelamir/?hl=fr"
+                                                                                                   style="mso-line-height-rule:exactly;text-decoration:underline;color:#333333;font-size:12px">
+                                                                                                    <img title="Instagram"
+                                                                                                         src="https://drive.google.com/uc?export=view&amp;id=1hTUIOYlpH2le1MItW4Cf_1I718mc6WHT"
+                                                                                                         alt="Inst"
+                                                                                                         width="32"
+                                                                                                         style="display:block;font-size:14px;border:0;outline:none;text-decoration:none"/>
+                                                                                                </a>
+                                                                                            </td>
+                                                                                            <td align="center"
+                                                                                                valign="top"
+                                                                                                style="padding:0;Margin:0;padding-right:40px">
+                                                                                                <a target="_blank"
+                                                                                                   href="https://www.youtube.com/@SAFARELAMIRDJELLAS"
+                                                                                                   style="mso-line-height-rule:exactly;text-decoration:underline;color:#333333;font-size:12px">
+                                                                                                    <img title="Youtube"
+                                                                                                         src="https://drive.google.com/uc?export=view&amp;id=1i9l3JKNK4EaK2aXAvQZoYBXHsvgDFT3V"
+                                                                                                         alt="Yt"
+                                                                                                         width="32"
+                                                                                                         style="display:block;font-size:14px;border:0;outline:none;text-decoration:none"/>
+                                                                                                </a>
+                                                                                            </td>
+                                                                                            <td align="center"
+                                                                                                valign="top"
+                                                                                                style="padding:0;Margin:0">
+                                                                                                <a target="_blank"
+                                                                                                   href="https://fr.linkedin.com/company/safar-el-amir"
+                                                                                                   style="mso-line-height-rule:exactly;text-decoration:underline;color:#333333;font-size:12px">
+                                                                                                    <img alt="In"
+                                                                                                         width="32"
+                                                                                                         title="LinkedIn"
+                                                                                                         src="https://drive.google.com/uc?export=view&amp;id=1oxTdKo8iwUL4t6On_OXwcPxLQ3-MR3RC"
+                                                                                                         style="display:block;font-size:14px;border:0;outline:none;text-decoration:none"/>
+                                                                                                </a>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    </table>
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td align="center"
+                                                                                    style="padding:0;Margin:0;padding-bottom:35px">
+                                                                                    <p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:18px;letter-spacing:0;color:#333333;font-size:12px">
+                                                                                        Copyright © 2003 SAFAR EL AMIR,
+                                                                                        Tous droits réservés.
+                                                                                    </p>
+                                                                                    <p style="Margin:0;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:18px;letter-spacing:0;color:#333333;font-size:12px">
+                                                                                        ​
+                                                                                    </p>
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td style="padding:0;Margin:0">
+                                                                                    <table cellpadding="0"
+                                                                                           cellspacing="0" width="100%"
+                                                                                           class="es-menu"
+                                                                                           style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                                                                                        <tr class="links">
+                                                                                            <td align="center"
+                                                                                                valign="top"
+                                                                                                width="33.33%"
+                                                                                                style="Margin:0;border:0;padding-bottom:5px;padding-top:5px;padding-right:5px;padding-left:5px">
+                                                                                                <a target="_blank"
+                                                                                                   href=""
+                                                                                                   style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#3d85c6;font-size:12px">
+                                                                                                    Visit Us
+                                                                                                </a>
+                                                                                            </td>
+                                                                                            <td align="center"
+                                                                                                valign="top"
+                                                                                                width="33.33%"
+                                                                                                style="Margin:0;border:0;padding-bottom:5px;padding-top:5px;padding-right:5px;padding-left:5px;border-left:1px solid #cccccc">
+                                                                                                <a target="_blank"
+                                                                                                   href=""
+                                                                                                   style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#3d85c6;font-size:12px">
+                                                                                                    Privacy Policy
+                                                                                                </a>
+                                                                                            </td>
+                                                                                            <td align="center"
+                                                                                                valign="top"
+                                                                                                width="33.33%"
+                                                                                                style="Margin:0;border:0;padding-bottom:5px;padding-top:5px;padding-right:5px;padding-left:5px;border-left:1px solid #cccccc">
+                                                                                                <a target="_blank"
+                                                                                                   href=""
+                                                                                                   style="mso-line-height-rule:exactly;text-decoration:none;font-family:arial, 'helvetica neue', helvetica, sans-serif;display:block;color:#3d85c6;font-size:12px">
+                                                                                                    Terms of Use
+                                                                                                </a>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    </table>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table cellpadding="0" cellspacing="0" align="center" class="es-content"
+                                           style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;width:100%;table-layout:fixed !important">
+                                        <tr>
+                                            <td align="center" class="es-info-area" style="padding:0;Margin:0">
+                                                <table align="center" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF"
+                                                       class="es-content-body"
+                                                       style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;background-color:transparent;width:600px">
+                                                    <tr>
+                                                        <td align="left" style="padding:20px;Margin:0">
+                                                            <table cellpadding="0" cellspacing="0" width="100%"
+                                                                   style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                                                                <tr>
+                                                                    <td align="center" valign="top"
+                                                                        style="padding:0;Margin:0;width:560px">
+                                                                        <table cellpadding="0" cellspacing="0"
+                                                                               width="100%"
+                                                                               style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px">
+                                                                            <tr>
+                                                                                <td align="center" class="es-infoblock"
+                                                                                    style="padding:0;Margin:0"></td>
+                                                                            </tr>
+                                                                        </table>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </body>
+            </field>
+        </record>
+    </data>
+</odoo>

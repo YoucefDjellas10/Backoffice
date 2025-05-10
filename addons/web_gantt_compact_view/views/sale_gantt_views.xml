@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_quotations_with_onboarding_gantt" model="ir.ui.view">
+        <field name="name">sale.order.view.gantt</field>
+        <field name="model">sale.order</field>
+        <field name="arch" type="xml">
+            <ganttview                
+                date_start = "date_order" 
+                date_stop = "validity_date"
+                round_dnd_dates = "false"
+                default_scale = "month"
+            />   
+        </field>
+    </record>
+
+
+    <record id="sale.action_quotations_with_onboarding" model="ir.actions.act_window">
+        <field name="view_mode">tree,kanban,form,calendar,pivot,graph,activity,ganttview</field>
+    </record>
+
+</odoo>

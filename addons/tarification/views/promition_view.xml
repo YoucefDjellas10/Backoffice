@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_promotion_form" model="ir.ui.view">
+        <field name="name">promotion.form</field>
+        <field name="model">promotion</field>
+        <field name="arch" type="xml">
+            <form string="promotion">
+                <sheet>
+                    <group>
+                        <groupe>
+                            <group class="custom-group">
+                                <field name="name"/>
+                                <field name="date_debut" widget="daterange" string="Dates de promition"
+                                       options="{'end_date_field': 'date_fin'}"/>
+                                <field name="date_fin" invisible="1"/>
+                                <field name="active_passive"/>
+                                <field name="tout_modele" widget="radio"/>
+                                <field name="modele" invisible="tout_modele != 'non'" widget="many2many_tags"/>
+                                <field name="nbr_model" invisible="tout_modele != 'aleatoire'"/>
+                            </group>
+                        </groupe>
+                        <group class="custom-group">
+                            <field name="tout_zone" widget="radio"/>
+                            <field name="zone" widget="many2many_tags" invisible="tout_zone != 'non'"/>
+                            <field name="debut_visibilite" widget="daterange" string="Dates de visibilité"
+                                   options="{'end_date_field': 'fin_visibilite'}"/>
+                            <field name="fin_visibilite" invisible="1"/>
+                            <field name="code_promo"/>
+                            <field name="reduction"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_promotion_tree" model="ir.ui.view">
+        <field name="name">promotion.tree</field>
+        <field name="model">promotion</field>
+        <field name="arch" type="xml">
+            <tree string="promotion">
+                <field name="name"/>
+                <field name="active_passive"/>
+                <field name="zone"/>
+                <field name="tout_modele" string="Appliquable"/>
+                <field name="modele"/>
+                <field name="date_debut"/>
+                <field name="date_fin"/>
+                <field name="debut_visibilite"/>
+                <field name="fin_visibilite"/>
+                <field name="code_promo"/>
+                <field name="reduction"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Définition de l'action -->
+    <record id="action_promotion" model="ir.actions.act_window">
+        <field name="name">Promotion</field>
+        <field name="res_model">promotion</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_promotion_sub"
+              name="Promotion"
+              sequence="8"
+              parent="menu_tarifications"
+              action="action_promotion"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

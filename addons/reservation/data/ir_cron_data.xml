@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="ir_cron_optimize_reservations" model="ir.cron">
+            <field name="name">Optimize Vehicle Reservations</field>
+            <field name="model_id" ref="model_modele"/>
+            <field name="state">code</field>
+            <field name="code">model.optimize_reservations()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall">False</field>
+        </record>
+
+        <!--        <record id="action_optimize_all_reservations" model="ir.actions.server">-->
+        <!--            <field name="name">Optimisation Ouest</field>-->
+        <!--            <field name="model_id" ref="model_reservation"/>-->
+        <!--            <field name="binding_model_id" ref="model_reservation"/>-->
+        <!--            <field name="state">code</field>-->
+        <!--            <field name="code">action = model.optimize_all_reservations()</field>-->
+        <!--        </record>-->
+    </data>
+</odoo>

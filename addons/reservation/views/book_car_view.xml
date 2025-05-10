@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_book_car_form" model="ir.ui.view">
+        <field name="name">book.car.form</field>
+        <field name="model">book.car</field>
+        <field name="arch" type="xml">
+            <form string="book car">
+                <sheet>
+                    <group> <groupe>
+                        <group class="custom-group" >
+                            <field name="lieu_depart"/>
+                            <field name="zone" invisible="1"/>
+                            <field name="date_depart"/>
+                            <field name="heure_debut"/>
+                            <field name="heure_debut_float" invisible="1"/>
+                        </group> </groupe>
+                        <group class="custom-group" >
+                            <field name="lieu_retour"/>
+                            <field name="date_retour"/>
+                            <field name="heure_fin"/>
+                            <field name="heure_fin_float" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_book_car_tree" model="ir.ui.view">
+        <field name="name">book.car.tree</field>
+        <field name="model">book.car</field>
+        <field name="arch" type="xml">
+            <tree string="book car">
+                <field name="name"/>
+                <field name="lieu_depart"/>
+                <field name="lieu_retour"/>
+                <field name="date_depart"/>
+                <field name="date_retour"/>
+                <field name="heure_debut"/>
+                <field name="heure_fin"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Définition de l'action -->
+    <record id="action_book_car" model="ir.actions.act_window">
+        <field name="name">Recherche Disponibilité</field>
+        <field name="res_model">book.car</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_book_car_sub_menu"
+              name="Recherche Disponibilité"
+              sequence="50"
+              parent="menu_configuration_sub"
+              action="action_book_car"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

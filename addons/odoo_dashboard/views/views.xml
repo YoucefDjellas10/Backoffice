@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!--    Action Client -->
+    <record id="project_dashboard_action" model="ir.actions.client">
+        <field name="name">Project Dashboard</field>
+        <field name="tag">project_dashboard_main</field>
+    </record>
+
+    <!--  Menu Item  -->
+    <menuitem id="project_menu_dashboard" name="Project Dashboard"
+              sequence="1"
+              action="project_dashboard_action"
+              parent="project.menu_main_pm"/>
+
+    <!--    Action Remplissage -->
+    <record id="remplissage_dashboard_action" model="ir.actions.client">
+        <field name="name">Remplissage</field>
+        <field name="tag">remplissage_dashboard_main</field>
+    </record>
+
+    <!--  Menu Item  -->
+<!--    <menuitem id="remplissage_menu_dashboard"-->
+<!--              name="Remplissage"-->
+<!--              sequence="100"-->
+<!--              action="remplissage_dashboard_action"-->
+<!--              parent="reservation.menu_planning"/>-->
+
+    <!--    Action Remplissage -->
+    <record id="recette_dashboard_action" model="ir.actions.client">
+        <field name="name">Recette</field>
+        <field name="tag">recette_dashboard_main</field>
+    </record>
+
+    <!--    Action Previsionnaire -->
+    <record id="previsionnaire_dashboard_action" model="ir.actions.client">
+        <field name="name">Prévisionnaire</field>
+        <field name="tag">previsionnaire_dashboard_main</field>
+    </record>
+
+    <!--    Action dépenses -->
+    <record id="depense_dashboard_action" model="ir.actions.client">
+        <field name="name">Dépenses</field>
+        <field name="tag">depense_dashboard_main</field>
+    </record>
+
+    <!--  Menu Item  -->
+    <menuitem id="tableau_de_bord_menu_dashboard"
+              name="Tableau de bord"
+              sequence="99" groups="access_rights_groups.group_admin"/>
+
+    <menuitem id="recette_menu_dashboard"
+              name="Recette"
+              sequence="0"
+              action="recette_dashboard_action"
+              parent="tableau_de_bord_menu_dashboard"
+              groups="access_rights_groups.group_admin"/>
+
+    <menuitem id="previsionnaire_menu_dashboard"
+              name="Prévisionnaire"
+              sequence="1"
+              action="previsionnaire_dashboard_action"
+              parent="tableau_de_bord_menu_dashboard"
+              groups="access_rights_groups.group_admin"/>
+
+    <menuitem id="depense_menu_dashboard"
+              name="Dépense"
+              sequence="2"
+              action="depense_dashboard_action"
+              groups="access_rights_groups.group_admin"
+              parent="tableau_de_bord_menu_dashboard"/>
+
+</odoo>

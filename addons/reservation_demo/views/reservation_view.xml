@@ -1,0 +1,95 @@
+<odoo>
+    <!-- Form View -->
+    <record id="view_reservation_demo_form" model="ir.ui.view">
+        <field name="name">reservation.demo.form</field>
+        <field name="model">reservation.demo</field>
+        <field name="arch" type="xml">
+            <form string="reservation demo">
+                <sheet>
+                    <group>
+                        <field name="name" />
+                        <field name="car" />
+                        <field name="model" />
+                        <field name="start_date" />
+                        <field name="end_date" />
+                        <field name="color" widget="color_picker" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree View -->
+    <record id="view_reservation_demo_tree" model="ir.ui.view">
+        <field name="name">reservation.demo.tree</field>
+        <field name="model">reservation.demo</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+                <field name="car" />
+                <field name="model" />
+                <field name="start_date" />
+                <field name="end_date" />
+                <field name="color" widget="color_picker" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="reservation_demo_gantt" model="ir.ui.view">
+        <field name="name">reservation.demo.gantt</field>
+        <field name="model">reservation.demo</field>
+        <field name="arch" type="xml">
+            <gantt
+                string="Gantt reservation"
+                date_start="start_date"
+                date_stop="end_date"
+                mode="year"
+                color="color"
+                event_open_popup="true"
+                hide_time="0"
+                resource_width_percentage="10%"
+                slot_min_width="70"
+                quick_add="true"
+                hide_event_title="1"
+                class="o_gantt_view_single_color_bar o_gantt_view_date_marked o_gantt_view_reservation"
+                event_time_format_digits="1"
+                event_time_display_far="1"
+                datetime_scale="1"
+                datetime_scale_hour="20"
+                header_label_format='{"week": [{"weekday": "short", "day": "numeric", "month": "numeric"}], "month": [{"weekday": "short", "day": "numeric", "month": "numeric"}], "year": [{"weekday": "short", "day": "numeric", "month": "numeric"}]}'
+            >
+                <field name="model" is_resource_group_field="1" />
+                <field name="car" />
+                <templates>
+                    <field name="model" widget="badge" decoration-info="model" />
+                    <field name="car" />
+                    <field name="create_date" />
+                    <field
+                        name="start_date"
+                        widget="daterange"
+                        string="Du ➝ Au"
+                        options="{'end_date_field': 'end_date'}"
+                    />
+                    <field name="end_date" invisible="1" />
+                </templates>
+            </gantt>
+        </field>
+    </record>
+
+
+    <!-- Action -->
+    <record id="action_reservation_demo" model="ir.actions.act_window">
+        <field name="name">Planning demo</field>
+        <field name="res_model">reservation.demo</field>
+        <field name="view_mode">gantt,tree,form</field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem
+        id="menu_reservation_demo"
+        name="Planning demo"
+        action="action_reservation_demo"
+        sequence="0"
+        groups="access_rights_groups.group_ceo"
+    />
+</odoo>

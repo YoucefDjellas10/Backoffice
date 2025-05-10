@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_solde_parrainage_form" model="ir.ui.view">
+        <field name="name">solde.parrainage.form</field>
+        <field name="model">solde.parrainage</field>
+        <field name="arch" type="xml">
+            <form string="solde parrainage">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="dinar" invisible="1"/>
+                            <field name="parrain_solde"/>
+                            <field name="parrain_solde_da"/>
+                        </group>
+                        <group>
+                            <field name="euro" invisible="1"/>
+                            <field name="filleul_solde"/>
+                            <field name="filleul_solde_da"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_solde_parrainage_tree" model="ir.ui.view">
+        <field name="name">solde.parrainage.tree</field>
+        <field name="model">solde.parrainage</field>
+        <field name="arch" type="xml">
+            <tree string="solde_parrainage">
+                <field name="name"/>
+                <field name="dinar"/>
+                <field name="euro"/>
+                <field name="parrain_solde"/>
+                <field name="parrain_solde_da"/>
+                <field name="filleul_solde"/>
+                <field name="filleul_solde_da"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_solde_parrainage" model="ir.actions.act_window">
+        <field name="name">solde parrainage</field>
+        <field name="res_model">solde.parrainage</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_solde_parrainage_two" model="ir.actions.act_window">
+        <field name="name">Solde parrainage</field>
+        <field name="res_model">solde.parrainage</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_solde_parrainage_form"/>
+        <field name="target">current</field>
+        <field name="context">{'default_id': 1, 'create': 0, 'delete': 0}</field>
+        <field name="res_id">1</field>
+    </record>
+
+
+    <menuitem id="menu_solde_parrainage_sub"
+              sequence="50"
+              name="Solde parrainage"
+              parent="menu_configuration"
+              action="action_solde_parrainage"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

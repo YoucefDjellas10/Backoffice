@@ -1,0 +1,854 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <record id="reservation_view_form" model="ir.ui.view">
+            <field name="name">reservation.form</field>
+            <field name="model">reservation</field>
+            <field name="arch" type="xml">
+                <form string="reservation">
+                    <sheet>
+
+                        <header>
+
+                            <field name="status" widget="statusbar"/>
+                        </header>
+                        <notebook>
+
+                            <page string="Résumé">
+                                <div style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin: 10px; position: relative;">
+                                    <span style="position: absolute; top: -12px; left: 10px; background-color: white; padding: 0 5px; font-weight: bold; color: #2F336B;font-size: 18px;">
+                                        Sommaire
+                                    </span>
+                                    <group style="margin-left: 200px;">
+                                        <field name="name" string="Référence" readonly="1" decoration-bf="1"
+                                               default="contextual_default_function" unique="1"/>
+
+                                        <field name="etat_reservation" invisible="1"/>
+                                        <field name="total_reduit_euro" decoration-bf="total_reduit_euro"/>
+                                        <field name="montant_paye" readonly="1" decoration-bf="total_reduit_euro"/>
+                                        <field name="reste_payer" readonly="1" decoration-bf="total_reduit_euro"/>
+
+                                        <field name="status" decoration-bf="1"/>
+
+                                        <field name="color_tag" widget="color_picker" invisible="1"/>
+                                        <field name="create_date_trimmed" string="Date de réservation"
+                                               decoration-bf="1"/>
+                                        <field name="date_heure_debut" widget="daterange" string="Du ➝ Au"
+                                               options="{'end_date_field': 'date_heure_fin'}" invisible="1"/>
+
+                                        <field name="date_heure_fin" invisible="1"/>
+                                        <field name="date_retour_avance" readonly="1" widget="badge" invisible="1"/>
+
+
+                                    </group>
+                                </div>
+                                <br/>
+                                <div style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin: 10px; position: relative;">
+                                    <span style="position: absolute; top: -12px; left: 10px; background-color: white; padding: 0 5px; font-weight: bold; color: #2F336B; font-size: 18px;">
+                                        Client / conducteur(s)
+                                    </span>
+                                    <br/>
+                                    <group style="margin-left:20px;">
+
+                                        <table class="table table-bordered table-striped o_list_view"
+                                               style="width: 1360px;">
+                                            <thead>
+                                                <tr style="background-color: #2F336B;  color: white;">
+                                                    <th>Client</th>
+                                                    <th>Date permis</th>
+                                                    <th>Date de naissance</th>
+                                                    <th>Téléphone</th>
+                                                    <th>Email</th>
+                                                    <th>Risque</th>
+                                                    <th>Code prime</th>
+                                                    <th>Catégorie client</th>
+                                                    <th>Solde</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <field name="client" nolabel="1" readonly="1"
+                                                               decoration-bf="1"/>
+                                                    </td>
+                                                    <td>
+                                                        <field name="permis_date" readonly="1" nolabel="1"
+                                                               decoration-bf="1"/>
+                                                    </td>
+                                                    <td>
+                                                        <field name="date_de_naissance" readonly="1" nolabel="1"
+                                                               decoration-bf="1"/>
+                                                    </td>
+
+                                                    <td>
+                                                        <field name="telephone" nolabel="1"
+                                                               decoration-bf="1"/>
+                                                    </td>
+                                                    <td>
+                                                        <field name="email" nolabel="1"
+                                                               decoration-bf="1"/>
+                                                    </td>
+                                                    <td>
+                                                        <field name="risque" widget="badge"
+                                                               decoration-success="risque == 'faible'"
+                                                               decoration-warning="risque == 'moyen'"
+                                                               decoration-danger="risque == 'eleve'" nolabel="1"/>
+                                                    </td>
+                                                    <td>
+                                                        <field name="code_prime"
+                                                               decoration-bf="code_prime"
+                                                               decoration-danger="code_prime" nolabel="1"/>
+                                                    </td>
+                                                    <td>
+                                                        <field name="categorie_client" widget="badge"
+                                                               decoration-success="categorie_client == 4"
+                                                               decoration-danger="categorie_client == 1"
+                                                               decoration-info="categorie_client == 3"
+                                                               decoration-warning="categorie_client == 2" nolabel="1"/>
+                                                    </td>
+                                                    <td>
+                                                        <field name="solde" nolabel="1"/>
+                                                    </td>
+                                                </tr>
+                                                <tr invisible="not nd_client">
+                                                    <td>
+                                                        <field name="nd_client" nolabel="1" readonly="1"
+                                                               decoration-bf="1"/>
+                                                    </td>
+                                                    <td>
+                                                        <field name="permis_date_nd" readonly="1" nolabel="1"
+                                                               decoration-bf="1"/>
+                                                    </td>
+                                                    <td>
+                                                        <field name="date_de_naissance_nd" readonly="1" nolabel="1"
+                                                               decoration-bf="1"/>
+                                                    </td>
+
+                                                    <td>
+                                                        <field name="telephone_nd" nolabel="1"
+                                                               decoration-bf="1"/>
+                                                    </td>
+                                                    <td>
+                                                        <field name="email_nd" nolabel="1"
+                                                               decoration-bf="1"/>
+                                                    </td>
+                                                    <td>
+                                                        <field name="risque_nd" widget="badge"
+                                                               decoration-success="risque == 'faible'"
+                                                               decoration-warning="risque == 'moyen'"
+                                                               decoration-danger="risque == 'eleve'" nolabel="1"/>
+                                                    </td>
+                                                    <td>
+                                                        <field name="code_prime_nd"
+                                                               decoration-bf="code_prime"
+                                                               decoration-danger="code_prime" nolabel="1"/>
+                                                    </td>
+                                                    <td>
+                                                        <field name="categorie_client_nd" widget="badge"
+                                                               decoration-success="categorie_client == 4"
+                                                               decoration-danger="categorie_client == 1"
+                                                               decoration-info="categorie_client == 3"
+                                                               decoration-warning="categorie_client == 2" nolabel="1"/>
+                                                    </td>
+                                                    <td>
+                                                        <field name="solde_nd" nolabel="1"/>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <br/>
+                                        <br/>
+                                        <field name="solde_reduit" readonly="1" invisible="1"/>
+                                    </group>
+                                </div>
+                                <br/>
+                                <div style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin: 10px; position: relative;">
+                                    <span style="position: absolute; top: -12px; left: 10px; background-color: white; padding: 0 5px; font-weight: bold; color: #2F336B; font-size: 18px;">
+                                        location
+                                    </span>
+                                    <group style="margin-left: 200px;">
+                                        <field name="vehicule" readonly="1" decoration-bf="1"/>
+                                        <field name="modele" decoration-bf="1"/>
+                                        <field name="lieu_depart" invisible="1"/>
+                                        <field name="zone" invisible="1"/>
+                                        <field name="lieu_retour" readonly="not lieu_depart" invisible="1"/>
+                                        <field name="depart_retour" decoration-bf="1"/>
+                                        <field name="ancien_lieu" decoration-bf="1" readonly="1"
+                                               invisible="not ancien_lieu"/>
+                                        <field name="du_au" decoration-bf="1"/>
+                                        <field name="du_au_modifier" decoration-bf="1" readonly="1" invisible="not du_au_modifier"/>
+                                        <field name="duree_dereservation" decoration-bf="1"/>
+                                        <field name="annuler_raison" invisible="status != 'annule'"/>
+                                        <field name="rejet_raison" invisible="status != 'rejete'"/>
+                                        <field name="prolonge" invisible="prolonge == 'non'" readonly="1"
+                                               widget="badge" decoration-primary="prolonge != 'non'"/>
+                                        <field name="options_gratuit" widget="many2many_tags"
+                                               invisible="not options_gratuit"/>
+                                        <field name="currency_id_reduit" invisible="1"/>
+                                    </group>
+                                </div>
+                                <br/>
+                                <div style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin: 10px; position: relative;">
+                                    <span style="position: absolute; top: -12px; left: 10px; background-color: white; padding: 0 5px; font-weight: bold; color: #2F336B; font-size: 18px;">
+                                        Option
+                                    </span>
+                                    <!--                                    <group style="margin-left: 200px;">-->
+                                    <!--                                        <field name="opt_payment" invisible="1"/>-->
+                                    <!--                                        <field name="opt_payment_price" invisible="1"/>-->
+                                    <!--                                        <field name="opt_payment_total" decoration-bf="1"/>-->
+                                    <!--                                        <field name="opt_klm" invisible="1"/>-->
+                                    <!--                                        <field name="opt_klm_price" invisible="1"/>-->
+                                    <!--                                        <field name="opt_kilometrage" invisible="1"/>-->
+                                    <!--                                        <field name="opt_klm_total" decoration-bf="1"/>-->
+                                    <!--                                        <field name="opt_protection" invisible="1"/>-->
+                                    <!--                                        <field name="opt_protection_price" invisible="1"/>-->
+                                    <!--                                        <field name="opt_protection_caution" invisible="1"/>-->
+                                    <!--                                        <field name="opt_protection_total" decoration-bf="1"/>-->
+                                    <!--                                        <field name="opt_nd_driver" invisible="1"/>-->
+                                    <!--                                        <field name="opt_nd_driver_price" invisible="1"/>-->
+                                    <!--                                        <field name="opt_nd_driver_total" decoration-bf="1"/>-->
+                                    <!--                                        <field name="opt_plein_carburant" invisible="1"/>-->
+                                    <!--                                        <field name="opt_plein_carburant_prix" invisible="1"/>-->
+                                    <!--                                        <field name="opt_plein_carburant_total" decoration-bf="1"/>-->
+                                    <!--                                        <field name="opt_siege_a" invisible="1"/>-->
+                                    <!--                                        <field name="opt_siege_a_prix" invisible="1"/>-->
+                                    <!--                                        <field name="opt_siege_a_total" decoration-bf="1"/>-->
+                                    <!--                                        <field name="opt_siege_b" invisible="1"/>-->
+                                    <!--                                        <field name="opt_siege_b_prix" invisible="1"/>-->
+                                    <!--                                        <field name="opt_siege_b_total" decoration-bf="1"/>-->
+                                    <!--                                        <field name="opt_siege_c" invisible="1"/>-->
+                                    <!--                                        <field name="opt_siege_c_prix" invisible="1"/>-->
+                                    <!--                                        <field name="opt_siege_c_total" decoration-bf="1"/>-->
+
+                                    <!--                                        <br/>-->
+
+                                    <!--                                        <field name="solde_reduit" readonly="1" invisible="1"/>-->
+                                    <!--                                    </group>-->
+                                    <br/>
+
+                                    <table class="table table-bordered table-striped o_list_view" style="width: 100%;">
+                                        <thead>
+                                            <tr style="background-color: #2F336B; color: white;">
+                                                <th>Nom de l'option</th>
+                                                <th groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">Prix initaire</th>
+                                                <th groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">Nombre de jours</th>
+                                                <th groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Option Paiement -->
+                                            <tr invisible="opt_payment_name == False">
+                                                <td>
+                                                    <field name="opt_payment_name" nolabel="1" decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_payment_price" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="nbr_jour_reservation" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_payment_total" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                            </tr>
+                                            <!-- Option Kilométrage -->
+                                            <tr invisible="opt_klm_name == False">
+                                                <td>
+                                                    <field name="opt_klm_name" nolabel="1" decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_klm_price" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="nbr_jour_reservation" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_klm_total" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                            </tr>
+                                            <!-- Option Protection -->
+                                            <tr invisible="opt_protection_name== False">
+                                                <td>
+                                                    <field name="opt_protection_name" nolabel="1" decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_protection_price" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="nbr_jour_reservation" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_protection_total" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                            </tr>
+                                            <!-- Option 2nd conducteur -->
+                                            <tr invisible="opt_nd_driver_name== False">
+                                                <td>
+                                                    <field name="opt_nd_driver_name" nolabel="1" decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_nd_driver_price" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="nbr_jour_reservation" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_nd_driver_total" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                            </tr>
+                                            <!-- Option Plein carburant -->
+                                            <tr invisible="opt_plein_carburant_name== False">
+                                                <td>
+                                                    <field name="opt_plein_carburant_name" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_plein_carburant_prix" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="nbr_jour_reservation" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_plein_carburant_total" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                            </tr>
+                                            <!-- Option Siège A -->
+                                            <tr invisible="opt_siege_a_name== False">
+                                                <td>
+                                                    <field name="opt_siege_a_name" nolabel="1" decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_siege_a_prix" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="nbr_jour_reservation" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_siege_a_total" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                            </tr>
+                                            <!-- Option Siège B -->
+                                            <tr invisible="opt_siege_b_name== False">
+                                                <td>
+                                                    <field name="opt_siege_b_name" nolabel="1" decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_siege_b_prix" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="nbr_jour_reservation" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_siege_b_total" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                            </tr>
+                                            <!-- Option Siège C -->
+                                            <tr invisible="opt_siege_c_name== False">
+                                                <td>
+                                                    <field name="opt_siege_c_name" nolabel="1" decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_siege_c_prix" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="nbr_jour_reservation" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                                <td style="text-align: center;" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                    <field name="opt_siege_c_total" readonly="1" nolabel="1"
+                                                           decoration-bf="1"/>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div style="margin-left: 15px;">
+                                        <span style="color: red;">
+                                            <strong>Caution :</strong>
+                                        </span>
+                                        <field name="opt_protection_caution" readonly="1" nolabel="1" decoration-bf="1"
+                                               class="margin-left-10"/>
+                                    </div>
+
+
+                                </div>
+                                <br/>
+                                <div style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin: 10px; position: relative;">
+                                    <span style="position: absolute; top: -12px; left: 10px; background-color: white; padding: 0 5px; font-weight: bold; color: #2F336B; font-size: 18px;">
+                                        Info vol
+                                    </span>
+                                    <group style="margin-left: 200px;">
+                                        <field name="num_vol" readonly="1" decoration-bf="1"/>
+                                    </group>
+                                </div>
+
+
+                            </page>
+
+                            <page string="Note Livreur">
+                                <group>
+                                    <group string="Livraison">
+                                        <field name="note_lv_d"/>
+                                    </group>
+                                    <groupe>
+                                        <group string="Réstitution">
+                                            <field name="note_lv_r"/>
+                                        </group>
+                                    </groupe>
+                                </group>
+                            </page>
+                            <page string="for testing" groups="access_rights_groups.group_admin">
+                                <group>
+                                    <group>
+                                        <field name="date_heure_debut"/>
+                                        <field name="date_heure_fin"/>
+                                        <field name="duree_dereservation"/>
+                                        <field name="lieu_depart"/>
+                                        <field name="lieu_retour"/>
+                                        <field name="vehicule"/>
+                                        <field name="client"/>
+                                        <field name="client_create_date"/>
+                                        <field name="nd_client"/>
+                                        <field name="lieu_depart"/>
+                                        <field name="opt_payment"/>
+                                        <field name="opt_klm"/>
+                                        <field name="opt_protection"/>
+                                        <field name="opt_nd_driver"/>
+                                        <field name="opt_plein_carburant"/>
+                                        <field name="opt_siege_a"/>
+                                        <field name="opt_siege_b"/>
+                                        <field name="opt_siege_c"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Tarifs" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                <group>
+                                    <group>
+                                        <groupe>
+                                            <group string="info tarifs">
+                                                <field name="frais_de_dossier"/>
+                                                <field name="prix_jour" invisible="not prix_jour"/>
+                                                <field name="nbr_jour_one" invisible="not nbr_jour_one"
+                                                       readonly="1"/>
+                                                <field name="prix_jour_two" invisible="not prix_jour_two"
+                                                       readonly="1"/>
+                                                <field name="nbr_jour_two" invisible="not nbr_jour_two"
+                                                       readonly="1"/>
+                                                <field name="frais_de_livraison"/>
+                                                <field name="supplements"/>
+                                                <field name="retour_tard"/>
+                                            </group>
+
+
+                                        </groupe>
+                                        <group string="info tarifs brute">
+                                            <field name="total_afficher"/>
+                                            <field name="prix_jour_afficher"/>
+                                            <field name="options_total"/>
+                                            <field name="total"/>
+                                        </group>
+                                    </group>
+                                    <group>
+                                        <group string="info tarifs réduit"
+                                               style="margin-left:-1cm;">
+                                            <field name="reduction"/>
+                                            <field name="total_afficher_reduit"/>
+                                            <field name="prix_jour_afficher_reduit"/>
+                                            <field name="options_total_reduit"/>
+                                            <field name="total_reduit"/>
+                                            <field name="total_degrader" readonly="1"/>
+                                            <field name="total_ecce_klm" readonly="1"/>
+                                        </group>
+                                    </group>
+                                </group>
+                            </page>
+
+                            <page string="Prolongation">
+                                <header>
+                                    <button name="action_open_prolongation_popup" string="Prolonger" type="object"
+                                            class="btn-primary"/>
+                                </header>
+                                <field name="prolongation" readonly="1" invisible="not prolongation">
+                                    <tree string="prolongation">
+                                        <field name="stage" widget="badge"
+                                               decoration-warning="stage == 'en_attend'"
+                                               decoration-success="stage == 'confirmee'"/>
+                                        <button name="action_verifier_disponibilite" type="object"
+                                                string="⚡"/>
+                                        <field name="date_fin_un"/>
+                                        <field name="date_prolonge"/>
+                                        <field name="nb_jour_prolonge_l"/>
+                                        <field name="heure_prolonge_l"/>
+                                        <field name="devise" optional="hide"/>
+                                        <field name="prix_prolongation_devise"/>
+                                        <button string="✅" type="object" name="action_confirm"/>
+                                    </tree>
+                                </field>
+                                <group>
+                                    <group>
+                                    </group>
+                                    <group>
+                                        <group>
+                                        </group>
+                                        <group>
+                                            <field name="total_prolone" invisible="not prolongation"/>
+                                        </group>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Retour a l'avance">
+                                <header>
+                                    <button name="create_retour_avance"
+                                            string="Retour à l'avance"
+                                            type="object"
+                                            class="oe_highlight"/>
+                                </header>
+                                <sheet invisible="not retour_avace_ids">
+                                    <group>
+                                        <group>
+                                            <field name="retour_avance" readonly="1" invisible="not retour_avace_ids"/>
+                                        </group>
+                                        <group>
+                                            <field name="date_retour_avance" readonly="1"
+                                                   invisible="not retour_avace_ids"/>
+                                        </group>
+                                        <br/>
+                                        <br/>
+                                        <field name="retour_avace_ids" readonly="1" invisible="not retour_avace_ids"/>
+                                    </group>
+                                </sheet>
+                            </page>
+                            <page string="Livraison" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                <field name="livraison" readonly="1">
+                                    <tree string="livraison" default_order="action_date asc">
+                                        <field name="lv_type" widget="badge"
+                                               decoration-success="lv_type == 'livraison'"
+                                               decoration-warning="lv_type != 'livraison'"/>
+                                        <field name="action_date"/>
+                                        <field name="action_lieu"/>
+                                        <field name="livrer_par" widget="many2one_avatar_user"/>
+                                        <field name="lv_note"/>
+                                        <field name="kilomtrage"/>
+                                    </tree>
+                                </field>
+                                <group>
+                                    <field name="klm_moyen" invisible="not klm_moyen"/>
+                                    <field name="klm_moyen_int" invisible="not klm_moyen_int"/>
+                                </group>
+                            </page>
+
+                            <page string="Bottons test" groups="access_rights_groups.group_admin">
+                                <header>
+                                    <button name="send_email_google" type="object" string="google"
+                                            class="oe_highlight"/>
+                                    <button name="send_email_otp" type="object" string="otp"
+                                            class="oe_highlight"/>
+                                    <button name="send_email_retour" type="object" string="retour"
+                                            class="oe_highlight"/>
+                                    <button name="prolonga" type="object" string="prolongation"
+                                            class="oe_highlight"/>
+                                    <button name="reservation_non_abouti" type="object" string="paiement non abouti"
+                                            class="oe_highlight"/>
+                                    <button name="send_email_annulation" type="object" string="annulation"
+                                            class="oe_highlight"/>
+                                    <button name="action_print_report"
+                                            type="object"
+                                            class="oe_highlight"
+                                            string="Confirmation PDF"
+                                            icon="fa-print"/>
+                                    <button name="action_confirm_reservation" type="object" string="Confirmer"
+                                            class="my-green-button " invisible="status != 'en_attend'"/>
+                                    <button name="action_open_cancel_popup" type="object" string="Annuler"
+                                            class="btn-warning" invisible="status != 'confirmee'"/>
+                                    <button name="action_open_reject_popup" type="object" string="Rejeter"
+                                            class="btn-danger" invisible="status != 'confirmee'"/>
+                                    <button name="action_open_prolongation_popup" string="Add Prolongation"
+                                            type="object"
+                                            class="btn-light-blue "/>
+                                    <button name="action_confirm_reservation" type="object" string="Confirmer"
+                                            class="btn-success" invisible="status != 'en_attend'"/>
+                                    <button name="action_open_cancel_popup" type="object" string="Annuler"
+                                            class="btn-warning" invisible="status != 'confirmee'"/>
+                                    <button name="action_open_reject_popup" type="object" string="Rejeter"
+                                            class="btn-danger" invisible="status != 'confirmee'"/>
+                                    <button name="action_send_confirmation_email" type="object"
+                                            string="Confirmation email"
+                                            class="btn-success"/>
+                                    <button name="action_send_email_comming_soon" type="object"
+                                            string="Comming soon email"
+                                            class="btn-primary"/>
+                                    <button name="action_send_email_annulation" type="object" string="Annulation"
+                                            class="btn-info"/>
+                                    <button name="action_send_email_retour_avance" type="object"
+                                            string="Retour a l'avance"
+                                            class="btn-secondary"/>
+                                </header>
+
+                            </page>
+
+                        </notebook>
+
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="reservation_view_tree" model="ir.ui.view">
+            <field name="name">reservation.tree</field>
+            <field name="model">reservation</field>
+            <field name="arch" type="xml">
+                <tree string="Reservation" default_order="create_date desc"
+                      decoration-success="status == 'confirmee'"
+                      decoration-warning="status == 'annule'"
+                      decoration-danger="status == 'rejete'">
+                    <field name="name" widget="badge"
+                           decoration-success="status == 'confirmee'"
+
+                           decoration-danger="status == 'annule'"
+                           decoration-warning="status == 'rejete'"/>
+                    <field name="create_date_trimmed" string="Date" widget="badge"
+                           decoration-success="status == 'confirmee'"
+
+                           decoration-danger="status == 'annule'"
+                           decoration-warning="status == 'rejete'"/>
+                    <field name="date_heure_debut_format" string="Date de prise" widget="badge"
+                           decoration-success="status == 'confirmee'"
+
+                           decoration-danger="status == 'annule'"
+                           decoration-warning="status == 'rejete'"/>
+                    <field name="duree_dereservation" widget="badge"
+                           decoration-success="status == 'confirmee'"
+
+                           decoration-danger="status == 'annule'"
+                           decoration-warning="status == 'rejete'"/>
+                    <field name="modele" string="Modèle" widget="badge"
+                           decoration-success="status == 'confirmee'"
+
+                           decoration-danger="status == 'annule'"
+                           decoration-warning="status == 'rejete'"/>
+                    <field name="zone" string="Zone" widget="badge"
+                           decoration-success="status == 'confirmee'"
+
+                           decoration-danger="status == 'annule'"
+                           decoration-warning="status == 'rejete'"/>
+                    <field name="client" string="Client" widget="badge"
+                           decoration-success="status == 'confirmee'"
+
+                           decoration-danger="status == 'annule'"
+                           decoration-warning="status == 'rejete'"/>
+
+                    <field name="total_badge" string="Total"
+                           widget="badge"
+                           decoration-success="status == 'confirmee'"
+                           decoration-danger="status == 'annule'"
+                           decoration-warning="status == 'rejete'"/>
+                    <field name="status" widget="badge" string="État" optional="hide"
+                           decoration-success="status == 'confirmee'"
+
+                           decoration-danger="status == 'annule'"
+                           decoration-warning="status == 'rejete'"/>
+                </tree>
+            </field>
+        </record>
+        <record id="reservation_view_calendar" model="ir.ui.view">
+            <field name="name">reservation.calendar</field>
+            <field name="model">reservation</field>
+            <field name="arch" type="xml">
+                <calendar string="Reservation"
+                          date_start="date_heure_debut"
+                          date_stop="date_heure_fin"
+                          color="color"
+                          mode="month" event_limit="5"
+                          quick_create="0" create="0">
+                    <field name="name"/>
+                    <field name="modele" filters="1"/>
+                    <field name="vehicule" filters="1"/>
+                    <field name="client"/>
+                    <field name="status"/>
+                    <field name="etat_reservation" filters="1"/>
+                </calendar>
+            </field>
+        </record>
+
+
+        <record id="reservation_view_kanban" model="ir.ui.view">
+            <field name="name">reservation.kanban</field>
+            <field name="model">reservation</field>
+            <field name="arch" type="xml">
+                <kanban string="Reservation">
+
+                    <field name="name"/>
+                    <field name="create_date"/>
+                    <field name="date_heure_debut"/>
+                    <field name="date_heure_fin"/>
+                    <field name="modele"/>
+                    <field name="zone"/>
+                    <field name="client"/>
+                    <field name="email"/>
+                    <field name="status"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_content oe_kanban_global_click">
+                                <div class="o_kanban_header"
+                                     style="display: flex; justify-content: space-between; align-items: center; background-color: #f0f0f0; padding: 10px; border-bottom: 1px solid #ddd;">
+                                    <strong class="o_kanban_title" style="font-size: 16px;">
+                                        <field name="name"/>
+                                    </strong>
+                                    <span t-attf-class="badge badge-#{widget.status}"
+                                          style="font-size: 12px; padding: 5px;">
+                                        <field name="status" widget="badge"
+                                               decoration-success="status == 'confirmee'"
+                                               decoration-warning="status == 'annule'"
+                                               decoration-danger="status == 'rejete'"/>
+                                    </span>
+                                </div>
+                                <div class="o_kanban_body" style="padding: 10px;">
+                                    <div class="o_kanban_field" style="margin-bottom: 5px;">
+                                        <span class="fa fa-user" aria-hidden="true" title="Client"
+                                              style="margin-right: 5px;"/>
+                                        <field name="client"/>
+                                    </div>
+                                    <div class="o_kanban_field" style="margin-bottom: 5px;">
+                                        <span class="fa fa-car" aria-hidden="true" title="Modèle"
+                                              style="margin-right: 5px;"/>
+                                        <field name="modele"/>
+                                    </div>
+                                    <div class="o_kanban_field" style="margin-bottom: 5px;">
+                                        <span class="fa fa-map-marker" aria-hidden="true" title="Zone"
+                                              style="margin-right: 5px;"/>
+                                        <field name="zone"/>
+                                    </div>
+                                    <div class="o_kanban_field" style="margin-bottom: 5px;">
+                                        <span class="fa fa-calendar" aria-hidden="true" title="Date de réservation"
+                                              style="margin-right: 5px;"/>
+                                        <field name="create_date" string="Date de reservation"/>
+                                    </div>
+                                    <div class="o_kanban_field" style="margin-bottom: 5px;">
+                                        <span class="fa fa-clock-o" aria-hidden="true" title="Début"
+                                              style="margin-right: 5px;"/>
+                                        <field name="date_heure_debut" string="Début"/>
+                                    </div>
+                                    <div class="o_kanban_field" style="margin-bottom: 5px;">
+                                        <span class="fa fa-clock-o" aria-hidden="true" title="Fin"
+                                              style="margin-right: 5px;"/>
+                                        <field name="date_heure_fin" string="Fin"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+
+        <record id="reservation_view_gantt" model="ir.ui.view">
+            <field name="name">reservation.gantt</field>
+            <field name="model">reservation</field>
+            <field name="arch" type="xml">
+                <gantt
+                        string="Gantt reservation"
+                        date_start="date_heure_debut"
+                        date_stop="date_heure_fin"
+                        mode="year"
+                        color="color_tag"
+                        event_open_popup="true"
+                        hide_time="0"
+                        resource_width_percentage="10%"
+                        slot_min_width="70"
+                        quick_add="true"
+                        hide_event_title="1"
+                        class="o_gantt_view_single_color_bar o_gantt_view_date_marked o_gantt_view_reservation"
+                        event_time_format_digits="1"
+                        event_time_display_far="1"
+                        datetime_scale="1"
+                        datetime_scale_hour="20"
+                        header_label_format='{"week": [{"weekday": "short", "day": "numeric", "month": "numeric"}], "month": [{"weekday": "short", "day": "numeric", "month": "numeric"}], "year": [{"weekday": "short", "day": "numeric", "month": "numeric"}]}'>
+                    <field name="modele" is_resource_group_field="1"/>
+                    <field name="vehicule"/>
+                    <templates>
+                        <field name="modele" widget="badge" decoration-info="modele"/>
+                        <field name="vehicule"/>
+                        <field name="create_date"/>
+                        <field
+                                name="date_heure_debut"
+                                widget="daterange"
+                                string="Du ➝ Au"
+                                options="{'end_date_field': 'date_heure_fin'}"
+                        />
+                        <field name="date_heure_fin" invisible="1"/>
+                    </templates>
+                </gantt>
+            </field>
+
+        </record>
+
+        <record id="view_reservation_search" model="ir.ui.view">
+            <field name="name">reservation.search</field>
+            <field name="model">reservation</field>
+            <field name="arch" type="xml">
+                <search string="Reservation">
+                    <searchpanel view_types="list,kanban">
+                        <field name="zone" icon="fa-map-marker"/>
+                        <field name="status" icon="fa-info-circle"/>
+                        <field name="etat_reservation" icon="fa-tasks"/>
+                        <field name="modele" icon="fa-cogs"/>
+                        <field name="vehicule" icon="fa-car"/>
+                    </searchpanel>
+                    <field name="name"/>
+                    <field name="client"/>
+                    <field name="email"/>
+                    <field name="telephone"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="reservation_action" model="ir.actions.act_window">
+            <field name="name">Reservation</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">reservation</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="search_view_id" ref="view_reservation_search"/>
+        </record>
+
+        <record id="reservation_agent_rule" model="ir.rule">
+            <field name="name">Restriction d'accès aux reservation par zone pour les agents</field>
+            <field name="model_id" ref="reservation.model_reservation"/>
+            <field name="groups" eval="[(4, ref('access_rights_groups.group_agent'))]"/>
+            <field name="domain_force">[('zone', 'in', user.zone_ids.ids)]</field>
+        </record>
+
+        <menuitem id="menu_reservation"
+                  name="Reservation"
+                  sequence="3"
+                  groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+        <menuitem id="menu_reservation_list"
+                  name="Reservation"
+                  sequence="1"
+                  parent="menu_reservation"
+                  action="reservation_action"
+                  groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+    </data>
+</odoo>

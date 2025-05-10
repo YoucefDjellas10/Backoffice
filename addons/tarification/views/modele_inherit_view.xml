@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_modele_form_inherit" model="ir.ui.view">
+        <field name="name">modele.form.inherit</field>
+        <field name="model">modele</field>
+        <field name="inherit_id" ref="gestion_du_parc.view_modele_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/sheet/group" position="after">
+                <notebook>
+                    <page string="Tarifs">
+                        <header>
+                        <button name="action_open_create_tarifs" string="Ajouter Tarif" type="object"
+                                style="padding-bottom: 1cm;"
+                                class="btn-primary"/></header>
+
+                        <field name="tarifs" style="border: 2px solid #2F336B; ">
+                            <tree create="0" delete="0" editable="bottom" style="border: 2px solid #2F336B;">
+                                <field name="saison" readonly="1"/>
+                                <field name="nb_jour" readonly="1"/>
+                                <field name="prix"/>
+                            </tree>
+                        </field>
+                    </page>
+                    <page string="Tarifs Possible" invisible="1">
+                        <sheet>
+                            <group>
+                                <group string="Tarif 1" invisible="not nbr_de_t_one">
+                                    <field name="nbr_de_t_one" invisible="not nbr_de_t_one"/>
+                                    <field name="nbr_au_t_one" invisible="not nbr_au_t_one"/>
+                                    <field name="prix_one" invisible="not nbr_de_t_one"/>
+                                    <field name="date_depart_one_t_one" invisible="not date_depart_one_t_one"/>
+                                    <field name="date_fin_one_t_one" invisible="not date_fin_one_t_one"/>
+                                    <field name="date_depart_two_t_one" invisible="not date_depart_two_t_one"/>
+                                    <field name="date_fin_two_t_one" invisible="not date_fin_two_t_one"/>
+                                    <field name="date_depart_three_t_one" invisible="not date_depart_three_t_one"/>
+                                    <field name="date_fin_three_t_one" invisible="not date_fin_three_t_one"/>
+                                    <field name="date_depart_four_t_one" invisible="not date_depart_four_t_one"/>
+                                    <field name="date_fin_four_t_one" invisible="not date_fin_four_t_one"/>
+                                </group>
+                                <group string="Tarif 2" invisible="not nbr_de_t_two">
+                                    <field name="nbr_de_t_two" invisible="not nbr_de_t_two"/>
+                                    <field name="nbr_au_t_two" invisible="not nbr_au_t_two"/>
+                                    <field name="prix_two" invisible="not nbr_au_t_two"/>
+                                    <field name="date_depart_one_t_two" invisible="not date_depart_one_t_two"/>
+                                    <field name="date_fin_one_t_two" invisible="not date_fin_one_t_two"/>
+                                    <field name="date_depart_two_t_two" invisible="not date_depart_two_t_two"/>
+                                    <field name="date_fin_two_t_two" invisible="not date_fin_two_t_two"/>
+                                    <field name="date_depart_three_t_two" invisible="not date_depart_three_t_two"/>
+                                    <field name="date_fin_three_t_two" invisible="not date_fin_three_t_two"/>
+                                    <field name="date_depart_four_t_two" invisible="not date_depart_four_t_two"/>
+                                    <field name="date_fin_four_t_two" invisible="not date_fin_four_t_two"/>
+                                </group>
+                                <group string="Tarif 3" invisible="not nbr_de_t_three">
+                                    <field name="nbr_de_t_three" invisible="not nbr_de_t_three"/>
+                                    <field name="nbr_au_t_three" invisible="not nbr_au_t_three"/>
+                                    <field name="prix_three" invisible="not nbr_au_t_three"/>
+                                    <field name="date_depart_one_t_three" invisible="not date_depart_one_t_three"/>
+                                    <field name="date_fin_one_t_three" invisible="not date_fin_one_t_three"/>
+                                    <field name="date_depart_two_t_three" invisible="not date_depart_two_t_three"/>
+                                    <field name="date_fin_two_t_three" invisible="not date_fin_two_t_three"/>
+                                    <field name="date_depart_three_t_three" invisible="not date_depart_three_t_three"/>
+                                    <field name="date_fin_three_t_three" invisible="not date_fin_three_t_three"/>
+                                    <field name="date_depart_four_t_three" invisible="not date_depart_four_t_three"/>
+                                    <field name="date_fin_four_t_three" invisible="not date_fin_four_t_three"/>
+                                </group>
+                                <group string="Tarif 4" invisible="not nbr_de_t_four">
+                                    <field name="nbr_de_t_four" invisible="not nbr_de_t_four"/>
+                                    <field name="nbr_au_t_four" invisible="not nbr_au_t_four"/>
+                                    <field name="prix_four" invisible="not nbr_au_t_four"/>
+                                    <field name="date_depart_one_t_four" invisible="not date_depart_one_t_four"/>
+                                    <field name="date_fin_one_t_four" invisible="not date_fin_one_t_four"/>
+                                    <field name="date_depart_two_t_four" invisible="not date_depart_two_t_four"/>
+                                    <field name="date_fin_two_t_four" invisible="not date_fin_two_t_four"/>
+                                    <field name="date_depart_three_t_four" invisible="not date_depart_three_t_four"/>
+                                    <field name="date_fin_three_t_four" invisible="not date_fin_three_t_four"/>
+                                    <field name="date_depart_four_t_four" invisible="not date_depart_four_t_four"/>
+                                    <field name="date_fin_four_t_four" invisible="not date_fin_four_t_four"/>
+                                </group>
+
+                                <group string="Tarif 5" invisible="not nbr_de_t_five">
+                                    <field name="nbr_de_t_five" invisible="not nbr_de_t_five"/>
+                                    <field name="nbr_au_t_five" invisible="not nbr_au_t_five"/>
+                                    <field name="prix_five" invisible="not nbr_au_t_five"/>
+                                    <field name="date_depart_one_t_five" invisible="not date_depart_one_t_five"/>
+                                    <field name="date_fin_one_t_five" invisible="not date_fin_one_t_five"/>
+                                    <field name="date_depart_two_t_five" invisible="not date_depart_two_t_five"/>
+                                    <field name="date_fin_two_t_five" invisible="not date_fin_two_t_five"/>
+                                    <field name="date_depart_three_t_five" invisible="not date_depart_three_t_five"/>
+                                    <field name="date_fin_three_t_five" invisible="not date_fin_three_t_five"/>
+                                    <field name="date_depart_four_t_five" invisible="not date_depart_four_t_five"/>
+                                    <field name="date_fin_four_t_five" invisible="not date_fin_four_t_five"/>
+                                </group>
+
+                                <group string="Tarif 6" invisible="not nbr_de_t_six">
+                                    <field name="nbr_de_t_six" invisible="not nbr_de_t_six"/>
+                                    <field name="nbr_au_t_six" invisible="not nbr_au_t_six"/>
+                                    <field name="prix_six" invisible="not nbr_au_t_six"/>
+                                    <field name="date_depart_one_t_six" invisible="not date_depart_one_t_six"/>
+                                    <field name="date_fin_one_t_six" invisible="not date_fin_one_t_six"/>
+                                    <field name="date_depart_two_t_six" invisible="not date_depart_two_t_six"/>
+                                    <field name="date_fin_two_t_six" invisible="not date_fin_two_t_six"/>
+                                    <field name="date_depart_three_t_six" invisible="not date_depart_three_t_six"/>
+                                    <field name="date_fin_three_t_six" invisible="not date_fin_three_t_six"/>
+                                    <field name="date_depart_four_t_six" invisible="not date_depart_four_t_six"/>
+                                    <field name="date_fin_four_t_six" invisible="not date_fin_four_t_six"/>
+                                </group>
+
+                                <group string="Tarif 7" invisible="not nbr_de_t_seven">
+                                    <field name="nbr_de_t_seven" invisible="not nbr_de_t_seven"/>
+                                    <field name="nbr_au_t_seven" invisible="not nbr_au_t_seven"/>
+                                    <field name="prix_seven" invisible="not nbr_au_t_seven"/>
+                                    <field name="date_depart_one_t_seven" invisible="not date_depart_one_t_seven"/>
+                                    <field name="date_fin_one_t_seven" invisible="not date_fin_one_t_seven"/>
+                                    <field name="date_depart_two_t_seven" invisible="not date_depart_two_t_seven"/>
+                                    <field name="date_fin_two_t_seven" invisible="not date_fin_two_t_seven"/>
+                                    <field name="date_depart_three_t_seven" invisible="not date_depart_three_t_seven"/>
+                                    <field name="date_fin_three_t_seven" invisible="not date_fin_three_t_seven"/>
+                                    <field name="date_depart_four_t_seven" invisible="not date_depart_four_t_seven"/>
+                                    <field name="date_fin_four_t_seven" invisible="not date_fin_four_t_seven"/>
+                                </group>
+                                <group string="Tarif 8" invisible="not nbr_de_t_eight">
+                                    <field name="nbr_de_t_eight" invisible="not nbr_de_t_eight"/>
+                                    <field name="nbr_au_t_eight" invisible="not nbr_au_t_eight"/>
+                                    <field name="prix_eight" invisible="not nbr_au_t_eight"/>
+                                    <field name="date_depart_one_t_eight" invisible="not date_depart_one_t_eight"/>
+                                    <field name="date_fin_one_t_eight" invisible="not date_fin_one_t_eight"/>
+                                    <field name="date_depart_two_t_eight" invisible="not date_depart_two_t_eight"/>
+                                    <field name="date_fin_two_t_eight" invisible="not date_fin_two_t_eight"/>
+                                    <field name="date_depart_three_t_eight" invisible="not date_depart_three_t_eight"/>
+                                    <field name="date_fin_three_t_eight" invisible="not date_fin_three_t_eight"/>
+                                    <field name="date_depart_four_t_eight" invisible="not date_depart_four_t_eight"/>
+                                    <field name="date_fin_four_t_eight" invisible="not date_fin_four_t_eight"/>
+                                </group>
+
+                                <group string="Tarif 9" invisible="not nbr_de_t_nine">
+                                    <field name="nbr_de_t_nine" invisible="not nbr_de_t_nine"/>
+                                    <field name="nbr_au_t_nine" invisible="not nbr_au_t_nine"/>
+                                    <field name="prix_nine" invisible="not nbr_au_t_nine"/>
+                                    <field name="date_depart_one_t_nine" invisible="not date_depart_one_t_nine"/>
+                                    <field name="date_fin_one_t_nine" invisible="not date_fin_one_t_nine"/>
+                                    <field name="date_depart_two_t_nine" invisible="not date_depart_two_t_nine"/>
+                                    <field name="date_fin_two_t_nine" invisible="not date_fin_two_t_nine"/>
+                                    <field name="date_depart_three_t_nine" invisible="not date_depart_three_t_nine"/>
+                                    <field name="date_fin_three_t_nine" invisible="not date_fin_three_t_nine"/>
+                                    <field name="date_depart_four_t_nine" invisible="not date_depart_four_t_nine"/>
+                                    <field name="date_fin_four_t_nine" invisible="not date_fin_four_t_nine"/>
+                                </group>
+
+                                <group string="Tarif 10" invisible="not nbr_de_t_ten">
+                                    <field name="nbr_de_t_ten" invisible="not nbr_de_t_ten"/>
+                                    <field name="nbr_au_t_ten" invisible="not nbr_au_t_ten"/>
+                                    <field name="prix_ten" invisible="not nbr_au_t_ten"/>
+                                    <field name="date_depart_one_t_ten" invisible="not date_depart_one_t_ten"/>
+                                    <field name="date_fin_one_t_ten" invisible="not date_fin_one_t_ten"/>
+                                    <field name="date_depart_two_t_ten" invisible="not date_depart_two_t_ten"/>
+                                    <field name="date_fin_two_t_ten" invisible="not date_fin_two_t_ten"/>
+                                    <field name="date_depart_three_t_ten" invisible="not date_depart_three_t_ten"/>
+                                    <field name="date_fin_three_t_ten" invisible="not date_fin_three_t_ten"/>
+                                    <field name="date_depart_four_t_ten" invisible="not date_depart_four_t_ten"/>
+                                    <field name="date_fin_four_t_ten" invisible="not date_fin_four_t_ten"/>
+                                </group>
+                            </group>
+                        </sheet>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+</odoo>

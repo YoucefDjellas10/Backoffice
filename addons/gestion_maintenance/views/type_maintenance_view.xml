@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_type_maintenance_tree" model="ir.ui.view">
+        <field name="name">type.maintenance.tree</field>
+        <field name="model">type.maintenance.record</field>
+        <field name="arch" type="xml">
+            <tree string="Maintenance Type">
+                <field name="name"/>
+                <field name="type"/>
+                <field name="km" invisible="type != 'km'"/>
+                <field name="kilometrage_restant" invisible="type != 'km'"/>
+                <field name="duree_nombre" invisible="type == 'km'"/>
+                <field name="duree_unite" invisible="type == 'km'"/>
+                <field name="duree_nombre_" invisible="type == 'km'"/>
+                <field name="duree_unite_" invisible="type == 'km'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_type_maintenance_form" model="ir.ui.view">
+        <field name="name">type.maintenance.form</field>
+        <field name="model">type.maintenance.record</field>
+        <field name="arch" type="xml">
+
+            <form string="Maintenance Type">
+                <sheet>
+                    <group>
+                        <group>
+                            <groupe>
+                                <group class="custom-group">
+                                    <field name="name"/>
+                                    <field name="type"/>
+                                </group>
+                            </groupe>
+                            <group class="custom-group">
+                                <field name="km" invisible="type != 'km'"/>
+                                <field name="kilometrage_restant" invisible="type != 'km'"/>
+                                <label for="duree_nombre" string="Durée" invisible="type == 'km'"/>
+                                <div invisible="type == 'km'">
+                                    <field name="duree_nombre" class="oe_inline"/>
+                                    <field name="duree_unite" class="oe_inline"/>
+                                </div>
+                                <label for="duree_nombre_" string="Alert avant" invisible="type == 'km'"/>
+                                <div invisible="type == 'km'">
+                                    <field name="duree_nombre_" class="oe_inline"/>
+                                    <field name="duree_unite_" class="oe_inline"/>
+                                </div>
+                            </group>
+                        </group>
+                        <group></group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_type_maintenance" model="ir.actions.act_window">
+        <field name="name">Maintenance Types</field>
+        <field name="res_model">type.maintenance.record</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+
+    <menuitem id="maintenance_menu_root" name="Maintenances" sequence="10"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_agent"/>
+
+    <menuitem id="menu_type_maintenance" name="Maintenance Types"
+              parent="maintenance_menu_root"
+              action="action_type_maintenance"
+              sequence="50"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

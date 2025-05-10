@@ -1,0 +1,22 @@
+{
+    'name': 'Liste Clients',
+    'version': '1.0',
+    'summary': 'Gestion des clients',
+    'description': 'Module pour la gestion des clients',
+    'category': 'Uncategorized',
+    'author': 'Youcef',
+    'depends': ['base', 'mail'],
+    'data': [
+        'data/email_template_data.xml',
+        'data/email_enregistrement.xml',
+        'data/email_newslatter.xml',
+        'data/email_card_driver.xml',
+        'views/liste_client_view.xml',
+        'views/categorie_client_view.xml',
+        'views/solde_parrainage_view.xml',
+        'views/filleul_popup.xml',
+        'views/news_letter_view.xml',
+    ],
+    'installable': True,
+    'application': True,
+}

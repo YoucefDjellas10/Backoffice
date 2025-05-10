@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_degradation_form" model="ir.ui.view">
+        <field name="name">degradation.form</field>
+        <field name="model">degradation</field>
+        <field name="arch" type="xml">
+            <form string="Degradation">
+                <sheet>
+                    <group>
+                        <groupe>
+                            <group class="custom-group">
+                                <field name="livraison"/>
+                                <field name="categorie_lv"/>
+                                <field name="name"/>
+                                <field name="type_degradation"/>
+                                <field name="degradation"/>
+                                <field name="type"/>
+                                <field name="categorie"/>
+                                <field name="devise" invisible="1"/>
+                                <field name="devise_eur" invisible="1"/>
+                                <field name="prix"/>
+                                <field name="prix_eur"/>
+                            </group>
+                        </groupe>
+                        <group></group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_degradation_tree" model="ir.ui.view">
+        <field name="name">degradation.tree</field>
+        <field name="model">degradation</field>
+        <field name="arch" type="xml">
+            <tree string="Degradation">
+                <field name="livraison"/>
+                <field name="name"/>
+                <field name="type_degradation"/>
+                <field name="degradation"/>
+                <field name="type"/>
+                <field name="categorie"/>
+                <field name="devise" invisible="1" optional="hide"/>
+                <field name="devise_eur" invisible="1" optional="hide"/>
+                <field name="prix"/>
+                <field name="prix_eur"/>
+                <field name="note"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_degradation" model="ir.actions.act_window">
+        <field name="name">Dégradation</field>
+        <field name="res_model">degradation</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_degradation_sub_menu"
+              name="Dégradation"
+              sequence="2"
+              parent="menu_configuration_sub"
+              action="action_degradation"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+</odoo>

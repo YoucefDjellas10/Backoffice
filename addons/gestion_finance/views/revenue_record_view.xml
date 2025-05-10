@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_revenue_record_form" model="ir.ui.view">
+        <field name="name">revenue.record.form</field>
+        <field name="model">revenue.record</field>
+        <field name="arch" type="xml">
+            <form string="revenue record">
+                <header>
+                    <field name="verifier" widget="statusbar"
+                           groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                </header>
+                <sheet>
+                    <group>
+                        <groupe>
+                            <group class="custom-group">
+                                <field name="reservation" decoration-bf="reservation"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="total_reduit_euro" decoration-bf="total_reduit_euro"/>
+                                <field name="total_reduit_dinar" decoration-bf="total_reduit_dinar"/>
+                                <field name="mode_paiement"/>
+                                <field name="note"/>
+                            </group>
+                        </groupe>
+                        <group>
+                            <group class="custom-group">
+                                <field name="euro" invisible="1"/>
+                                <field name="montant"/>
+                                <field name="dinar" invisible="1"/>
+                                <field name="montant_dzd_eur"/>
+                                <field name="ecart_eur"/>
+                            </group>
+                            <groupe>
+                                <group class="custom-group">
+                                    <field name="montant_dzd"/>
+                                    <field name="montant_eur_dzd"/>
+                                    <field name="ecart_da"/>
+                                </group>
+                            </groupe>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_revenue_record_tree" model="ir.ui.view">
+        <field name="name">revenue.record.tree</field>
+        <field name="model">revenue.record</field>
+        <field name="arch" type="xml">
+            <tree string="revenue record">
+                <field name="name"/>
+                <field name="create_date" string="Date"/>
+                <field name="create_uid" string="Effectuer par" widget="many2one_avatar_user"/>
+                <field name="reservation" string="Référence"/>
+                <field name="mode_paiement" widget="badge"
+                       decoration-info="mode_paiement == 'liquide'"
+                       decoration-primary="mode_paiement == 'carte'"/>
+                <field name="total_encaisse" decoration-bf="total_encaisse" sum="Total" widget="monetary"/>
+                <field name="dinar" invisible="1" optional="hide"/>
+                <field name="ecart_da" decoration-bf="ecart_da"
+                       decoration-danger="ecart_da > 0" sum="Total" widget="monetary"/>
+                <field name="note"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_revenue_record_search" model="ir.ui.view">
+        <field name="name">revenue.record.search</field>
+        <field name="model">revenue.record</field>
+        <field name="arch" type="xml">
+            <search string="Encaissements" >
+                <searchpanel view_types="list,kanban">
+                    <field name="vehicule" icon="fa-car"/>
+                    <field name="modele" icon="fa-cogs"/>
+                    <field name="zone" icon="fa-map-marker"/>
+                </searchpanel>
+                <field name="name"/>
+                <field name="create_date" string="Date"/>
+                <field name="reservation"/>
+                <field name="mode_paiement"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="revenue_record_rule_agent" model="ir.rule">
+        <field name="name">Restriction des agents sur les encaissements</field>
+        <field name="model_id" ref="model_revenue_record"/>
+        <field name="domain_force">[('zone', 'in', user.zone_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('access_rights_groups.group_agent'))]"/>
+    </record>
+
+
+    <!-- Définition de l'action -->
+    <record id="action_revenue_record" model="ir.actions.act_window">
+        <field name="name">Encaissements</field>
+        <field name="res_model">revenue.record</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record id="action_revenue_record_manager_region" model="ir.actions.act_window">
+        <field name="name">Recette</field>
+        <field name="res_model">revenue.record</field>
+        <field name="view_mode">tree,form</field>
+
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_revenue_record_sub"
+              name="Encaissements"
+              sequence="5"
+              parent="menu_gestion_finance"
+              action="action_revenue_record"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+</odoo>

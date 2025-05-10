@@ -1,0 +1,87 @@
+.o_gantt_view {
+    .o_calendar_renderer {
+        .fc-event {
+            line-height: 3 !important;
+            // background-image: repeating-linear-gradient(
+            //     -45deg,
+            //     #80b5c1 0 10px,
+            //     #95c1cb 10px 20px
+            // );
+        }
+        .fc-datagrid-cell-cushion {
+            text-overflow: ellipsis;
+            display: flex;
+            .fc-datagrid-cell-main {
+                text-overflow: ellipsis;
+                overflow: hidden;
+                width: 100%;
+                // display: inherit;
+            }
+            .o_field_widget {
+                width: 100%;
+                span {
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    display: inherit;
+                    width: inherit;
+                }
+            }
+        }
+        .fc-timeline-slots {
+            .fc-day-sat,
+            .fc-day-sun {
+                background-color: #e9ecef;
+                opacity: 0.5;
+            }
+        }
+    }
+}
+
+// ===============  Generate color classes ===============
+@for $i from 1 through length($o-colors-complete) {
+    $color: nth($o-colors-complete, $i);
+    .o_calendar_renderer .fc-view {
+        .o_calendar_color_#{$i - 1} {
+            &.fc-event {
+                color: darken($color, 45%);
+                $color-subdle: mix($color, white, 60%);
+                background: repeating-linear-gradient(
+                    -45deg,
+                    $color-subdle 0 10px,
+                    lighten($color-subdle, 6%) 10px 20px
+                );
+                .fc-event-main {
+                    color: darken($color, 65%) !important;
+                    width: 100%;
+                    min-width: unset;
+                    .fc-event-title-container {
+                        .fc-event-title {
+                            width: 100%;
+                            text-overflow: ellipsis;
+                        }
+                    }
+                    .fc-event-time {
+                        // width: 100%;
+                        background: lighten($color-subdle, 80%);
+                        opacity: 60%;
+                        margin: 2px 1px !important;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ===============  Generate color classes ===============
+// No repeating-linear-gradient
+@for $i from 1 through length($o-colors-complete) {
+    $color: nth($o-colors-complete, $i);
+    .o_gantt_view_single_color_bar .o_calendar_renderer .fc-view {
+        .o_calendar_color_#{$i - 1} {
+            &.fc-event {
+                $color-subdle: mix($color, white, 60%);
+                background: lighten($color-subdle, 6%) !important;
+            }
+        }
+    }
+}

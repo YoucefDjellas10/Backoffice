@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="web_gantt_compact_view.GanttExportDialog" id="WebCamModal">
+        <Dialog size="'md'" title="'Export PNG/PDF'">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-6">
+                        <div class='form-group'>
+                            <label for='startDate'>Start Date</label>
+                            <t t-set='date_formatted'>
+                                <t t-options='{"widget": "date"}' t-esc="start_date"/>
+                            </t>
+                            <input type="date" id="startDatePicker" class="form-control task_date_deadline" data-date-format="YYYY-MM-DD" placeholder="YYYY-MM-DD"
+                                t-att-value="start_date" t-ref="startDate"/>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class='form-group'>
+                            <label for='endDate'>End Date</label>
+                            <input type="date" id="endDatePicker" class="form-control task_date_deadline" data-date-format="YYYY-MM-DD" placeholder="YYYY-MM-DD"
+                                t-att-value="end_date" t-ref="endDate"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button t-attf-class="btn btn-primary" t-on-click="onClickSetDate" t-ref="setDateButton">Set Date</button>
+                <button t-attf-class="btn btn-primary {{ state.exportClassName }}" t-on-click="onClickExport" t-ref="exportButton">Export</button>
+                <button t-attf-class="btn btn-secondary" t-on-click="props.close">Cancel</button>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+    <templates xml:space="preserve">
+        <t t-name="TreeReservation">
+
+            <head>
+        <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+        <meta charset="UTF-8" />
+        <title>Filtres de Réservation</title>
+      </head>
+     <body>
+        <div class="filcont">
+          <div>
+            <div class="filtRow">
+              <div class="filItem">
+                <label for="reference">Référence</label>
+                <input
+                  type="text"
+                  id="reference"
+                  placeholder="Entrer la référence"
+                />
+              </div>
+
+    <div class="filItem">
+                                <label for="modeles">Modèles</label>
+                                <select id="modeles" t-on-change="updateSelectedModel">
+                                    <option value="">Tous</option>
+                                    <t t-foreach="state.models" t-as="model" t-key="model.id">
+                                        <option t-att-value="model.id"><t t-esc="model.name"/></option>
+                                    </t>
+                                </select>
+                            </div>          <div class="filItem">
+    <label for="date-du">Date du</label>
+    <input type="date" id="date-du"/>
+</div>
+<div class="filItem">
+    <label for="date-au">Au</label>
+    <input type="date" id="date-au"/>
+</div>
+              <div class="filItem">
+                                <label for="etat">État</label>
+    <select id="etat" t-on-change="updateSelectedConfirmationState">
+        <option value="">Tous</option>
+        <t t-foreach="state.confirmationStates" t-as="state" t-key="state.id">
+            <option t-att-value="state.id"><t t-esc="state.name"/></option>
+        </t>
+    </select>                        </div>
+            </div>
+            <div class="filtRow">
+              <div class="filItem">
+                <label for="prenom">Prénom</label>
+                <input type="text" id="prenom" placeholder="Entrer le prénom" />
+              </div>
+
+              <div class="filItem">
+                <label for="nom">Nom</label>
+                <input type="text" id="nom" placeholder="Entrer le nom" />
+              </div>
+<div class="filItem">
+    <label for="date-reservation">Dèpart</label>
+    <input type="date" id="date-reservation"/>  <!-- ID changé pour correspondre au JS -->
+</div>              <div class="filItem">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" placeholder="Entrer l'email" />
+              </div>
+    <div class="filItem">
+                                <label for="pays">Agence / Region</label>
+                                <select id="pays" t-on-change="updateSelectedZone">
+                                    <option value="">Tous</option>
+                                    <t t-foreach="state.zones" t-as="zone" t-key="zone.id">
+                                        <option t-att-value="zone.id"><t t-esc="zone.name"/></option>
+                                    </t>
+                                </select>
+                            </div>        </div>
+          </div>
+          <div class="filtRow" style="margin: 0">
+              <div class="resulspan">
+              <span style="margin: 14px">   <t t-esc="state.reservationCount.toLocaleString('fr-FR')"/>  résultat trouvés</span>
+              <ion-icon name="stats-chart-outline"></ion-icon>
+            </div>
+    <button class="butn123" t-on-click="searchReservations"> Rechercher </button>
+    <button class="butn123" t-on-click="resetFilters">Rétablir 🗑️</button>      </div>
+        </div>
+
+
+    <table class="ta-BLE">
+      <thead>
+        <tr style="letter-spacing: 1px; background-color: #666671; color: white">
+          <th style="padding: 8px 4px">Référence</th>
+          <th style="padding: 8px 4px">Client</th>
+          <th style="padding: 8px 4px">Date de création</th>
+          <th style="padding: 8px 4px">Date de prise</th>
+          <th style="padding: 8px 4px">Durée</th>
+          <th style="padding: 8px 4px">Modèle</th>
+          <th style="padding: 8px 4px">Zone</th>
+          <th style="padding: 8px 4px">Total</th>
+          <th style="padding: 8px 4px">Gérer</th>
+        </tr>
+      </thead>
+    <tbody></tbody></table>
+      </body>
+        </t>
+    </templates>

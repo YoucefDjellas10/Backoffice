@@ -1,0 +1,33 @@
+<odoo>
+    <record id="view_filleul_form_popup" model="ir.ui.view">
+        <field name="name">liste.client.form</field>
+        <field name="model">liste.client</field>
+        <field name="arch" type="xml">
+            <form string="liste client">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="civilite"/>
+                            <field name="nom"/>
+                            <field name="prenom"/>
+                            <field name="email"/>
+                            <field name="mobile"/>
+                            <field name="telephone"/>
+                        </group>
+                        <group>
+                            <field name="parrain" readonly="1"/>
+                            <field name="risque"/>
+                            <field name="date_de_naissance"/>
+                            <field name="date_de_permis"/>
+                            <field name="note"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Enregistrer" type="object" name="action_save" class="btn-primary"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

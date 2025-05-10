@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+    <!-- Reservations for car_demo_1 -->
+    <record id="reservation_demo_1" model="reservation.demo">
+        <field name="car" ref="car_demo_1" />
+        <field name="start_date">2025-01-01 08:00:00</field>
+        <field name="end_date">2025-01-05 08:00:00</field> <!-- 4 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_2" model="reservation.demo">
+        <field name="car" ref="car_demo_1" />
+        <field name="start_date">2025-01-05 17:00:00</field>
+        <field name="end_date">2025-01-15 12:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_3" model="reservation.demo">
+        <field name="car" ref="car_demo_1" />
+        <field name="start_date">2025-01-15 20:00:00</field>
+        <field name="end_date">2025-01-19 09:00:00</field> <!-- 3 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_4" model="reservation.demo">
+        <field name="car" ref="car_demo_1" />
+        <field name="start_date">2025-01-20 15:00:00</field>
+        <field name="end_date">2025-01-29 15:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+
+    <!-- Reservations for car_demo_2 -->
+    <record id="reservation_demo_5" model="reservation.demo">
+        <field name="car" ref="car_demo_2" />
+        <field name="start_date">2025-01-01 09:00:00</field>
+        <field name="end_date">2025-01-10 10:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_6" model="reservation.demo">
+        <field name="car" ref="car_demo_2" />
+        <field name="start_date">2025-01-10 18:00:00</field>
+        <field name="end_date">2025-01-21 10:00:00</field> <!-- 10 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_7" model="reservation.demo">
+        <field name="car" ref="car_demo_2" />
+        <field name="start_date">2025-01-21 15:00:00</field>
+        <field name="end_date">2025-01-28 16:00:00</field> <!-- 6 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_8" model="reservation.demo">
+        <field name="car" ref="car_demo_2" />
+        <field name="start_date">2025-01-29 18:00:00</field>
+        <field name="end_date">2025-02-07 18:00:00</field> <!-- 8 days -->
+        <field name="color">1</field>
+    </record>
+
+    <!-- Reservations for car_demo_3 -->
+    <record id="reservation_demo_9" model="reservation.demo">
+        <field name="car" ref="car_demo_3" />
+        <field name="start_date">2025-01-01 07:00:00</field>
+        <field name="end_date">2025-01-05 07:00:00</field> <!-- 4 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_10" model="reservation.demo">
+        <field name="car" ref="car_demo_3" />
+        <field name="start_date">2025-01-05 12:00:00</field>
+        <field name="end_date">2025-01-14 14:00:00</field> <!-- 8 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_11" model="reservation.demo">
+        <field name="car" ref="car_demo_3" />
+        <field name="start_date">2025-01-14 20:00:00</field>
+        <field name="end_date">2025-01-18 12:00:00</field> <!-- 3 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_12" model="reservation.demo">
+        <field name="car" ref="car_demo_3" />
+        <field name="start_date">2025-01-19 16:00:00</field>
+        <field name="end_date">2025-01-30 18:00:00</field> <!-- 11 days -->
+        <field name="color">1</field>
+    </record>
+
+    <!-- Reservations for car_demo_4 -->
+    <record id="reservation_demo_13" model="reservation.demo">
+        <field name="car" ref="car_demo_4" />
+        <field name="start_date">2025-01-01 10:00:00</field>
+        <field name="end_date">2025-01-10 12:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_14" model="reservation.demo">
+        <field name="car" ref="car_demo_4" />
+        <field name="start_date">2025-01-11 15:00:00</field>
+        <field name="end_date">2025-01-23 17:00:00</field> <!-- 12 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_15" model="reservation.demo">
+        <field name="car" ref="car_demo_4" />
+        <field name="start_date">2025-01-24 09:00:00</field>
+        <field name="end_date">2025-01-28 11:00:00</field> <!-- 4 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_16" model="reservation.demo">
+        <field name="car" ref="car_demo_4" />
+        <field name="start_date">2025-01-28 18:00:00</field>
+        <field name="end_date">2025-02-10 15:00:00</field> <!-- 11 days -->
+        <field name="color">1</field>
+    </record>
+
+    <!-- Reservations for car_demo_5 -->
+    <record id="reservation_demo_17" model="reservation.demo">
+        <field name="car" ref="car_demo_5" />
+        <field name="start_date">2025-01-01 06:00:00</field>
+        <field name="end_date">2025-01-04 07:00:00</field> <!-- 3 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_18" model="reservation.demo">
+        <field name="car" ref="car_demo_5" />
+        <field name="start_date">2025-01-04 13:00:00</field>
+        <field name="end_date">2025-01-12 12:00:00</field> <!-- 7 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_19" model="reservation.demo">
+        <field name="car" ref="car_demo_5" />
+        <field name="start_date">2025-01-12 19:00:00</field>
+        <field name="end_date">2025-01-19 09:00:00</field> <!-- 6 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_20" model="reservation.demo">
+        <field name="car" ref="car_demo_5" />
+        <field name="start_date">2025-01-20 12:00:00</field>
+        <field name="end_date">2025-01-30 13:00:00</field> <!-- 10 days -->
+        <field name="color">1</field>
+    </record>
+
+    <!-- Reservations for car_demo_6 -->
+    <record id="reservation_demo_21" model="reservation.demo">
+        <field name="car" ref="car_demo_6" />
+        <field name="start_date">2025-01-01 08:00:00</field>
+        <field name="end_date">2025-01-05 08:00:00</field> <!-- 2 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_22" model="reservation.demo">
+        <field name="car" ref="car_demo_6" />
+        <field name="start_date">2025-01-05 12:00:00</field>
+        <field name="end_date">2025-01-13 12:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_23" model="reservation.demo">
+        <field name="car" ref="car_demo_6" />
+        <field name="start_date">2025-01-14 09:00:00</field>
+        <field name="end_date">2025-01-23 09:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_24" model="reservation.demo">
+        <field name="car" ref="car_demo_6" />
+        <field name="start_date">2025-01-24 15:00:00</field>
+        <field name="end_date">2025-01-30 15:00:00</field> <!-- 6 days -->
+        <field name="color">1</field>
+    </record>
+    <!-- Reservations for car_demo_9 -->
+    <record id="reservation_demo_25" model="reservation.demo">
+        <field name="car" ref="car_demo_9" />
+        <field name="start_date">2025-01-01 08:00:00</field>
+        <field name="end_date">2025-01-05 08:00:00</field> <!-- 2 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_26" model="reservation.demo">
+        <field name="car" ref="car_demo_9" />
+        <field name="start_date">2025-01-05 12:00:00</field>
+        <field name="end_date">2025-01-13 12:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_27" model="reservation.demo">
+        <field name="car" ref="car_demo_9" />
+        <field name="start_date">2025-01-14 09:00:00</field>
+        <field name="end_date">2025-01-23 09:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_28" model="reservation.demo">
+        <field name="car" ref="car_demo_9" />
+        <field name="start_date">2025-01-24 15:00:00</field>
+        <field name="end_date">2025-01-30 15:00:00</field> <!-- 6 days -->
+        <field name="color">1</field>
+    </record>
+    <!-- Reservations for car_demo_10 -->
+    <record id="reservation_demo_29" model="reservation.demo">
+        <field name="car" ref="car_demo_10" />
+        <field name="start_date">2025-01-01 08:00:00</field>
+        <field name="end_date">2025-01-05 08:00:00</field> <!-- 2 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_30" model="reservation.demo">
+        <field name="car" ref="car_demo_10" />
+        <field name="start_date">2025-01-05 12:00:00</field>
+        <field name="end_date">2025-01-13 12:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_31" model="reservation.demo">
+        <field name="car" ref="car_demo_10" />
+        <field name="start_date">2025-01-14 09:00:00</field>
+        <field name="end_date">2025-01-23 09:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_32" model="reservation.demo">
+        <field name="car" ref="car_demo_10" />
+        <field name="start_date">2025-01-24 15:00:00</field>
+        <field name="end_date">2025-01-30 15:00:00</field> <!-- 6 days -->
+        <field name="color">1</field>
+    </record>
+    <!-- Reservations for car_demo_11 -->
+    <record id="reservation_demo_33" model="reservation.demo">
+        <field name="car" ref="car_demo_11" />
+        <field name="start_date">2025-01-01 08:00:00</field>
+        <field name="end_date">2025-01-05 08:00:00</field> <!-- 2 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_34" model="reservation.demo">
+        <field name="car" ref="car_demo_11" />
+        <field name="start_date">2025-01-05 12:00:00</field>
+        <field name="end_date">2025-01-13 12:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_35" model="reservation.demo">
+        <field name="car" ref="car_demo_11" />
+        <field name="start_date">2025-01-14 09:00:00</field>
+        <field name="end_date">2025-01-23 09:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_36" model="reservation.demo">
+        <field name="car" ref="car_demo_11" />
+        <field name="start_date">2025-01-24 15:00:00</field>
+        <field name="end_date">2025-01-30 15:00:00</field> <!-- 6 days -->
+        <field name="color">1</field>
+    </record>
+    <!-- Reservations for car_demo_12 -->
+    <record id="reservation_demo_37" model="reservation.demo">
+        <field name="car" ref="car_demo_12" />
+        <field name="start_date">2025-01-01 08:00:00</field>
+        <field name="end_date">2025-01-05 08:00:00</field> <!-- 2 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_38" model="reservation.demo">
+        <field name="car" ref="car_demo_12" />
+        <field name="start_date">2025-01-05 12:00:00</field>
+        <field name="end_date">2025-01-13 12:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_39" model="reservation.demo">
+        <field name="car" ref="car_demo_12" />
+        <field name="start_date">2025-01-14 09:00:00</field>
+        <field name="end_date">2025-01-23 09:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_40" model="reservation.demo">
+        <field name="car" ref="car_demo_12" />
+        <field name="start_date">2025-01-24 15:00:00</field>
+        <field name="end_date">2025-01-30 15:00:00</field> <!-- 6 days -->
+        <field name="color">1</field>
+    </record>
+    <!-- Reservations for car_demo_13 -->
+    <record id="reservation_demo_41" model="reservation.demo">
+        <field name="car" ref="car_demo_13" />
+        <field name="start_date">2025-01-01 08:00:00</field>
+        <field name="end_date">2025-01-05 08:00:00</field> <!-- 2 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_42" model="reservation.demo">
+        <field name="car" ref="car_demo_13" />
+        <field name="start_date">2025-01-05 12:00:00</field>
+        <field name="end_date">2025-01-13 12:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_43" model="reservation.demo">
+        <field name="car" ref="car_demo_13" />
+        <field name="start_date">2025-01-14 09:00:00</field>
+        <field name="end_date">2025-01-23 09:00:00</field> <!-- 9 days -->
+        <field name="color">1</field>
+    </record>
+    <record id="reservation_demo_44" model="reservation.demo">
+        <field name="car" ref="car_demo_13" />
+        <field name="start_date">2025-01-24 15:00:00</field>
+        <field name="end_date">2025-01-30 15:00:00</field> <!-- 6 days -->
+        <field name="color">1</field>
+    </record>
+
+</odoo>

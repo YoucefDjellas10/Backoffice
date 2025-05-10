@@ -1,0 +1,87 @@
+<odoo>
+    <data>
+        <record id="paperformat_landscape" model="report.paperformat">
+            <field name="name">Landscape A4</field>
+            <field name="default" eval="False"/>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Landscape</field>
+            <field name="margin_top">10</field>
+            <field name="margin_bottom">10</field>
+            <field name="margin_left">10</field>
+            <field name="margin_right">10</field>
+        </record>
+
+
+        <template id="report_certificate_template">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <style>
+
+
+                        * {
+                        box-sizing: border-box;
+                        }
+
+                        html, body {
+                        margin: 0;
+                        padding: 0;
+
+                        font-family: 'Arial Black', Gadget, sans-serif;
+                        }
+
+                        .background {
+
+                        background-position: center;
+                        background-repeat: no-repeat;
+                        background-size: contain;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        text-align: center;
+                        color: rgb(40, 43, 50);
+                        padding: 2cm;
+                        width: 100%;
+                        height: 100%;
+                        }
+
+                    </style>
+                    <body>
+
+
+                        <div class="background" style="  background-image: url('https://i.ibb.co/6cczwk1D/Diapositive2.jpg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;">
+
+                            <h1 style="font-size: 9rem;width: 85% ; font-family: 'Arial Black', Gadget, sans-serif; text-transform: uppercase;">
+
+                                <t t-esc="o.nom"/>
+                            </h1>
+                            <h2 style="font-size: 6rem;width: 85% ; font-family: 'Arial Black', Gadget, sans-serif; text-transform: uppercase;">
+
+
+                                <t t-esc="o.prenom"/>
+                            </h2>
+                        </div>
+
+
+                    </body>
+                </t>
+            </t>
+        </template>
+        <record id="report_reservation_" model="ir.actions.report">
+            <field name="name">Reservation Report</field>
+            <field name="model">livraison</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">reservation.report_certificate_template</field>
+            <field name="report_file">reservation.report_certificate_template</field>
+            <field name="print_report_name">'Reservation Report - %s' % (object.name)</field>
+            <field name="binding_model_id" ref="model_livraison"/>
+            <field name="paperformat_id" ref="reservation.paperformat_landscape"/>
+        </record>
+
+    </data>
+</odoo>
+

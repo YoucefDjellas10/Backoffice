@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_categorie_client_form" model="ir.ui.view">
+        <field name="name">categorie.client.form</field>
+        <field name="model">categorie.client</field>
+        <field name="arch" type="xml">
+            <form string="categorie client">
+                <sheet>
+                    <group>
+                        <groupe>
+                            <group class="custom-group">
+                                <field name="name"/>
+                                <field name="du_pts"/>
+                                <field name="au_pts"/>
+                                <field name="reduction"/>
+                                <field name="category_code"/>
+                                <field name="options_gratuit" widget="many2many_tags"/>
+                                <field name="option_one" readonly="1" invisible="1"/>
+                                <field name="option_two" readonly="1" invisible="1"/>
+                                <field name="option_three" readonly="1" invisible="1"/>
+                                <field name="option_four" readonly="1" invisible="1"/>
+                                <field name="option_five" readonly="1" invisible="1"/>
+                                <field name="option_six" readonly="1" invisible="1"/>
+                                <field name="option_seven" readonly="1" invisible="1"/>
+                                <field name="option_eight" readonly="1" invisible="1"/>
+                                <field name="option_nine" readonly="1" invisible="1"/>
+                                <field name="option_ten" readonly="1" invisible="1"/>
+
+                            </group>
+                        </groupe>
+                        <group>
+                        </group>
+                    </group>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_categorie_client_tree" model="ir.ui.view">
+        <field name="name">categorie.client.tree</field>
+        <field name="model">categorie.client</field>
+        <field name="arch" type="xml">
+            <tree string="categorie client">
+                <field name="name" decoration-bf="name != ''"/>
+                <field name="reduction_pr" widget="badge"
+                       decoration-success="name == 'VIP'"
+                       decoration-danger="name == 'DRIVER'"
+                       decoration-info="name == 'EXELLENT'"
+                       decoration-warning="name == 'ESSENTIEL'"/>
+                <field name="options_gratuit" widget="many2many_tags"/>
+                <field name="du_pts"/>
+                <field name="au_pts"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_categorie_client" model="ir.actions.act_window">
+        <field name="name">Catégorie client</field>
+        <field name="res_model">categorie.client</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_configuration"
+              name="Configuration"
+              parent="menu_liste_client"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+    <menuitem id="menu_categorie_client_sub"
+              sequence="0"
+              name="Categorie client"
+              parent="menu_configuration"
+              action="action_categorie_client"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

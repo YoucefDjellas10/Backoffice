@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<templates xml:space="preserve">
+    <t t-name="PlanningDashboardOuest">
+        <body>
+            <table style="border-color: aliceblue; ;background-color: rgba(0, 0, 0, 0)">
+                <tr>
+                    <td style="text-align: right;border: none;">
+<span t-esc="state.selectedYear"/>                    </td>
+                    <td style="border: none;">
+<select name="car-select-1" style="width: 190px;" t-on-change="updateSelectedModel">
+    <option value="">tous les modèles</option>
+    <t t-foreach="state.models" t-as="modele" t-key="modele.id">
+        <option t-esc="modele.name" t-att-value="modele.id"/>
+    </t>
+</select>                   </td>
+                    <td style="border: none;">
+                        <select name="car-select-2" style="width: 190px;" t-on-change="updateSelectedZone">
+    <option value="">Sélectionner une zone</option>
+    <t t-foreach="state.zones" t-as="zone" t-key="zone.id">
+        <option t-esc="zone.name" t-att-value="zone.id"/>
+    </t>
+</select>
+                    </td>
+                    <td style="border: none;">
+     <button class="refresh-btn" t-on-click="onClick" style="margin-left: 2%;">Rechercher 🔄</button>
+                    </td>
+                    <td style="border: none;">
+<div class="month-selector">
+    <t t-foreach="this.months" t-as="month" t-key="month.id">
+<button
+    t-att-class="'month-btn ' + (this.state.selectedMonth === month.id ? 'active' : '')"
+    t-on-click="() => { this.selectMonth(month.id); this.state.selectedMonthName = month.name; }"
+    t-esc="month.name"
+/>    </t>
+</div>
+                    </td>
+                </tr>
+            </table>
+
+            <div style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin: 10px; position: relative;">
+                <span style="position: absolute; top: -12px; left: 10px; background-color: white; padding: 0 5px; font-weight: bold; color: #2F336B; font-size: 18px;">
+                    Legend
+                </span>
+
+                <div style="padding: 8px;">
+                    <button class="status-btn" style="background-color: #f0f7f7;color: #5d5a8e; border: 1px solid #eeeeee; padding: 6px 12px;margin-left: 12px;width: 20%; cursor: pointer;border-radius: 4px;">Disponible</button>
+                    <button class="status-btn" style="background-color: #9fef88; color:#11601a; border: 1px solid #eeeeee; padding: 6px 12px;border-radius: 4px;margin-left: 12px;width: 20%; cursor: pointer;">Loué</button>
+                    <button class="status-btn" style="background-color: #f17062;color: rgb(102, 12, 12); border: 1px solid #eeeeee; padding: 6px 12px;border-radius: 4px;margin-left: 12px;width: 20%; cursor: pointer;">Réservé</button>
+                    <button class="status-btn" style="background-color: #eaf172;color:#4d5e0c; border: 1px solid #eeeeee; padding: 6px 12px;border-radius: 4px;margin-left: 12px;width: 20%; cursor: pointer;">Maintenance</button>
+                </div>
+            </div>
+ <div style="padding: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
+<span t-esc="state.selectedMonthName + ' ' + state.selectedYear"
+      style="border-radius: 5px; border: 1px solid #ccc;
+             transition: background 0.3s ease; padding: 6px 12px;
+             cursor: pointer; min-width: 120px; text-align: center;">
+</span>
+         <button t-on-click="switchToPrevious15Days"
+        style="border-radius: 5px; border: 1px solid #ccc;
+               transition: background 0.3s ease; padding: 6px 12px;
+               cursor: pointer; font-size: 14px;
+               background: hsla(182, 76%, 92%, 0.747); min-width: 150px;">
+    ⬅️ 15j précédents
+</button>
+
+<button t-on-click="switchToNext15Days"
+        style="border-radius: 5px; border: 1px solid #ccc;
+               transition: background 0.3s ease; padding: 6px 12px;
+               cursor: pointer; font-size: 14px;
+               background: hsla(182, 76%, 92%, 0.747); min-width: 150px;">
+    15j suivants ➡️
+</button>
+
+        <div class="update-box" style="background: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 6px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #856404;
+            flex: 1; text-align: center;">
+            Dernière mise à jour :  <t t-esc="state.updateTime"/>
+        </div>
+    </div>
+
+<t t-if="state.showTable">
+    <t t-foreach="Object.entries(state.groupedByModel)" t-as="modelGroup" t-key="modelGroup[0]">
+        <div>
+            <table>
+                <thead>
+                    <tr>
+<th rowspan="2" class="large-text" style="background-color: white; color: #333; border: none; width: 150px; height: 50px; text-align: center;">
+    <p t-esc="modelGroup[0]" style="word-wrap: break-word; font-size: 12px; font-weight: bold; margin: 0;"/>
+</th>
+                        <t t-foreach="state.days" t-as="day" t-key="day.label">
+                            <th>
+                                <div><t t-esc="day.label.split('.')[0]" />.</div>
+                                <div><t t-esc="day.label.split('.')[1]" /></div>
+                            </th>
+                        </t>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="modelGroup[1]" t-as="matricule" t-key="matricule.id">
+                        <tr>
+                            <td class="vehicle" rowspan="2">
+                                <t t-esc="matricule.matricule"/>
+                            </td>
+                            <t t-foreach="state.days" t-as="day" t-key="day.label">
+                                <t t-set="dayKey" t-value="day.label.split('.')[1].trim()"/>
+                                <t t-set="dayState" t-value="matricule.planning[dayKey] || { first: '0', second: '0' }"/>
+                                <td t-att-class="dayState.first.includes('reserve') ? 'reserve' : dayState.first.includes('loue') ? 'Prise' : ''">
+                                    <t t-if="dayState.first.includes('loue') or dayState.first.includes('reserve')">
+                                        <t t-if="dayState.first.includes(':')">
+                                            R<t t-esc="dayState.first.split(' ')[1]"/>
+                                        </t>
+                                    </t>
+                                    <t t-else="">
+                                        -
+                                    </t>
+                                </td>
+                            </t>
+                        </tr>
+                        <tr>
+                            <t t-foreach="state.days" t-as="day" t-key="day.label">
+                                <t t-set="dayKey" t-value="day.label.split('.')[1].trim()"/>
+                                <t t-set="dayState" t-value="matricule.planning[dayKey] || { first: '0', second: '0' }"/>
+                                <td t-att-class="dayState.second.includes('reserve') ? 'reserve' : dayState.second.includes('loue') ? 'Prise' : ''">
+                                    <t t-if="dayState.second.includes('loue') or dayState.second.includes('reserve')">
+                                        <t t-if="dayState.second.includes(':')">
+                                            D <t t-esc="dayState.second.split(' ')[1]"/>
+                                        </t>
+                                    </t>
+                                    <t t-else="">
+                                        -
+                                    </t>
+                                </td>
+                            </t>
+                        </tr>
+                        <tr>
+                            <td class="vehicle" colspan="16"> </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+
+
+        </div>
+    </t>
+</t>
+<t t-else="">
+    <p class="ms-3">Aucune donnée à afficher. Cliquez sur "Rechercher" pour afficher les résultats.</p>
+
+<button class="refresh-btn" t-on-click="fetchReservationsLast3Days"
+ style="margin-left: 2%;">
+    Afficher les réservations des 3 derniers jours 🔄
+</button></t>    </body>
+
+    </t>
+</templates>

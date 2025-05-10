@@ -1,0 +1,8 @@
+<odoo>
+    <template id="WhitePageTemplate" name="White Page Template">
+        <div>
+            <h1>Hello, This is a White Page!</h1>
+            <p>Welcome to your custom page in Odoo 17.</p>
+        </div>
+    </template>
+</odoo>

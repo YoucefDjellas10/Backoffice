@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+        <!--        <record id="mrp_production_tree_view_extend" model="ir.ui.view">-->
+        <!--            <field name="name">mrp.production.tree.extend</field>-->
+        <!--            <field name="model">mrp.production</field>-->
+        <!--            <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>-->
+        <!--            <field name="arch" type="xml">-->
+        <!--                <xpath expr="//tree" position="attributes">-->
+        <!--                    <attribute name="js_class">mrp_header_search</attribute>-->
+        <!--                </xpath>-->
+        <!--            </field>-->
+        <!--        </record>-->
+
+        <record id="mrp_revenue_tree_view_extend" model="ir.ui.view">
+            <field name="name">revenue.record.tree.extend</field>
+            <field name="model">revenue.record</field>
+            <field name="inherit_id" ref="gestion_finance.view_revenue_record_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree" position="attributes">
+                    <attribute name="js_class">mrp_header_search</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="reservation_tree_view_extend" model="ir.ui.view">
+            <field name="name">reservation.tree.extend</field>
+            <field name="model">reservation</field>
+            <field name="inherit_id" ref="reservation.reservation_view_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree" position="attributes">
+                    <attribute name="js_class">mrp_header_search</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="depense_record_tree_view_extend" model="ir.ui.view">
+            <field name="name">depense.record.tree.extend</field>
+            <field name="model">depense.record</field>
+            <field name="inherit_id" ref="gestion_finance.view_depense_record_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree" position="attributes">
+                    <attribute name="js_class">mrp_header_search</attribute>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

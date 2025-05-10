@@ -1,0 +1,11 @@
+<odoo>
+    <!-- Ajouter le menu pour le tableau de bord -->
+    <menuitem id="menu_reservation_dashboard" name="Tableau de bord Réservation"
+              action="action_reservation_dashboard"/>
+
+    <!-- Action pour afficher le template JS -->
+    <record id="action_reservation_dashboard" model="ir.actions.client">
+        <field name="name">Tableau de bord Réservation</field>
+        <field name="tag">reservation_dashboard_action</field>
+    </record>
+</odoo>

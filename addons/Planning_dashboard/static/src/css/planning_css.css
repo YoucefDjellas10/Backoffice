@@ -1,0 +1,162 @@
+body {
+ max-height: 100vh;
+    overflow-y: auto;
+           font-family: Arial, sans-serif;
+       }
+
+       .table-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 15px;
+    width: 100%;
+}
+
+table {
+    max-width: 98%;
+}
+
+
+       td {
+           border: none;
+           padding: 5px;
+       }
+
+       select {
+           padding: 6px;
+           border-radius: 5px;
+           border: 1px solid #ccc;
+           font-size: 14px;
+           cursor: pointer;
+       }
+
+       /* Sélecteur de mois */
+       .month-selector {
+           display: flex;
+           flex-wrap: wrap;
+           border: 1px solid #ccc;
+           border-radius: 5px;
+           padding: 2px;
+           width: fit-content;
+       }
+
+       .month-selector button {
+           background: #eceef7;
+           border: 1px solid #ccc;
+           padding: 6px 10px;
+           cursor: pointer;
+           font-size: 14px;
+           transition: background 0.3s ease;
+       }
+
+       .month-selector button:hover,
+       .month-selector button:focus {
+           background: #ebf352;
+           outline: none;
+       }
+
+       .month-selector .active {
+           background: #46e138;
+           border: 2px solid #2c9036;
+           font-weight: bold;
+       }
+
+       /* Boutons d'état */
+       .status-btn {
+           background: #eceef7;
+           border: 0;
+           padding: 6px 12px;
+           font-size: 13px;
+           cursor: pointer;
+           border-radius: 6px;
+           transition: all 0.3s ease-in-out;
+           box-shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.2),
+                       inset -1px -1px 2px rgba(255, 255, 255, 0.2);
+           font-weight: 500;
+           color: #fdfdfd;
+           text-shadow: 0px 0px 1px rgba(51, 51, 51, 0.354);
+       }
+
+       .status-btn:hover {
+           margin-top: -8px;
+           box-shadow: 4px 4px 1px rgba(0, 0, 0, 0.15);
+       }
+
+       /* Bouton Actualiser */
+       .refresh-btn {
+           padding: 6px 12px;
+           border: none;
+           background: #eceef7;
+           cursor: pointer;
+           transition: background 0.3s ease-in-out;
+           border-radius: 4px;
+       }
+
+       .refresh-btn:hover {
+           background: #edf37d;
+       }
+         /* Styles globaux pour le tableau */
+       table {
+           width: 100%;
+           border-collapse: separate;
+           border-spacing: 0;
+           border-radius: 18px;
+           overflow: hidden;
+           background-color: #f0f7f7;
+           margin: 2% 1%;
+
+       }
+
+       th, td {
+           border: 1px solid #ccc;
+           text-align: center;
+           padding: 5px;
+       }
+
+       /* En-tête du tableau */
+       th {
+           background-color: #0b4459;
+           color: white;
+           text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
+       }
+
+       /* Cellules spécifiques */
+       td.vehicle {
+           background-color: #e0e0e0;
+           font-weight: bold;
+           text-align: left;
+           padding-left: 10px;
+           text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
+       }
+
+       td.reserve  {
+           background-color: #f17062;
+           color: rgb(162, 27, 27);
+           font-weight: 500;
+           box-shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.2),
+                       inset -1px -1px 2px rgba(255, 255, 255, 0.5);
+           text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
+       }
+
+       td.maintenance {
+           background-color: #edf37d;
+           color: #748b1a;
+           font-weight: 500;
+           box-shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.2),
+                       inset -1px -1px 2px rgba(255, 255, 255, 0.5);
+           text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
+       }
+
+       td.Prise{
+           background-color: #9fef88;
+           color: #2c9036;
+           font-weight: 500;
+           box-shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.2),
+                       inset -1px -1px 2px rgba(255, 255, 255, 0.5);
+           text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
+
+    
+       }
+ .large-text {
+    font-size: 20px !important;
+}

@@ -1,0 +1,368 @@
+body::before {
+    content: "";
+    background-image: url('/reservation/static/src/img/favicon-sea.svg');
+    background-size: 35%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    opacity: 0.2;
+}
+
+.o_sheet_wrapper {
+    position: relative;
+}
+
+.o_sheet_wrapper::before {
+    content: "";
+    background-image: url('/reservation/static/src/img/favicon-sea.svg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    opacity: 0.2;
+    pointer-events: none;
+}
+.custom-group {
+    margin:0px;
+    border-left: 3px solid #2F336B;
+     background-color: #e3f2fd;
+    padding: 5px 15px 15px 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1)
+}
+
+.custom-group .o_form_label {
+    font-weight: bold;
+}
+
+.custom-group .o_form_field {
+    padding: 10px;
+}
+.custom-group-width {
+    width: 18cm;
+}
+
+
+.custom-group1 {
+    margin:0px;
+    border-left: 3px solid #2F336B;
+    padding: 5px 15px 15px 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1)
+}
+
+section {
+            margin: 10px;
+            padding: 10px;
+        }
+
+        details {
+            margin: 12px 0;
+            padding: 4px ;
+            border: 1px solid #2F336B;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        details:hover {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+            transform: scale(1.02);
+                background-color: #e3f2fd; /* Couleur de fond */
+
+        }
+
+        summary {
+            cursor: pointer;
+            font-weight: bold;
+            padding: 8px;
+            background-color: #e3f2fd;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        summary:hover {
+            background-color: #2F336B;
+            color: white;
+        }
+
+.custom-width {
+    width: auto; /* Limite la largeur à la taille naturelle du contenu */
+    display: inline-block; /* Assure que le bouton ne prend que la place nécessaire */
+    margin-left: 20px;
+}
+
+.badge {
+    padding: 5px 10px;
+    font-size: 14px;
+    border-radius: 3px;
+    color: white;
+    font-weight: bold;
+}
+
+.badge-orange {
+    background-color: #ff6600;
+}
+
+.badge-green {
+    background-color: #28a745;
+}
+.bold-group field {
+    font-weight: bold !important;
+}
+
+.o_kanban_view .o_kanban_record {
+        width: 100% !important;
+    }
+
+.bg-red {
+    background-color: #ffcccc !important;
+}
+.bg-green {
+    background-color: #ccffcc !important;
+}
+
+
+.o_field_widget.badge.bg-danger {
+    --bs-bg-opacity: 1 !important;
+    color: black !important;
+}
+.o_badge {
+    color: black !important; /* Forcer la couleur du texte à noir */
+    text-shadow: none !important; /* Supprimer tout effet d'ombre sur le texte */
+}
+
+
+
+
+
+
+.nodno {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: #f4f4f4;
+  text-align: center;
+}
+
+h1, h2 {
+  margin-bottom: 15px;
+}
+
+.card-container {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  margin-top: 20px;
+  max-height: 70dvh; /* Limite la hauteur du conteneur */
+  overflow-y: auto; /* Active le défilement vertical */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.entry {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 15px;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.entry:hover {
+  background-image: linear-gradient(to left,  white, rgb(245, 241, 242), rgb(243, 237, 243), rgb(240, 241, 243), white);
+  border: 1px solid #3c86e7;
+  box-shadow: 1px 1px 2px gray;
+}
+
+.entry-icon {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 10px;
+  flex-shrink: 0;
+  padding: 2px;
+}
+
+.entry-info {
+  flex-grow: 1;
+  margin: 4px;
+}
+
+.entry-time {
+  font-weight: bold;
+  margin-bottom: 3px;
+  margin: 4px;
+}
+
+.entry-place {
+  font-size: 14px;
+  color: #555;
+  margin: 4px;
+}
+
+.entry-veh {
+  font-size: 14px;
+  margin: 4px;
+}
+
+.btn-print {
+  padding: 10px 20px;
+  background-color: #e5e9f8;
+  border: 1px solid #ffffff;
+  cursor: pointer;
+  border-radius: 4px;
+  width: 100%;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 10px;
+  left: 50%;
+  z-index: 1000;
+}
+button{
+    cursor: pointer;
+}
+
+.btn-print:hover {
+  background-image: linear-gradient(to left, rgb(246, 119, 149), rgb(177, 189, 249));
+  color: #fff;
+}
+
+.footer-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-left: auto;
+  margin-right: auto;
+  position: fixed; /* Fixe la barre de navigation en bas de l'écran */
+  bottom: 0; /* Coller en bas */
+  left: 0;
+  width: 100%; /* Prendre toute la largeur */
+  background-color: #fff; /* Optionnel : pour garantir qu'il y a un fond derrière */
+  z-index: 1000; /* Pour s'assurer que la barre reste au-dessus d'autres éléments */
+}
+
+.footer-nav button {
+  flex: 1;
+  padding: 12px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+}
+
+
+
+.active-date {
+  background-color: #0099cc;
+  color: white;
+}
+
+.green {
+  background-color: #2e9e4d;
+}
+
+.red {
+  background-color: #e74c3c;
+}
+
+.headlv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.headlv h1,
+.headlv h2 {
+  margin: 5px 0;
+  text-align: left;
+}
+.operation-count {
+  font-size: 15px;
+  color: #666;
+  margin-left: 10px;
+  font-weight: normal;
+}
+
+
+
+.icon {
+
+  background-color: #5283ad;
+  color: white;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 3px;
+  margin-right: 10px;
+  margin-left: 4px;
+}
+
+.icon svg {
+  width: 17px;
+  height: 17px;
+  color: #ffffff;
+}
+
+/* Responsive : écrans de 350px max */
+@media (max-width: 700px) {
+  .headlv {
+    flex-direction: row;
+    align-items: left;
+    text-align: left;
+  }
+
+  .headlv img {
+    width: 100%;
+    max-width: 120px;
+    height: auto;
+  }
+
+  .headlv h1 {
+    font-size: 15px;
+  }
+
+  .headlv h2 {
+    font-size: 16px;
+    color: #555;
+
+  }
+}
+.entry-options {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+        font-style: italic;
+    }
+.o_form_many2many_binary .o_form_binary_file_button {
+    background-color: #4CAF50;
+    color: white;
+}
+.o_form_binary_file .my-upload-button .o_form_binary_form {
+    background-color: #4CAF50; /* vert par exemple */
+    color: white;
+    border: none;
+    border-radius: 4px;
+}

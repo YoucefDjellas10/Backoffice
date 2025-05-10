@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit the webclient_templates.xml to customize it -->
+    <template id="hide_manage_databases_and_odoo_brand" inherit_id="web.login_layout">
+        <!-- Hide the "Manage Databases" button -->
+        <xpath expr="//a[@href='/web/database/manager']" position="attributes">
+            <attribute name="style">display: none;</attribute>
+        </xpath>
+
+        <!-- Hide the "Powered by Odoo" branding -->
+        <xpath expr="//a[contains(text(), 'Powered by')]" position="replace"/>
+    </template>
+</odoo>

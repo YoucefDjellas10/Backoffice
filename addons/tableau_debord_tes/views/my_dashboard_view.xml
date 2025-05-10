@@ -1,0 +1,48 @@
+<odoo>
+    <record id="view_my_dashboard_form" model="ir.ui.view">
+        <field name="name">my.dashboard.form</field>
+        <field name="model">my.dashboard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="total_sales"/>
+                    <field name="percentage_growth"/>
+                </group>
+
+            </form>
+        </field>
+    </record>
+
+
+    <record id="view_my_dashboard_kanban" model="ir.ui.view">
+        <field name="name">my.dashboard.kanban</field>
+        <field name="model">my.dashboard</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="o_kanban_card">
+                            <strong>Total des Ventes:</strong>
+                            <span t-esc="record.total_sales"/>
+                            €
+                            <br/>
+                            <strong>Croissance:</strong>
+                            <span t-esc="record.percentage_growth"/>
+                            %
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="action_my_dashboard" model="ir.actions.act_window">
+        <field name="name">Tableau de Bord</field>
+        <field name="res_model">my.dashboard</field>
+        <field name="view_mode">kanban,form</field>
+    </record>
+
+    <menuitem id="menu_my_dashboard" name="Tableau de Bord" action="action_my_dashboard"/>
+
+
+</odoo>

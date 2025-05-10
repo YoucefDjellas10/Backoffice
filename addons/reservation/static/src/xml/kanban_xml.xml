@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+    <templates xml:space="preserve">
+        <t t-name="kanbanreservation">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title> kanban</title>
+</head>
+<body>
+  <div class="nodno">
+<table style="width: 100%; border-collapse: collapse; vertical-align: middle; border: none; border-collapse: collapse; background: transparent;">
+    <tr>
+      <!-- Colonne Date + Opérations -->
+      <td style="padding: 8px;">
+        <h2 style="margin: 0;">
+          <t t-esc="state.currentDate"/>
+          <span style="font-weight: normal; color: #666;">
+            (<t t-esc="state.operationsCount"/> opérations)
+          </span>
+        </h2>
+      </td>
+
+
+      <td style="padding: 8px;">
+    <select name="car-select-2" style="width: 190px;" t-on-change="updateSelectedZone">
+        <option value="">Sélectionner une zone</option>
+        <t t-foreach="state.zones" t-as="zone" t-key="zone.id">
+            <option t-att-value="zone.id" t-esc="zone.name"/>
+        </t>
+    </select>
+</td>
+
+       <td style="padding: 8px;">
+        <label for="search-date" style="margin-right: 20px;">Date :</label>
+        <input type="date" id="search-date" size="10" t-on-change="updateSelectedDate"/>
+      </td>
+
+      <!-- Colonne Logo -->
+      <td style="text-align: right; padding: 8px;">
+        <img src="https://i.ibb.co/fd5zQ5m4/cartedevisitenew.png" alt="logo" style="width: 180px;"/>
+      </td>
+    </tr>
+  </table>
+
+<button class="btn-print" style="font-size: 1rem;" t-on-click="printReservations">- 🖨️ Imprimer  -</button>
+
+<div class="card-container">
+    <t t-foreach="state.filteredReservations" t-as="reservation" t-key="reservation_index">
+        <div class="entry" t-on-click="() => this.openReservationForm(reservation.id)">
+            <div t-att-class="reservation.lv_type === 'livraison' ? 'entry-icon green' : 'entry-icon red'">
+                <t t-esc="reservation.lv_type === 'livraison' ? 'D' : 'R'"/>
+            </div>
+            <div class="entry-info">
+                <!-- Ligne 1 : Date -->
+                <div class="entry-time">
+                    <t t-if="reservation.date_heure_debut and reservation.vehicule and reservation.vehicule[1]">
+                        <t t-esc="formatDateTime(reservation.date_heure_debut) + ' (' + reservation.vehicule[1] + ')'"/>
+                    </t>
+                </div>
+
+                <!-- Ligne 2 : Lieu Départ/Retour -->
+                <div class="entry-place">
+    <t t-if="reservation.lieu_depart and reservation.lieu_depart[1] and reservation.duree_dereservation">
+        <t t-esc="reservation.lieu_depart[1] + ' (' + reservation.duree_dereservation + ')'"/>
+    </t>
+</div>
+
+
+                <!-- Ligne 3 : Matricule -->
+                <div class="entry-veh">
+                    <t t-if="reservation.matricule">
+                        <t t-esc="reservation.matricule"/>
+                    </t>
+                </div>
+
+
+                <!-- Ligne 4 : Options -->
+<div class="entry-options" style="font-size: 13px; color: #444;">
+    <t t-set="options" t-value="[]"/>
+    <t t-if="reservation.opt_protection"> <t t-set="options" t-value="options.concat([reservation.opt_protection])"/> </t>
+    <t t-if="reservation.opt_carburant"> <t t-set="options" t-value="options.concat([reservation.opt_carburant])"/> </t>
+    <t t-if="reservation.siege_bebe"> <t t-set="options" t-value="options.concat([reservation.siege_bebe])"/> </t>
+
+    <t t-if="options.length > 0">
+        Options : <t t-esc="options.join(', ')"/>
+    </t>
+    <t t-if="options.length === 0">
+        Options : -
+    </t>
+</div>
+                <!-- Détails de livraison -->
+                <t t-if="reservation.stage === 'livre' and reservation.livrer_par and reservation.livrer_par[1]">
+                    <div style="display: flex; flex-direction: row; justify-content: start; margin-top: 10px;">
+                        <div class="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" color="white">
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="white"/>
+                            </svg>
+                        </div>
+                        <span style="font-size: 14px; font-style: italic; justify-content: center; text-align: left; padding-top: 2px; color: #555;">
+                            <span style="color:#6a8fae; font-weight:bold;">
+                                <t t-esc="reservation.create_date and formatDateTime(reservation.create_date)"/>
+                            </span>
+                            par <t t-esc="reservation.livrer_par[1]"/>
+                        </span>
+                    </div>
+                </t>
+            </div>
+            <div>&#x276F;</div>
+        </div>
+    </t>
+</div>
+<div class="footer-nav">
+    <button t-on-click="() => this.changeDate(-1)">Jour préc.</button>
+    <button class="active-date">
+        <t t-esc="state.formattedActiveDate"/>
+    </button>
+    <button t-on-click="() => this.changeDate(1)">Jour suiv.</button>
+</div>
+</div>
+</body>
+        </t>
+
+</templates>

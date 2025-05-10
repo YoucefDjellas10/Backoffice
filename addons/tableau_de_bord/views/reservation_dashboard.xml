@@ -1,0 +1,77 @@
+<odoo>
+    <template id="reservation_dashboard_template" name="Reservation Dashboard Template">
+        <t t-if="isLoading">
+            <div>Chargement des réservations...</div>
+        </t>
+        <t t-else="">
+            <div>
+                <h2>Tableau de bord des réservations</h2>
+                <table class="o_list_table table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Status</th>
+                            <th>État de réservation</th>
+                            <th>Date début</th>
+                            <th>Date fin</th>
+                            <th>Nombre de jours</th>
+                            <th>Lieu de départ</th>
+                            <th>Lieu de retour</th>
+                            <th>Modèle</th>
+                            <th>Véhicule</th>
+                            <th>Client</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="reservations" t-as="reservation">
+                            <tr>
+                                <td>
+                                    <t t-esc="reservation.name"/>
+                                </td>
+                                <td>
+                                    <t t-esc="reservation.status"/>
+                                </td>
+                                <td>
+                                    <t t-esc="reservation.etat_reservation"/>
+                                </td>
+                                <td>
+                                    <t t-esc="reservation.date_heure_debut"/>
+                                </td>
+                                <td>
+                                    <t t-esc="reservation.date_heure_fin"/>
+                                </td>
+                                <td>
+                                    <t t-esc="reservation.nbr_jour_reservation"/>
+                                </td>
+                                <td>
+                                    <t t-esc="reservation.lieu_depart"/>
+                                </td>
+                                <td>
+                                    <t t-esc="reservation.lieu_retour"/>
+                                </td>
+                                <td>
+                                    <t t-esc="reservation.modele"/>
+                                </td>
+                                <td>
+                                    <t t-esc="reservation.vehicule"/>
+                                </td>
+                                <td>
+                                    <t t-esc="reservation.client"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+    </template>
+
+    <record id="action_reservation_dashboard" model="ir.actions.client">
+        <field name="name">Tableau de bord des réservations</field>
+        <field name="tag">reservation_dashboard_action</field>
+    </record>
+
+    <menuitem id="menu_reservation_dashboard"
+              name="Tableau de bord des réservations"
+              action="action_reservation_dashboard"/>
+</odoo>

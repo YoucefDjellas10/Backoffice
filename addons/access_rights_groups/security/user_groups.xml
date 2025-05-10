@@ -1,0 +1,40 @@
+<odoo>
+<!--    access_rights_groups-->
+<!--    groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"-->
+    <record id="group_ceo" model="res.groups">
+        <field name="name">CEO</field>
+    </record>
+    <record id="group_admin" model="res.groups">
+        <field name="name">ADMIN</field>
+    </record>
+    <record id="group_reservation" model="res.groups">
+        <field name="name">RESERVATION</field>
+    </record>
+    <record id="group_agent" model="res.groups">
+        <field name="name">AGENT</field>
+    </record>
+    <record id="group_manager_region" model="res.groups">
+        <field name="name">MANAGER REGION</field>
+    </record>
+    <record id="group_manager_general" model="res.groups">
+        <field name="name">MANAGER GENERAL</field>
+    </record>
+    <record id="group_marketing" model="res.groups">
+        <field name="name">MARKETING MANAGER</field>
+    </record>
+    <record id="group_alger_one" model="res.groups">
+        <field name="name">Alger One</field>
+    </record>
+    <record id="group_alger_two" model="res.groups">
+        <field name="name">Alger two</field>
+    </record>
+    <record id="group_constantine_one" model="res.groups">
+        <field name="name">Constantine one</field>
+    </record>
+    <record id="group_constantine_two" model="res.groups">
+        <field name="name">Constantine two</field>
+    </record>
+
+
+
+</odoo>

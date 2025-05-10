@@ -1,0 +1,63 @@
+<template>
+    <t t-name="RemplissageDashBoardMain">
+        <div class="dashboard-container">
+            <div class="container-fluid" style="overflow-y: auto; max-height: 100vh;">
+
+                <div class="dashboard-header">
+                    <br/>
+                    <h2>Tableau de bord du remplissage</h2>
+                    <p>Visualisez le taux de remplissage des réservations pour chaque véhicule</p>
+                    <div class="dashboard-fields">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label for="champ1"><strong>Date Début</strong></label>
+                                <input type="date" id="champ1" class="form-control" t-ref="champ1"/>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="champ2"><strong>Date Fin</strong></label>
+                                 <input type="date" id="champ2" class="form-control"/>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="champ3"><strong>Zone</strong></label>
+                                <select id="champ3" class="form-control">
+                                    <option value="">Sélectionnez</option>
+                                    <t t-foreach="state.zones" t-as="zone" t-key="zone.id">
+                                        <option t-esc="zone.id" t-att-value="zone.name"/>
+                                    </t>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="champ4"><strong>Catégorie</strong></label>
+                                <select id="champ4" class="form-control">
+                                    <option value="">Sélectionnez</option>
+                                    <t t-foreach="state.categories" t-as="categorie" t-key="categorie.id">
+                                        <option t-esc="categorie.name" t-att-value="categorie.id"/>
+                                    </t>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="champ5"><strong>Modèle</strong></label>
+                                <select id="champ5" class="form-control">
+                                    <option value="">Sélectionnez</option>
+                                    <t t-foreach="state.models" t-as="modele" t-key="modele.name">
+                                        <option t-esc="modele.name" t-att-value="modele.id"/>
+                                    </t>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <br/>
+                                <button class="btn btn-success">Filtrer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-content">
+                    <div class="chart-container">
+                        <canvas t-ref="remplissage_chart"/>
+                    </div>
+                </div>
+                <div style="height: 10em;"/>
+            </div>
+        </div>
+    </t>
+</template>

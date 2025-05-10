@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t
+        t-name="dom_gantt_view.DomGanttController"
+        t-inherit="web.CalendarController"
+        t-inherit-mode="primary"
+    >
+        <xpath expr="//Layout" position="inside">
+            <t t-set-slot="control-panel-create-button">
+                <t t-if="model.canCreate">
+                    <button
+                        class="btn btn-primary o-calendar-button-new me-1"
+                        t-on-click="onClickAddButton"
+                    >New</button>
+                </t>
+            </t>
+        </xpath>
+    </t>
+</templates>

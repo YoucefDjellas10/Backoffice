@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="web_gantt_compact_view.Contoller" owl="1">
+        <div t-att-class="props.className" t-ref="root">
+            <Layout className="model.useSampleModel ? 'o_view_sample_data' : ''" display="props.display">
+                <t t-set-slot="control-panel-additional-actions">
+                    <t t-call="{{ props.buttonTemplate }}"/>
+                </t>
+                <t t-set-slot="layout-actions">
+                    <SearchBar t-if="searchBarToggler.state.showSearchBar"/>
+                </t>
+                 <t t-set-slot="control-panel-navigation-additional">
+                    <t t-component="searchBarToggler.component" t-props="searchBarToggler.props"/>
+                </t>
+                <t t-component="props.Renderer" t-props="rendererProps" />
+            </Layout>
+        </div>
+    </t>
+
+    <t t-name="web_gantt_compact_view.Buttons" owl="1">
+        <div t-attf-class="btn-group">
+            <button class="o_gantt_left_button btn btn-primary" t-if="!env.isSmall" aria-label="Previous" title="Previous" t-on-click="onPreviousClick">
+                <span class="fa fa-arrow-left"/>
+            </button>
+            <button class="o_gantt_today_button btn btn-primary ml4 mr4" t-on-click="onTodayClick">
+                Today
+            </button>
+            <button class="o_gantt_right_button btn btn-primary" t-if="!env.isSmall" aria-label="Next" title="Next" t-on-click="onNextClick">	    
+                <span class="fa fa-arrow-right"/>
+            </button>
+        </div>
+        <div t-attf-class="btn-group-print ml4" role="new" aria-label="New">
+            <button type="button" class="o_dropdown_toggler_btn btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Export</button>
+            <ul role="menu" class="o_dropdown_menu dropdown-menu" x-placement="bottom-start" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(67px, 118px, 0px);">
+                <li role="menuitem" class="o_menu_item">
+                    <a aria-checked="false" role="menuitemcheckbox" report_type="pdf" class="dropdown-item o_gantt_export_pdf" t-on-click="onExportPDFClick">PDF</a>
+                </li>
+                <li role="menuitem" class="o_menu_item">
+                    <a aria-checked="false" role="menuitemcheckbox" report_type="png" class="dropdown-item o_gantt_export_png" t-on-click="onExportPNGClick">PNG</a>
+                </li>         
+            </ul>
+        </div>
+        <div t-attf-class="btn-group-scale">
+            <button accesskey="c" class="ml8 mr8 btn btn-primary btn-xs oe-base-gantt-button-new" type="button" t-on-click="onNewTask">
+                Create
+            </button>
+            <button  t-attf-class="btn btn-xs btn-default oe-base-gantt-scale {{ state.scale === 'day' ? 'active' : '' }}" 
+                data-scale="day" title="Day" t-on-click="onClickScale" t-ref="day">
+                Day
+            </button>
+            <button  t-attf-class="btn btn-xs btn-default oe-base-gantt-scale {{ state.scale === 'week' ? 'active' : '' }}" 
+                data-scale="week" title="Week"  t-on-click="onClickScale" t-ref="week">
+                Week
+            </button>
+            <button  t-attf-class="btn btn-xs btn-default oe-base-gantt-scale {{ state.scale === 'month' ? 'active' : '' }}" 
+                data-scale="month" title="Month"  t-on-click="onClickScale" t-ref="month">
+                Month
+            </button>
+            <button  t-attf-class="btn btn-xs btn-default oe-base-gantt-scale {{ state.scale === 'year' ? 'active' : '' }}" 
+                data-scale="year" title="Year"  t-on-click="onClickScale" t-ref="year">
+                Year
+            </button>
+        </div>
+
+        <div class="btn-group-sort ml4">
+            <button class="o_gantt_sort_button btn btn-secondary" title="Sort" t-on-click="onSortClick">
+                <i class="fa fa-sort"/>
+            </button>            
+        </div> 
+    </t>
+
+</templates>

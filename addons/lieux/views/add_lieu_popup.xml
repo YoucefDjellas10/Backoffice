@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="lieux_form_view" model="ir.ui.view">
+        <field name="name">lieux.form</field>
+        <field name="model">lieux</field>
+        <field name="arch" type="xml">
+            <form string="Lieux">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="address"/>
+                        <field name="zone" invisible="1"/>
+                        <field name="country"/>
+                        <field name="city"/>
+                        <field name="lieu_type"/>
+                    </group>
+                    <footer>
+                        <button string="Save" type="object" class="btn-primary" name="action_save"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

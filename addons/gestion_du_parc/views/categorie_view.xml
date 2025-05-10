@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_categorie_form" model="ir.ui.view">
+        <field name="name">categorie.form</field>
+        <field name="model">categorie</field>
+        <field name="arch" type="xml">
+            <form string="Categorie">
+                <sheet>
+                    <group>
+                        <group>
+                            <group class="custom-group">
+                                <field name="name"/>
+                            </group>
+                        </group>
+                    </group>
+                    <br/>
+                    <field name="modele_ids" style="border: 2px solid #2F336B;"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_categorie_tree" model="ir.ui.view">
+        <field name="name">categorie.tree</field>
+        <field name="model">categorie</field>
+        <field name="arch" type="xml">
+            <tree string="categorie">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Définition de l'action -->
+    <record id="action_categorie" model="ir.actions.act_window">
+        <field name="name">Categories</field>
+        <field name="res_model">categorie</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_gestion_du_parc"
+              sequence="1"
+              name="Gestion du parc"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+    <menuitem id="menu_categorie_sub"
+              name="Categories"
+              sequence="3"
+              parent="menu_gestion_du_parc"
+              action="action_categorie"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

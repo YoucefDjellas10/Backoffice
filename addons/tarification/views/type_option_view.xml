@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_type_options_form" model="ir.ui.view">
+        <field name="name">type.options.form</field>
+        <field name="model">type.options</field>
+        <field name="arch" type="xml">
+            <form string="type options">
+                <sheet>
+                    <group class="custom-group" >
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_type_options_tree" model="ir.ui.view">
+        <field name="name">type.options.tree</field>
+        <field name="model">type.options</field>
+        <field name="arch" type="xml">
+            <tree string="type options">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Définition de l'action -->
+    <record id="action_type_options" model="ir.actions.act_window">
+        <field name="name">type options</field>
+        <field name="res_model">type.options</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_type_options_sub"
+              name="type options"
+              sequence="5"
+              parent="menu_tarifications"
+              action="action_type_options"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

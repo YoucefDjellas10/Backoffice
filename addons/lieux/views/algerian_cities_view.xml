@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_algerian_cities_form" model="ir.ui.view">
+        <field name="name">algerian.cities.form</field>
+        <field name="model">algerian.cities</field>
+        <field name="arch" type="xml">
+            <form string="algerian cities">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_algerian_cities_tree" model="ir.ui.view">
+        <field name="name">algerian.cities.tree</field>
+        <field name="model">algerian.cities</field>
+        <field name="arch" type="xml">
+            <tree string="algerian cities">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Définition de l'action -->
+    <record id="action_algerian_cities" model="ir.actions.act_window">
+        <field name="name">Algerian cities</field>
+        <field name="res_model">algerian.cities</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_algerian_cities_sub" name="Algerian cities" parent="menu_lieux"
+              action="action_algerian_cities"
+              groups="access_rights_groups.group_admin"/>
+</odoo>

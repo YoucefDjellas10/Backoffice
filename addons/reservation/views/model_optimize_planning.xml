@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_modele_optimize_button" model="ir.ui.view">
+        <field name="name">modele.form.inherit</field>
+        <field name="model">modele</field>
+        <field name="inherit_id" ref="gestion_du_parc.view_modele_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/sheet/group" position="after">
+                <notebook>
+                    <page string="Bouton Optimiser" invisible="1">
+                        <header>
+                            <button name="optimize_reservations" type="object" string="Optimiser OUEST"
+                                    class="oe_highlight"/>
+                            <button name="optimize_reservations_centre" type="object" string="Optimiser CENTRE"
+                                    class="oe_highlight"/>
+                            <button name="optimize_reservations_est" type="object" string="Optimiser EST"
+                                    class="oe_highlight"/>
+                        </header>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+</odoo>

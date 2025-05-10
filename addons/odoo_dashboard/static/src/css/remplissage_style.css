@@ -1,0 +1,131 @@
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+    background-color: #f7f7f7;
+}
+
+.container-fluid {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+}
+
+.dashboard-header h2 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+}
+
+.dashboard-header p {
+    font-size: 16px;
+    color: #777;
+}
+
+/* Style pour les champs dans le header */
+.dashboard-fields {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.dashboard-fields .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+}
+
+.dashboard-fields .col-md-2 {
+    flex: 1;
+    min-width: 180px;
+    margin: 0 10px;
+}
+
+.dashboard-fields input {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s;
+}
+
+.dashboard-fields input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Conteneur du graphique */
+.chart-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 500px;
+    width: 100%;
+}
+
+canvas {
+    max-width: 1000px;
+    width: 100%;
+    height: 100%;
+}
+
+/* Ligne additionnelle (s'il y a besoin) */
+.additional-lines {
+    margin-top: 20px;
+}
+
+.additional-lines ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.additional-lines li {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.form-control {
+    display: block;
+    width: 100%;
+    height: calc(2.25rem + 2px); /* Hauteur du champ */
+    padding: 0.375rem 0.75rem; /* Espacement interne */
+    font-size: 1rem; /* Taille de la police */
+    font-weight: 400; /* Poids de la police */
+    line-height: 1.5; /* Hauteur de ligne */
+    color: black; /* Couleur du texte principal */
+    background-color: white; /* Couleur de fond */
+    background-clip: padding-box; /* Pour le contour */
+    border: 1px solid #ced4da; /* Bordure */
+    border-radius: 0.25rem; /* Coins arrondis */
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out; /* Transition */
+}
+
+/* Spécificité pour les options de la liste déroulante */
+.form-control option {
+    color: black; /* Couleur du texte des options */
+    background-color: white; /* Couleur de fond des options */
+}
+
+.form-control:focus {
+    color: black; /* Couleur du texte au focus */
+    background-color: white; /* Couleur de fond au focus */
+    border-color: #80bdff; /* Couleur de bordure au focus */
+    outline: 0; /* Supprime le contour par défaut */
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Ombre au focus */
+}
+
+.form-control.invalid {
+    border-color: #dc3545; /* Couleur de bordure en cas d'erreur */
+}
+

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_condition_annulation_form" model="ir.ui.view">
+        <field name="name">condition.annulation.form</field>
+        <field name="model">condition.annulation</field>
+        <field name="arch" type="xml">
+            <form string="condition annulation">
+                <sheet>
+                    <group class="custom-group" >
+                        <field name="haute_saison"/>
+                        <field name="haute_montant"/>
+                    </group>
+                    <group class="custom-group" >
+                        <field name="basse_saison"/>
+                        <field name="basse_montant"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <!-- Définition de la vue arborescente -->
+    <record id="view_condition_annulation_tree" model="ir.ui.view">
+        <field name="name">condition.annulation.tree</field>
+        <field name="model">condition.annulation</field>
+        <field name="arch" type="xml">
+            <tree string="condition annulation">
+                <field name="name"/>
+                <field name="haute_saison"/>
+                <field name="haute_montant"/>
+                <field name="basse_saison"/>
+                <field name="basse_montant"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Définition de l'action -->
+    <record id="action_condition_annulation" model="ir.actions.act_window">
+        <field name="name">Condition d'annulation</field>
+        <field name="res_model">condition.annulation</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_acondition_annulation_sub_menu"
+              name="Condition d'annulation"
+              sequence="3"
+              parent="menu_configuration_sub"
+              action="action_condition_annulation"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

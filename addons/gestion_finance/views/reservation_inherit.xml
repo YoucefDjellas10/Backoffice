@@ -1,0 +1,28 @@
+<odoo>
+    <record id="view_reservation_form" model="ir.ui.view">
+        <field name="name">reservation.form.inherit.revenue</field>
+        <field name="model">reservation</field>
+        <field name="inherit_id" ref="reservation.reservation_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Encaissements">
+                    <field name="revenue_ids" widget="one2many_list">
+                        <tree editable="bottom">
+                            <field name="mode_paiement"/>
+                            <field name="montant"/>
+                            <field name="montant_dzd"/>
+                            <field name="ecart_eur"/>
+                            <field name="ecart_da"/>
+                            <field name="total_reduit_euro"/>
+
+                        </tree>
+                    </field>
+                    <group>
+                        <field name="total_revenue"/>
+                    </group>
+
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

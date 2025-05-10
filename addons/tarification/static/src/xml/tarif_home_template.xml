@@ -1,0 +1,7 @@
+<templates>
+    <t t-name="TarifHomeTemplate">
+        <div class="o_tarif_home">
+            <h1>Welcome to Tarifs Home</h1>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,715 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <record id="view_livraison_form" model="ir.ui.view">
+        <field name="name">livraison.form</field>
+        <field name="model">livraison</field>
+        <field name="arch" type="xml">
+            <form string="reservation">
+                <header>
+                    <button name="action_print_all_reports"
+                            string="Imprimer tous les documents"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-print"
+                            invisible="lv_type == 'restitution'"/>
+
+
+                    <button name="send_email_confiramion_livraison" type="object" string="livraison"
+                            class="oe_highlight" invisible="1"/>
+                    <button name="restitution" type="object" string="restitution"
+                            class="oe_highlight" invisible="1"/>
+                    <button name="restitution_sans" type="object" string="restitution"
+                            class="oe_highlight" invisible="1"/>
+                    <button name="action_send_email_livraison" type="object" string="livraison"
+                            class="btn-primary" invisible="1"/>
+
+                    <field name="lv_type" invisible="1"/>
+
+
+                </header>
+                <div class="text-center">
+                    <span class="badge badge-orange" invisible="lv_type != 'restitution'">R</span>
+                    <span class="badge badge-green" invisible="lv_type != 'livraison'">D</span>
+                </div>
+
+                <div style="margin-left: 30px; font-size: 16px;">
+                    <table style="width: 43%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 5px; font-size: 20px;color: #2F336B;">
+                                Réservation :
+                            </td>
+                            <td>
+                                <field name="reservation" style=""
+                                       readonly="1"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px;font-size: 20px;color: #2F336B;">
+                                Client :
+                            </td>
+                            <td>
+                                <field name="client" style="background-color: yellow;" readonly="1"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px ;font-size: 20px;color: #2F336B;">
+                                Véhicule :
+                            </td>
+                            <td>
+                                <field name="vehicule" style="" readonly="1"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px;font-size: 20px;color: #2F336B;">
+                                Caution :
+                            </td>
+                            <td>
+                                <field name="opt_protection_caution" style="" readonly="1"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px;font-size: 20px;color: #2F336B;">
+                                Date :
+                            </td>
+                            <td>
+                                <field name="date_heure_debut_format" style=""
+                                       readonly="1" invisible="lv_type == 'restitution'"/>
+                                <field name="date_heure_fin" invisible="lv_type != 'restitution'"
+                                       style="" readonly="1"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px;font-size: 20px;color: #2F336B;">
+                                Durée :
+                            </td>
+                            <td>
+                                <field name="duree_dereservation" style="" readonly="1"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px;font-size: 20px;color: #2F336B;">
+                                Lieu :
+                            </td>
+                            <td>
+                                <field name="lieu_depart" style="" readonly="1"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px;font-size: 20px;color: #2F336B;">
+                                Reste à payer:
+                            </td>
+                            <td>
+                                <field name="total_reduit_euro" style="" readonly="1"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <section invisible="lv_type == 'restitution'">
+
+
+                    <details>
+                        <summary style=" font-size: 20px;">Signalisation
+                        </summary>
+                        <groupe>
+                            <group style=" font-size: 20px; text-align: center;">
+                                <field name="stage" invisible="1"/>
+
+                                <field name="photo" widget="many2many_binary"
+                                       readonly="stage == 'livre'"
+                                       invisible="lv_type == 'restitution'"/>
+
+                                <field name="kilomtrage" invisible="lv_type == 'restitution'"
+                                       readonly="stage == 'livre'"/>
+
+                                <field name="garantie" invisible="lv_type == 'restitution'"
+                                       readonly="stage == 'livre'"/>
+                                <field name="document_vehicule" invisible="lv_type == 'restitution'"
+                                       readonly="stage == 'livre'"/>
+                                <field name="roue_de_secours" invisible="lv_type == 'restitution'"
+                                       readonly="stage == 'livre'"/>
+                                <field name="etat_carburant" invisible="lv_type == 'restitution'"
+                                       readonly="stage == 'livre'"/>
+                                <field name="document_fournis" widget="radio"
+                                       invisible="lv_type == 'restitution'"
+                                       readonly="stage == 'livre'"/>
+                                <separator string="Options Prises : "
+                                           style="background-color: #2F336B; color: white;"
+                                           invisible="lv_type == 'restitution'"/>
+                                <field name="opt_protection" invisible="lv_type == 'restitution'"
+                                       string="Protection" readonly="1" decoration-bf="1"/>
+                                <field name="opt_carburant" invisible="1"/>
+                                <field name="opt_carburant_check"
+                                       invisible="lv_type == 'restitution' or not opt_carburant"
+                                       readonly="stage == 'livre'"/>
+                                <field name="opt_klm" invisible="1"/>
+                                <field name="opt_klm_check"
+                                       invisible="lv_type == 'restitution'  or not opt_klm"
+                                       readonly="stage == 'livre'"/>
+                                <field name="opt_nd_driver" invisible="1"/>
+                                <field name="opt_nd_driver_check"
+                                       invisible="lv_type == 'restitution' or not opt_nd_driver"
+                                       readonly="stage == 'livre'"/>
+                                <field name="opt_sb_a" invisible="1"/>
+                                <field name="opt_sb_a_check"
+                                       invisible="lv_type == 'restitution' or not opt_sb_a"
+                                       readonly="stage == 'livre'"/>
+                                <field name="opt_sb_b" invisible="1"/>
+                                <field name="opt_sb_b_check"
+                                       invisible="lv_type == 'restitution' or not opt_sb_b"
+                                       readonly="stage == 'livre'"/>
+                                <field name="opt_sb_c" invisible="1"/>
+                                <field name="opt_sb_c_check"
+                                       invisible="lv_type == 'restitution' or not opt_sb_c"
+                                       readonly="stage == 'livre'"/>
+                                <field name="color" widget="color_picker" invisible="1"/>
+                            </group>
+                        </groupe>
+                    </details>
+                    <details>
+                        <summary style="  font-size: 20px;">Encaissement supplementaire
+                        </summary>
+                        <group style=" font-size: 20px; text-align: center;">
+                            <separator string="Siège bébé : "
+                                       style="background-color: #2F336B; color: white;"
+                                       invisible="lv_type == 'restitution' or opt_sb_c or opt_sb_b or opt_sb_a"/>
+                            <field name="sb_ajout"
+                                   invisible="lv_type == 'restitution' or opt_sb_c or opt_sb_b or opt_sb_a"
+                                   readonly="stage == 'livre'"/>
+                            <field name="sb_total"
+                                   invisible="lv_type == 'restitution' or opt_sb_c or opt_sb_b or opt_sb_a"
+                                   readonly="1"/>
+                            <separator string="Protection : "
+                                       invisible="lv_type == 'restitution' or 'Max' in opt_protection"
+                                       style="background-color: #2F336B; color: white;"/>
+                            <field name="standart_ajoute"
+                                   invisible="lv_type == 'restitution' or max_ajoute or 'Max' in opt_protection or 'Standard' in opt_protection"
+                                   readonly="stage == 'livre'"/>
+                            <field name="standart_total"
+                                   invisible="lv_type == 'restitution' or max_ajoute or 'Max' in opt_protection or 'Standard' in opt_protection"
+                                   readonly="1"/>
+                            <field name="standart_caution"
+                                   invisible="lv_type == 'restitution' or max_ajoute or 'Max' in opt_protection or 'Standard' in opt_protection"
+                                   readonly="1"/>
+                            <field name="max_ajoute"
+                                   invisible="lv_type == 'restitution' or standart_ajoute or 'Max' in opt_protection"
+                                   readonly="stage == 'livre'"/>
+                            <field name="max_total"
+                                   invisible="lv_type == 'restitution' or standart_ajoute or 'Max' in opt_protection"
+                                   readonly="1"/>
+                            <field name="max_caution"
+                                   invisible="lv_type == 'restitution' or standart_ajoute or 'Max' in opt_protection"
+                                   readonly="1"/>
+                            <separator string="Plein carburant : "
+                                       invisible="lv_type == 'restitution' or opt_carburant"
+                                       style="background-color: #2F336B; color: white;"/>
+                            <field name="carburant_ajoute" invisible="lv_type == 'restitution' or opt_carburant"
+                                   readonly="stage == 'livre'"/>
+                            <field name="carburant_total_f" invisible="lv_type == 'restitution' or opt_carburant"
+                                   readonly="1"/>
+                            <separator string="2ème conducteur : "
+                                       invisible="lv_type == 'restitution' or opt_nd_driver"
+                                       style="background-color: #2F336B; color: white;"/>
+                            <field name="nd_driver_ajoute" invisible="lv_type == 'restitution' or opt_nd_driver"
+                                   readonly="stage == 'livre'"/>
+                            <field name="nd_driver_total" invisible="lv_type == 'restitution' or opt_nd_driver"
+                                   readonly="1"/>
+                            <field name="nd_client_lv"
+                                   invisible="1"
+                                   readonly="stage == 'livre'"/>
+                            <field name="nd_client_nom" readonly="stage == 'livre'"
+                                   invisible="lv_type == 'restitution' or opt_nd_driver or not nd_driver_ajoute or nd_client_lv"/>
+                            <field name="nd_client_prenom"
+                                   invisible="lv_type == 'restitution' or opt_nd_driver or not nd_driver_ajoute or nd_client_lv"
+                                   readonly="stage == 'livre'"/>
+                            <field name="nd_client_birthday"
+                                   invisible="lv_type == 'restitution' or opt_nd_driver or not nd_driver_ajoute or nd_client_lv"
+                                   readonly="stage == 'livre'"/>
+                            <field name="nd_client_permis_date"
+                                   invisible="lv_type == 'restitution' or opt_nd_driver or not nd_driver_ajoute or nd_client_lv"
+                                   readonly="stage == 'livre'"/>
+                            <separator string="Modifier rendez-vous :"
+                                       style="background-color: #2F336B; color: white;"/>
+                            <field name="lieu_retour_one" readonly="1"
+                                   invisible="lv_type == 'restitution'"/>
+                            <field name="date_retour_one" readonly="1"
+                                   invisible="lv_type == 'restitution'"/>
+                            <field name="change_heure_retour" invisible="lv_type == 'restitution'"
+                                   readonly="stage == 'livre'" string="Modifier"/>
+
+                            <field name="changed_hour" readonly="stage == 'livre'"
+                                   invisible="lv_type == 'restitution' or not change_heure_retour"/>
+
+                            <field name="changed_place" string="lieu de retour" readonly="stage == 'livre'"
+                                   invisible="lv_type == 'restitution' or not change_heure_retour"/>
+                            <field name="sous_total" readonly="1"
+                                   invisible="1"/>
+                            <field name="is_available" readonly="1"
+                                   invisible="1"/>
+
+                            <br/>
+                            <br/>
+                        </group>
+                        <div style="display: flex; justify-content: flex-start; gap: 50px; margin-left: 500px;">
+                            <button name="action_verifier_disponibilite" string="Vérifier disponibilité"
+                                    class="oe_highlight btn-warning" type="object"
+                                    invisible="lv_type == 'restitution' or not change_heure_retour"/>
+                            <button name="confirme_modifications" string="Confirmer les modifications"
+                                    class="oe_highlight btn-success" type="object"
+                                    invisible="lv_type == 'restitution' or not change_heure_retour"/>
+                        </div>
+
+                        <group style=" font-size: 20px; text-align: center;">
+                            <field name="dernier_klm" invisible="1"/>
+                            <separator string="Totaux : "
+                                       style="background-color: #2F336B; color: white;"/>
+                            <field name="total_supp" readonly="1"
+                                   invisible="lv_type == 'restitution'"/>
+                            <field name="total_payer" readonly="1"
+                                   invisible="lv_type == 'restitution'"/>
+                        </group>
+
+
+                    </details>
+                    <details>
+                        <summary style="font-size: 20px;">Signature</summary>
+                        <groupe>
+                            <group style=" font-size: 20px; text-align: center;">
+                                <field name="signature" widget="signature"
+                                       invisible="lv_type == 'restitution'"
+                                       style="width:120px;height:80px;" readonly="stage == 'livre'"/>
+
+                            </group>
+                        </groupe>
+
+                    </details>
+                    <details invisible="lv_type == 'restitution' or stage == 'livre'">
+                        <summary style="font-size: 20px;" invisible="lv_type == 'restitution'">Paiement</summary>
+                        <groupe invisible="lv_type == 'restitution'">
+                        </groupe>
+
+                    </details>
+                    <details>
+                        <summary style="  font-size: 20px;">Note</summary>
+                        <group>
+                            <field name="lv_note" invisible="lv_type == 'restitution'" readonly="stage == 'livre'"/>
+                        </group>
+                    </details>
+
+
+                </section>
+                <section invisible="lv_type != 'restitution'">
+
+                    <details>
+                        <summary style="  font-size: 20px;">Signalisation</summary>
+                        <br/>
+                        <br/>
+
+                        <groupe>
+                            <group style=" font-size: 20px; text-align: center;">
+                                <group>
+                                    <field name="kilometrage_depart"
+                                           invisible="lv_type != 'restitution' or not penalit_klm"
+                                           readonly="1" decoration-bf="1"/>
+                                    <field name="kilomtrage" invisible="lv_type != 'restitution'"
+                                           readonly="stage == 'livre'"/>
+                                    <field name="penalit_klm" invisible="lv_type != 'restitution' or not penalit_klm"
+                                           readonly="1"/>
+                                    <field name="diff_klm" invisible="lv_type != 'restitution' or not penalit_klm"
+                                           readonly="1"/>
+                                    <field name="photo" widget="many2many_binary"
+                                           invisible="lv_type != 'restitution'"
+                                           readonly="stage == 'livre'"/>
+
+                                </group>
+                                <group>
+                                    <field name="etat_carburant_retour" invisible="lv_type != 'restitution'"
+                                           readonly="stage == 'livre'"/>
+                                    <field name="penalit_carburant_euro"
+                                           invisible="lv_type != 'restitution' or not penalit_carburant_euro"
+                                           readonly="1"/>
+                                    <field name="photo_degat" widget="many2many_binary"
+                                           invisible="lv_type != 'restitution'" class="my-upload-button"
+                                           readonly="stage == 'livre'"/>
+                                    <field name="lv_note" invisible="lv_type != 'restitution'"
+                                           readonly="stage == 'livre'"/>
+                                    <field name="photo" widget="many2many_binary"
+                                           readonly="stage == 'livre'"
+                                           invisible="lv_type == 'restitution'"/>
+                                </group>
+
+                                <field name="photo" widget="many2many_binary"
+                                       readonly="stage == 'livre'"
+                                       invisible="lv_type == 'restitution'"/>
+
+                            </group>
+                        </groupe>
+
+                    </details>
+
+                    <details>
+                        <summary style="  font-size: 20px;">Encaissement supplementaire
+                        </summary>
+                        <field name="degradation" invisible="lv_type != 'restitution'"
+                               style="border: 2px solid #2F336B; padding: 10px;  border-radius: 10px;"
+                               readonly="stage == 'livre'">
+                            <tree string="Bareme Degradation" editable="bottom">
+                                <field name="categorie_lv" optional="hide"/>
+                                <field name="type_degradation"/>
+                                <field name="degradation"/>
+                                <field name="devise" optional="hide"/>
+                                <field name="devise_eur" optional="hide"/>
+                                <field name="prix"/>
+                                <field name="prix_eur" optional="hide"/>
+                                <field name="note"/>
+                            </tree>
+                        </field>
+                        <group>
+                            <group>
+                                <field name="total_eur" invisible="not total_eur or (lv_type != 'restitution')"
+                                       decoration-bf="1"/>
+                                <field name="degradation_limit_euro"
+                                       invisible="not degradation_limit_euro or (lv_type != 'restitution')"
+                                       decoration-bf="1"/>
+                                <field name="penalit_klm" invisible="not penalit_klm or (lv_type != 'restitution')"
+                                       decoration-bf="1"/>
+                                <field name="penalit_carburant_euro"
+                                       invisible="not penalit_carburant_euro or (lv_type != 'restitution')"
+                                       decoration-bf="1"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="total_da" invisible="not total_da or (lv_type != 'restitution')"
+                                       decoration-bf="1"/>
+                                <field name="degradation_limit_da"
+                                       invisible="not degradation_limit_da or (lv_type != 'restitution')"
+                                       decoration-bf="1"/>
+                                <field name="penalit_klm_dinar"
+                                       invisible="not penalit_klm_dinar or (lv_type != 'restitution')"
+                                       decoration-bf="1"/>
+                                <field name="penalit_carburant"
+                                       invisible="not penalit_carburant or (lv_type != 'restitution')"
+                                       decoration-bf="1"/>
+                                <field name="currency_da" invisible="1"/>
+
+                            </group>
+                        </group>
+
+                    </details>
+                    <details invisible="stage == 'livre'">
+                        <summary style="font-size: 20px;">Paiements</summary>
+                        <groupe>
+                        </groupe>
+
+                    </details>
+
+                    <details>
+                        <summary style=" font-size: 20px;">Photo du Depart
+                        </summary>
+                        <field name="photo_depart" invisible="lv_type != 'restitution' or not photo_depart">
+                            <tree delete="false">
+                                <field name="datas" widget='image' string="Photo"/>
+                            </tree>
+                        </field>
+
+
+                    </details>
+
+
+                </section>
+                <notebook>
+                    <page string="reservation info" invisible="1">
+                        <group>
+                            <group string="info reservation">
+                                <field name="status"/>
+                                <field name="name"/>
+                                <field name="reservation"/>
+                                <field name="date_de_reservation" string="Date de reservation"/>
+                                <field name="date_heure_debut_format" widget="daterange"
+                                       options="{'end_date_field': 'date_heure_fin'}"/>
+                                <field name="nbr_jour_reservation"/>
+                                <field name="date_heure_fin" invisible="1"/>
+                                <field name="lieu_depart"/>
+                                <field name="lieu_retour"/>
+                                <field name="zone"/>
+                            </group>
+                            <group>
+                                <group string="info client">
+                                    <field name="client"/>
+                                    <field name="risque" widget="badge"
+                                           decoration-success="risque == 'faible'"
+                                           decoration-warning="risque == 'moyen'"
+                                           decoration-danger="risque == 'eleve'"/>
+                                    <field name="nom" invisible="not nom"/>
+                                    <field name="prenom" invisible="not prenom"/>
+                                    <field name="email" invisible="not email"/>
+                                    <field name="date_de_naissance" invisible="not date_de_naissance"/>
+                                    <field name="mobile" invisible="not mobile"/>
+                                    <field name="telephone" invisible="not telephone"/>
+                                    <field name="note" invisible="not note"/>
+                                </group>
+                                <group string="info vehicule">
+                                    <field name="vehicule"/>
+                                    <field name="matricule" invisible="not matricule"/>
+                                    <field name="numero" invisible="not numero"/>
+                                    <field name="modele" invisible="not modele"/>
+                                    <field name="categorie" invisible="not categorie"/>
+                                    <field name="date_debut_service" invisible="not date_debut_service"/>
+                                    <field name="date_fin_service" invisible="not date_fin_service"/>
+                                </group>
+                                <group string="info tarifs">
+                                    <field name="prix_jour" invisible="not prix_jour"/>
+                                    <field name="nbr_jour_one" invisible="not nbr_jour_one" readonly="1"/>
+                                    <field name="prix_jour_two" invisible="not prix_jour_two" readonly="1"/>
+                                    <field name="nbr_jour_two" invisible="not nbr_jour_two" readonly="1"/>
+                                    <field name="frais_de_livraison"/>
+                                    <field name="supplements"/>
+                                    <field name="retour_tard"/>
+                                </group>
+                                <group string="info tarifs clients">
+                                    <field name="total_afficher"/>
+                                    <field name="prix_jour_afficher"/>
+                                    <field name="options_total"/>
+                                    <field name="total"/>
+                                </group>
+                            </group>
+                        </group>
+                    </page>
+                </notebook>
+
+                <button name="action_set_livre" type="object" string="Valider" class="btn-success btn-full-width"
+                        invisible="stage == 'livre' or (lv_type == 'restitution')"/>
+                <button name="action_set_livre_r" type="object" string="Valider" class="btn-success btn-full-width"
+                        invisible="stage == 'livre' or (lv_type != 'restitution')"/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_livraison_tree" model="ir.ui.view">
+        <field name="name">livraison.tree</field>
+        <field name="model">livraison</field>
+        <field name="arch" type="xml">
+            <tree string="livraison" default_order="action_date asc" decoration-success="lv_type == 'livraison'"
+                  decoration-warning="lv_type != 'livraison'">
+                <field name="action_date"/>
+                <field name="reservation" widget="badge"
+                       decoration-success="lv_type == 'livraison'"
+                       decoration-warning="lv_type != 'livraison'"/>
+                <field name="lv_type" widget="badge"
+                       decoration-success="lv_type == 'livraison'"
+                       decoration-warning="lv_type != 'livraison'"/>
+                <field name="date_heure_debut_format" widget="badge"
+                       decoration-success="lv_type == 'livraison'"
+                       decoration-warning="lv_type != 'livraison'"/>
+                <field name="duree_dereservation" widget="badge"
+                       decoration-success="lv_type == 'livraison'"
+                       decoration-warning="lv_type != 'livraison'"/>
+                <field name="action_lieu" widget="badge"
+                       decoration-success="lv_type == 'livraison'"
+                       decoration-warning="lv_type != 'livraison'"/>
+                <field name="vehicule" widget="badge"
+                       decoration-success="lv_type == 'livraison'"
+                       decoration-warning="lv_type != 'livraison'"/>
+                <field name="modele" widget="badge"
+                       decoration-success="lv_type == 'livraison'"
+                       decoration-warning="lv_type != 'livraison'"/>
+                <field name="stage" widget="badge" invisible="stage != 'livre'"
+                       decoration-success="1"/>
+
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_livraison_calendar" model="ir.ui.view">
+        <field name="name">livraison.calendar</field>
+        <field name="model">livraison</field>
+        <field name="arch" type="xml">
+            <calendar string="Livraison" date_start="action_date" mode="week" color="color">
+                <field name="name" widget="badge"/>
+                <field name="lv_type" widget="badge" filters="1"
+                       decoration-success="lv_type == 'livraison'"
+                       decoration-warning="lv_type != 'livraison'"/>
+                <field name="action_date"/>
+                <field name="duree_dereservation" widget="badge"/>
+                <field name="action_lieu"/>
+                <field name="vehicule"/>
+                <field name="modele"/>
+                <field name="zone" filters="1"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_livraison_kanban" model="ir.ui.view">
+        <field name="name">livraison.kanban</field>
+        <field name="model">livraison</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card">
+                            <a type="open" class="oe_kanban_global_click">
+                                <div class="o_kanban_header"
+                                     style="display: flex; justify-content: space-between; align-items: center; background-color: #f0f0f0; padding: 10px; border-bottom: 1px solid #ddd;">
+                                    <strong class="o_kanban_title" style="font-size: 16px;">
+                                        <field name="reservation"/>
+                                    </strong>
+                                    <span t-attf-class="badge badge-#{widget.status}"
+                                          style="font-size: 12px; padding: 5px;">
+                                        <field name="stage" widget="badge" invisible="stage != 'livre'"
+                                               decoration-success="1"/>
+                                    </span>
+                                </div>
+                                <br/>
+                                <div>
+                                    <field name="lv_type" widget="badge"
+                                           decoration-warning="lv_type != 'livraison'"
+                                           decoration-success="lv_type == 'livraison'"/>
+
+                                    <strong style="padding-left: 4px;">
+                                        <field name="date_heure_debut_format" invisible="lv_type != 'livraison'"/>
+                                    </strong>
+                                    <strong style="padding-left: 4px;">
+                                        <field name="date_heure_fin" invisible="lv_type == 'livraison'"/>
+                                    </strong>
+                                </div>
+                                <div>
+                                    <field name="lieu_depart" invisible="lv_type != 'livraison'"/>
+                                </div>
+                                <div>
+                                    <field name="lieu_retour" invisible="lv_type == 'livraison'"/>
+                                </div>
+                                <div>
+                                    <div>
+                                        <field name="modele"/>
+                                    </div>
+                                    <div>
+                                        <field name="vehicule"/>
+
+                                    </div>
+                                    <div style="color: #2196f3; ">
+                                        <span>✓</span>
+                                        <field name="action_date" string="Date"/>
+                                    </div>
+                                </div>
+                                <div invisible="not livrer_par">
+                                    <strong>Livré par :</strong>
+                                    <field name="livrer_par" widget="badge"
+                                           readonly="1"
+                                           decoration-info="1"
+                                           style="padding-left: 7px;"
+
+                                    />
+                                </div>
+                            </a>
+                        </div>
+                    </t>
+                </templates>
+                <field name="name"/>
+                <field name="reservation"/>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_livraison_search" model="ir.ui.view">
+        <field name="name">livraison.search</field>
+        <field name="model">livraison</field>
+        <field name="arch" type="xml">
+            <search string="Search">
+                <filter name="ouest" string="OUEST" domain="[('zone', '=', 1)]"
+                        groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                <filter name="centre" string="CENTRE" domain="[('zone', '=', 2)]"
+                        groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                <filter name="est" string="EST" domain="[('zone', '=', 3)]"
+                        groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                <separator groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                <filter name="before_2_days_action" string="Avant 2 jours" domain="[('action_date', '>=', (datetime.datetime.combine(context_today() + relativedelta(days=-3), datetime.time(0,0,0)).to_utc()).strftime('%Y-%m-%d %H:%M')),
+                                                                                    ('action_date', '&lt;', (datetime.datetime.combine(context_today() + relativedelta(days=-2), datetime.time(0,0,0)).to_utc()).strftime('%Y-%m-%d %H:%M'))
+                                                                                    ]"/>
+                <filter name="before_yesterday_action" string="Avant-hier" domain="[('action_date', '>=', (datetime.datetime.combine(context_today() + relativedelta(days=-2), datetime.time(0,0,0)).to_utc()).strftime('%Y-%m-%d %H:%M')),
+                                                                                    ('action_date', '&lt;', (datetime.datetime.combine(context_today() + relativedelta(days=-1), datetime.time(0,0,0)).to_utc()).strftime('%Y-%m-%d %H:%M'))
+                                                                                    ]"/>
+                <filter name="yesterday_action" string="Hier" domain="[('action_date', '>=', (datetime.datetime.combine(context_today() + relativedelta(days=-1), datetime.time(0,0,0)).to_utc()).strftime('%Y-%m-%d %H:%M')),
+                                                                       ('action_date', '&lt;', (datetime.datetime.combine(context_today(), datetime.time(0,0,0)).to_utc()).strftime('%Y-%m-%d %H:%M'))
+                                                                        ]"/>
+                <filter name="today_action" string="Aujourd'hui"
+                        domain="[('action_date', '>=', (datetime.datetime.combine(context_today(), datetime.time(0,0,0)).to_utc()).strftime('%Y-%m-%d %H:%M')),
+                                ('action_date', '&lt;', (datetime.datetime.combine(context_today() + relativedelta(days=1), datetime.time(0,0,0)).to_utc()).strftime('%Y-%m-%d %H:%M'))]"/>
+                <filter name="tomorrow_action" string="Demain" domain="[('action_date', '>=', (datetime.datetime.combine(context_today() + relativedelta(days=1), datetime.time(0,0,0)).to_utc()).strftime('%Y-%m-%d %H:%M')),
+                                                                        ('action_date', '&lt;', (datetime.datetime.combine(context_today() + relativedelta(days=2), datetime.time(0,0,0)).to_utc()).strftime('%Y-%m-%d %H:%M'))]"/>
+                <filter name="after_tomorrow_action" string="Après-demain" domain="[('action_date', '>=', (datetime.datetime.combine(context_today() + relativedelta(days=2), datetime.time(0,0,0)).to_utc()).strftime('%Y-%m-%d %H:%M')),
+                                                                                    ('action_date', '&lt;', (datetime.datetime.combine(context_today() + relativedelta(days=3), datetime.time(0,0,0)).to_utc()).strftime('%Y-%m-%d %H:%M'))
+                                                                                    ]"/>
+                <filter name="after_2_days_action" string="Apres 2 jours" domain="[('action_date', '>=', (datetime.datetime.combine(context_today() + relativedelta(days=3), datetime.time(0,0,0)).to_utc()).strftime('%Y-%m-%d %H:%M')),
+                                                                                    ('action_date', '&lt;', (datetime.datetime.combine(context_today() + relativedelta(days=2), datetime.time(0,0,0)).to_utc()).strftime('%Y-%m-%d %H:%M'))
+                                                                                    ]"/>
+                <group string="Regrouper par">
+                    <filter name="group_by_action_date" string="Date d'action" context="{'group_by':'action_date'}"/>
+
+                </group>
+
+            </search>
+        </field>
+    </record>
+
+
+    <record id="action_livraison_admin" model="ir.actions.act_window">
+        <field name="name">Livraison</field>
+        <field name="res_model">livraison</field>
+        <field name="view_mode">kanban,tree,calendar,form</field>
+    </record>
+    <record id="action_livraison_agent" model="ir.actions.act_window">
+        <field name="name">Livraison agent</field>
+        <field name="res_model">livraison</field>
+        <field name="view_mode">kanban,tree,calendar,form</field>
+        <field name="search_view_id" ref="view_livraison_search"/>
+        <field name="context">
+            {'date_min': (context_today() - relativedelta(days=2)).strftime('%Y-%m-%d'),
+            'date_max': (context_today() + relativedelta(days=3)).strftime('%Y-%m-%d')}
+        </field>
+        <field name="domain">
+            [('action_date', '>=', (context_today() - relativedelta(days=2)).strftime('%Y-%m-%d')),
+            ('action_date', '&lt;=', (context_today() + relativedelta(days=3)).strftime('%Y-%m-%d')),
+            ('stage', '=', 'reserve')]
+        </field>
+    </record>
+    <record id="livraison_agent_rule" model="ir.rule">
+        <field name="name">Restriction d'accès aux livraisons par zone pour les agents</field>
+        <field name="model_id" ref="reservation.model_livraison"/>
+        <field name="domain_force">[('zone', 'in', user.zone_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('access_rights_groups.group_agent'))]"/>
+    </record>
+
+    <record id="action_view_kanban_reservation" model="ir.actions.client">
+        <field name="name">Planning Journalier</field>
+        <field name="tag">kanban_reservation_dashboard</field>
+    </record>
+    <record id="action_kanban_agent" model="ir.actions.client">
+        <field name="name">LV</field>
+        <field name="tag">kanban_agent_dashboard</field>
+    </record>
+
+    <!-- Menu pour accéder au kanban agent -->
+    <menuitem id="menu_kanban_agent"
+              name="LV"
+              action="action_kanban_agent"
+              sequence="1"
+              groups="access_rights_groups.group_agent"/>
+    <menuitem id="menu_kanban_reservation"
+              name="LV"
+              parent="menu_reservation"
+              action="action_view_kanban_reservation"
+              sequence="10"
+              groups="access_rights_groups.group_admin"/>
+
+    <menuitem id="menu_livraison_sub_menu"
+              name="Livraison"
+              sequence="3"
+              parent="menu_reservation"
+              action="action_livraison_admin"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+    <!--    <menuitem id="menu_agent_livraison_sub_menu"-->
+    <!--              name="LV"-->
+    <!--              sequence="1"-->
+    <!--              action="action_view_kanban_reservation"-->
+    <!--              groups="access_rights_groups.group_agent"/>-->
+</odoo>

@@ -1,0 +1,35 @@
+<odoo>
+    <record id="view_annulation_pop_up_form" model="ir.ui.view">
+        <field name="name">reservation.form</field>
+        <field name="model">reservation</field>
+        <field name="arch" type="xml">
+            <form string="reservation pop up">
+                <group>
+                    <field name="annuler_raison"/>
+                </group>
+                <footer>
+                    <button name="action_confirm_cancel" string="Sauvegarder" type="object" class="btn-primary"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_rejet_pop_up_form" model="ir.ui.view">
+        <field name="name">reservation.form</field>
+        <field name="model">reservation</field>
+        <field name="arch" type="xml">
+            <form string="reservation pop up">
+                <group>
+                    <field name="rejet_raison"/>
+                </group>
+                <footer>
+                    <button name="action_confirm_reject" string="Sauvegarder" type="object" class="btn-primary"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+
+</odoo>

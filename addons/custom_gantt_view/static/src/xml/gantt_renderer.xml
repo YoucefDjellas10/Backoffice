@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+<!--    View Template -->
+    <div t-name="custom_gantt_view.GanttRenderer" t-ref="root-renderer" owl="1">
+        <div id="gantt_custom" class="gantt_custom">
+            <div class="btn-group mt-3 mx-auto gantt-control-buttons" role="group">
+                <button type="button" class="btn btn-sm btn-light quarter_day">Quarter Day</button>
+                <button type="button" class="btn btn-sm btn-light half_day">Half Day</button>
+                <button type="button" class="btn btn-sm btn-light full_day">Day</button>
+                <button type="button" class="btn btn-sm btn-light week">Week</button>
+                <button type="button" class="btn btn-sm btn-light month">Month</button>
+                <button type="button" class="btn btn-sm btn-light year">Year</button>
+                <button type="button" class="btn btn-sm btn-light reload_gantt_button" title="Reload Gantt">
+                    <i class="fa fa-refresh"/>
+                </button>
+            </div>
+        </div>
+    </div>
+</templates>

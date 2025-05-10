@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_supplements_form" model="ir.ui.view">
+        <field name="name">supplements.form</field>
+        <field name="model">supplements</field>
+        <field name="arch" type="xml">
+            <form string="Supplements">
+                <sheet>
+                    <group>
+                        <groupe>
+                            <group class="custom-group">
+                                <field name="name"/>
+                                <field name="heure_debut" invisible="reatrd != 0"/>
+                                <field name="heure_fin" invisible="reatrd != 0"/>
+                                <field name="heure_debut_float" invisible="reatrd != 0"/>
+                                <field name="heure_fin_float" invisible="reatrd != 0"/>
+                                <field name="montant" invisible="reatrd != 0"/>
+                                <separator string="ou bien" invisible="heure_debut or reatrd != 0"/>
+                                <field name="reatrd" invisible="heure_debut"/>
+                                <field name="valeur" invisible="heure_debut"/>
+                            </group>
+                        </groupe>
+                        <group></group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_supplements_tree" model="ir.ui.view">
+        <field name="name">supplements.tree</field>
+        <field name="model">supplements</field>
+        <field name="arch" type="xml">
+            <tree string="supplements">
+                <field name="name"/>
+                <field name="heure_debut"/>
+                <field name="heure_fin"/>
+                <field name="montant"/>
+                <field name="reatrd"/>
+                <field name="valeur"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Définition de l'action -->
+    <record id="action_supplements" model="ir.actions.act_window">
+        <field name="name">Suppléments</field>
+        <field name="res_model">supplements</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_supplements_sub"
+              name="Supplements"
+              sequence="7"
+              parent="menu_tarifications"
+              action="action_supplements"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

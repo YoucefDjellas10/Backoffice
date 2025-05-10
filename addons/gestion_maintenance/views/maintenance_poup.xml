@@ -1,0 +1,20 @@
+<odoo>
+    <record id="view_maintenace_popup_form" model="ir.ui.view">
+        <field name="name">maintenance.record.form</field>
+        <field name="model">maintenance.record</field>
+        <field name="arch" type="xml">
+            <form string="maintenance record">
+                <sheet>
+                    <group>
+                        <field name="prix_da"/>
+                        <field name="dernier_kilometrage"/>
+                        <field name="fournisseur"/>
+                        <field name="fournisseur_payer" widget="radio"/>
+                        <field name="note"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+</odoo>

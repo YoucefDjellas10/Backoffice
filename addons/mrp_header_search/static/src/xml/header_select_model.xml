@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template>
+
+    <t t-name="web.DateSearch">
+        <div style="display: flex; float: right; margin-left: 50px;">
+            <span style="padding: 5px 0;display: flex;white-space: nowrap;">
+                Date:
+                <DateTimeInput type="'date'" onChange="(date) => this.onStartDateChanged(date)"/>--
+                <DateTimeInput type="'date'" onChange="(date) => this.onEndDateChanged(date)"/>
+            </span>
+
+        </div>
+    </t>
+
+    <t t-inherit="web.ListView" t-inherit-mode="extension">
+        <xpath expr="//t[@t-set-slot='control-panel-additional-actions']" position="inside">
+            <t t-if="state.mrp_date_search">
+                 <DateSearch t-props="props"/>
+            </t>
+        </xpath>
+    </t>
+
+
+</template>

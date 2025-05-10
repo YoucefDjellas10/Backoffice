@@ -1,0 +1,31 @@
+<odoo>
+    <record id="view_ir_cron_optimisation_tree" model="ir.ui.view">
+        <field name="name">ir.cron.tree</field>
+        <field name="model">ir.cron</field>
+        <field name="arch" type="xml">
+            <tree string="Optimisation" editable="bottom">
+                <field name="name" readonly="1"/>
+                <field name="interval_number" class="oe_inline" string="Exécuter tout les"/>
+                <field name="interval_type" class="oe_inline" string="Exécuter tout les"/>
+                <field name="active" widget="boolean_toggle"/>
+                <field name="nextcall"/>
+                <button name="method_direct_trigger" type="object" string="Exécuter manuellement" class="oe_highlight"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_optimisation_planing" model="ir.actions.act_window">
+        <field name="name">Optimisation des planing</field>
+        <field name="res_model">ir.cron</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_ir_cron_optimisation_tree"/>
+        <field name="domain">[('id', 'in', [63, 64, 65])]</field>
+    </record>
+
+    <menuitem id="menu_optimisation_planing_menu"
+              name="Optimisation des Planing"
+              sequence="10"
+              action="action_optimisation_planing"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+</odoo>

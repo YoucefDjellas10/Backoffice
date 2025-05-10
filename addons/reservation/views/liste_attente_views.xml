@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_lite_atente_form" model="ir.ui.view">
+        <field name="name">lite.atente.form</field>
+        <field name="model">lite.atente</field>
+        <field name="arch" type="xml">
+            <form string="lite atente">
+                <sheet>
+                    <group>
+                        <groupe>
+                        <group class="custom-group" >
+                            <field name="name"/>
+                            <field name="client"/>
+                            <field name="full_name"/>
+                            <field name="lieu_depart"/>
+                            <field name="date_depart"/>
+                            <field name="heure_debut"/>
+                            <field name="heure_debut_float" invisible="1"/>
+                        </group> </groupe>
+                        <group class="custom-group" >
+                            <field name="email"/>
+                            <field name="phone_number"/>
+                            <field name="car_model"/>
+                            <field name="lieu_retour"/>
+                            <field name="date_retour"/>
+                            <field name="heure_fin"/>
+                            <field name="heure_fin_float" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_lite_atente_tree" model="ir.ui.view">
+        <field name="name">lite.atente.tree</field>
+        <field name="model">lite.atente</field>
+        <field name="arch" type="xml">
+            <tree string="lite atente">
+                <field name="name"/>
+                <field name="client"/>
+                <field name="full_name"/>
+                <field name="email"/>
+                <field name="phone_number"/>
+                <field name="car_model"/>
+                <field name="lieu_depart"/>
+                <field name="date_depart"/>
+                <field name="date_retour"/>
+                <field name="heure_debut"/>
+                <field name="heure_fin"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Définition de l'action -->
+    <record id="action_lite_atente" model="ir.actions.act_window">
+        <field name="name">Lite atente</field>
+        <field name="res_model">lite.atente</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_lite_atente_sub_menu"
+              name="Liste atente"
+              sequence="60"
+              parent="menu_configuration_sub"
+              action="action_lite_atente"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+    <menuitem id="menu_lite_atente_sub_menu_resa"
+              name="Liste atente"
+              sequence="200"
+              action="action_lite_atente"
+              groups="access_rights_groups.group_reservation"/>
+</odoo>

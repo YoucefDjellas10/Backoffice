@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_liste_client_form" model="ir.ui.view">
+        <field name="name">liste.client.form</field>
+        <field name="model">liste.client</field>
+        <field name="arch" type="xml">
+            <form string="liste client">
+                <header>
+<!--                    <button name="action_enregistrement_email" type="object" string="Enregistrement de compte"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="action_newslatter_email" type="object" string="Enregistrement newsletter"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button name="action_driver_email" type="object" string="driver mis a jour"-->
+<!--                            class="oe_highlight"/>-->
+                </header>
+                <sheet>
+                    <group>
+                        <groupe>
+                            <group class="custom-group">
+                                <field name="name"/>
+                                <field name="civilite"/>
+                                <field name="nom"/>
+                                <field name="prenom"/>
+                                <field name="email"/>
+                                <field name="mobile"/>
+                                <field name="telephone"/>
+                                <field name="note"/>
+                                <field name="create_date" readonly="1"/>
+
+                            </group>
+                        </groupe>
+                        <group class="custom-group">
+                            <field name="parrain" invisible="not parrain"/>
+                            <field name="code_prime" decoration-bf="code_prime" decoration-danger="code_prime"/>
+                            <field name="risque"/>
+                            <field name="date_de_naissance"/>
+                            <field name="date_de_permis"/>
+                            <field name="categorie_client" widget="badge"
+                                   decoration-success="categorie_client == 4"
+                                   decoration-danger="categorie_client == 1"
+                                   decoration-info="categorie_client == 3"
+                                   decoration-warning="categorie_client == 2"/>
+                            <field name="categorie_client" readonly="0"/>
+                            <field name="total_points_char" widget="badge"/>
+                            <field name="total_points" readonly="0"/>
+                            <field name="solde" decoration-bf="1"/>
+                            <field name="solde_consomer" readonly="1"/>
+                            <field name="solde_total" readonly="1"/>
+                            <field name="devise" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_liste_client_tree" model="ir.ui.view">
+        <field name="name">liste.client.tree</field>
+        <field name="model">liste.client</field>
+        <field name="arch" type="xml">
+            <tree string="Liste client"
+                  decoration-success="risque == 'faible'"
+                  decoration-warning="risque == 'moyen'"
+                  decoration-danger="risque == 'eleve'">
+                <field name="name"/>
+                <field name="risque" widget="badge"
+                       decoration-success="risque == 'faible'"
+                       decoration-warning="risque == 'moyen'"
+                       decoration-danger="risque == 'eleve'"/>
+                <field name="mobile"/>
+                <field name="email"/>
+                <field name="code_prime" decoration-bf="code_prime" decoration-danger="code_prime"/>
+                <field name="devise" invisible="1" optional="hide"/>
+                <field name="solde" decoration-bf="name"/>
+                <field name="total_points_char" widget="badge" decoration-success="risque == 'faible'"
+                       decoration-warning="risque == 'moyen'"
+                       decoration-danger="risque == 'eleve'"/>
+                <field name="categorie_client" widget="badge"
+                       decoration-success="categorie_client == 6"
+                       decoration-danger="categorie_client == 2"
+                       decoration-info="categorie_client == 5"
+                       decoration-warning="categorie_client == 4"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_liste_client_kanban" model="ir.ui.view">
+        <field name="name">liste.client.kanban</field>
+        <field name="model">liste.client</field>
+        <field name="arch" type="xml">
+            <kanban string="Liste Client">
+                <field name="name"/>
+                <field name="mobile"/>
+                <field name="email"/>
+                <field name="code_prime"/>
+                <field name="devise"/>
+                <field name="solde"/>
+                <field name="total_points_char"/>
+                <field name="categorie_client"/>
+                <field name="risque"/>
+
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_content oe_kanban_global_click"
+                             style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                            <div class="o_kanban_header"
+                                 style="display: flex; justify-content: space-between; align-items: center; background-color: #f0f0f0; padding: 10px; border-bottom: 1px solid #ddd;">
+                                <strong class="o_kanban_title" style="font-size: 16px;">
+                                    <field name="name"/>
+                                </strong>
+                                <span t-attf-class="badge badge-#{widget.categorie_client}"
+                                      style="font-size: 12px; padding: 5px;">
+                                    <field name="categorie_client" widget="badge"
+                                           decoration-success="categorie_client == 4"
+                                           decoration-danger="categorie_client == 1"
+                                           decoration-info="categorie_client == 3"
+                                           decoration-warning="categorie_client == 2"/>
+                                </span>
+                            </div>
+                            <div class="o_kanban_body" style="padding: 10px;">
+                                <div class="o_kanban_field" style="margin-bottom: 5px;">
+                                    <span class="fa fa-phone" aria-hidden="true" title="Mobile"
+                                          style="margin-right: 5px;"/>
+                                    <field name="mobile"/>
+                                </div>
+                                <div class="o_kanban_field" style="margin-bottom: 5px;">
+                                    <span class="fa fa-envelope" aria-hidden="true" title="Email"
+                                          style="margin-right: 5px;"/>
+                                    <field name="email"/>
+                                </div>
+                                <div class="o_kanban_field" style="margin-bottom: 5px;">
+                                    <span class="fa fa-star" aria-hidden="true" title="Code Prime"
+                                          style="margin-right: 5px; color: #FFD700;"/>
+                                    <field name="code_prime" decoration-bf="code_prime" decoration-danger="code_prime"/>
+                                </div>
+                                <div class="o_kanban_field" style="margin-bottom: 5px;">
+                                    <span class="fa fa-money" aria-hidden="true" title="Solde"
+                                          style="margin-right: 5px;"/>
+                                    <field name="solde" decoration-bf="name"/>
+                                </div>
+                                <div class="o_kanban_field" style="margin-bottom: 5px;">
+                                    <span class="fa fa-trophy" aria-hidden="true" title="Points"
+                                          style="margin-right: 5px;"/>
+                                    <field name="total_points_char" widget="badge"/>
+                                </div>
+                                <div class="o_kanban_field" style="margin-bottom: 5px;">
+                                    <span class="fa fa-shield" aria-hidden="true" title="Risque"
+                                          style="margin-right: 5px;"/>
+                                    <field name="risque" widget="badge"
+                                           decoration-success="risque == 'faible'"
+                                           decoration-warning="risque == 'moyen'"
+                                           decoration-danger="risque == 'eleve'"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_liste_client_search" model="ir.ui.view">
+        <field name="name">liste.client.search</field>
+        <field name="model">liste.client</field>
+        <field name="arch" type="xml">
+            <search string="liste client">
+                <field name="name"/>
+                <field name="email"/>
+                <field name="code_prime"/>
+                <field name="telephone"/>
+            </search>
+        </field>
+    </record>
+
+
+    <!-- Définition de l'action -->
+    <record id="action_liste_client" model="ir.actions.act_window">
+        <field name="name">Liste client</field>
+        <field name="res_model">liste.client</field>
+        <field name="view_mode">tree,form,kanban</field>
+        <field name="search_view_id" ref="view_liste_client_search"/>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_liste_client"
+              name="Liste des clients"
+              sequence="10"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+    <menuitem id="menu_liste_client_sub"
+              name="Clients"
+              parent="menu_liste_client"
+              action="action_liste_client"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+    <menuitem id="menu_liste_client_sub_resa"
+              name="Clients"
+              sequence="100"
+              action="action_liste_client"
+              groups="access_rights_groups.group_reservation"/>
+</odoo>

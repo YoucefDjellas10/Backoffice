@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_caisse_record_form" model="ir.ui.view">
+        <field name="name">caisse.record.form</field>
+        <field name="model">caisse.record</field>
+        <field name="arch" type="xml">
+            <form string="caisse record">
+                <sheet>
+                    <group>
+                        <group>
+                            <groupe>
+                                <group class="custom-group">
+                                    <field name="type_caisse"
+                                           groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                                    <field name="type_caisse" groups="access_rights_groups.group_agent"/>
+                                </group>
+                            </groupe>
+                            <group class="custom-group">
+                                <field name="zone"
+                                       groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                                <field name="zone" groups="access_rights_groups.group_agent"/>
+                            </group>
+                        </group>
+                        <group>
+                            <groupe>
+                                <group class="custom-group" style="margin-left: -1cm;">
+                                    <field name="user_id"
+                                           groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                                    <field name="user_id" groups="access_rights_groups.group_agent"/>
+                                </group>
+                            </groupe>
+                            <group class="custom-group">
+                                <field name="dinar" invisible="1"/>
+                                <field name="caisse_dzd" decoration-bf="1"/>
+                            </group>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Les Dépenses"
+                              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                            <header>
+                                <button name="action_open_depense_form" type="object"
+                                        string="Ajouter une dépense" class="oe_highlight"/>
+                            </header>
+
+                            <field name="depenses" readonly="1"
+                                   style="border: 2px solid #2F336B; padding: 10px; border-radius: 12px;"/>
+                        </page>
+                        <page string="les Dépenses" groups="access_rights_groups.group_agent">
+                            <header>
+                                <button name="action_open_depense_form" type="object"
+                                        string="Ajouter une dépense" class="oe_highlight"/>
+                            </header>
+                            <field name="depenses" readonly="1" domain="[('status', '=', 'en_attente')]"
+                                   style="border: 2px solid #2F336B; padding: 10px; border-radius: 12px;">
+                                <tree default_order="create_date desc">
+                                    <field name="name"/>
+                                    <field name="create_date" string="Date"/>
+                                    <field name="type_depense"/>
+                                    <field name="caisse" widget="badge"/>
+                                    <field name="euro" invisible="1" optional="hide"/>
+                                    <field name="dinar" invisible="1" optional="hide"/>
+                                    <field name="montant_da" widget="monetary"/>
+                                    <field name="note"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Transfer">
+                            <header>
+                                <button name="action_open_transfer_form"
+                                        string="Ajouter un transfert"
+                                        type="object"
+                                        class="oe_highlight"/>
+                            </header>
+                            <field name="trasfers" readonly="1"
+                                   style="border: 2px solid #2F336B; padding: 10px; border-radius: 12px;">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="create_date" string="Date"/>
+                                    <field name="vers" widget="badge" decoration-danger="name"/>
+                                    <field name="dinar" invisible="1" optional="hide"/>
+                                    <field name="montant_dzd" sum="Total" widget="monetary"/>
+                                    <field name="note"/>
+                                </tree>
+
+                            </field>
+                        </page>
+                        <page string="Approvisionnement"
+                              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+
+                            <field name="recevoir" readonly="1"
+                                   style="border: 2px solid #2F336B; padding: 10px; border-radius: 12px;">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="create_date" string="Date"/>
+                                    <field name="de" widget="badge" decoration-success="name"/>
+                                    <field name="dinar" invisible="1" optional="hide"/>
+                                    <field name="montant_dzd" sum="Total" widget="monetary"/>
+                                    <field name="note"/>
+                                </tree>
+
+                            </field>
+
+                        </page>
+
+
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_caisse_record_tree" model="ir.ui.view">
+        <field name="name">caisse.record.tree</field>
+        <field name="model">caisse.record</field>
+        <field name="arch" type="xml">
+            <tree string="caisse record">
+                <field name="name"/>
+                <field name="type_caisse"/>
+                <field name="user_id"/>
+                <field name="dinar" invisible="1" optional="hide"/>
+                <field name="caisse_dzd" decoration-bf="1"/>
+            </tree>
+        </field>
+    </record>
+    <record id="caisse_record_rule_agent" model="ir.rule">
+        <field name="name">Restriction des agents sur les caisses</field>
+        <field name="model_id" ref="model_caisse_record"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('access_rights_groups.group_agent'))]"/>
+    </record>
+
+
+    <!-- Définition de l'action -->
+    <record id="action_caisse_record" model="ir.actions.act_window">
+        <field name="name">Caisse</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record id="action_caisse_record_filtered" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">7</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_gestion_finance"
+              sequence="5"
+              name="Finanace"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+    <menuitem id="menu_gestion_finance_sub"
+              sequence="0"
+              parent="menu_gestion_finance"
+              name="Caisses"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+    <menuitem id="menu_caisse_record_sub"
+              name="Caisse"
+              sequence="1"
+              parent="menu_gestion_finance_sub"
+              action="action_caisse_record"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+    <menuitem id="menu_caisse_record_sub_agent"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered"
+              groups="access_rights_groups.group_agent"/>
+</odoo>

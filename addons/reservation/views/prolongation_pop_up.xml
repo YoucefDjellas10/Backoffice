@@ -1,0 +1,41 @@
+<odoo>
+    <record id="view_prolongation_popup_form" model="ir.ui.view">
+        <field name="name">reservation.prolongation.popup.form</field>
+        <field name="model">prolongation</field>
+        <field name="arch" type="xml">
+            <form string="Create Prolongation">
+                <header>
+                    <button string="Confirmé" type="object" name="action_confirm" class="btn-primary"/>
+                    <button name="action_verifier_disponibilite" type="object" string="Vérifier Disponibilité"
+                            class="btn-primary"/>
+                </header>
+
+                <sheet>
+                    <group>
+                        <groupe>
+                            <group class="custom-group">
+                                <field name="date_heure_fin" invisible="1"/>
+                                <field name="date_fin_un" invisible="1"/>
+                                <field name="reservation" readonly="1"/>
+                                <field name="date_prolonge"/>
+                                <field name="total_prolongation" invisible="1"/>
+                                <field name="devise" invisible="1"/>
+                                <field name="prix_prolongation_devise" invisible="not total_prolongation"/>
+                                <field name="nb_jour_prolonge_l"/>
+                                <field name="heure_prolonge_l"/>
+                                <field name="prix_prolongation"
+                                       invisible="not total_prolongation or not prix_prolongation"/>
+                                <field name="total_option_prolonge"
+                                       invisible="not total_prolongation or not total_option_prolonge"/>
+                            </group>
+                        </groupe>
+                        <group></group>
+
+
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+</odoo>

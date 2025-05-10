@@ -1,0 +1,5 @@
+"id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
+access_alert_record_group_manager,alert_record.access_group_manager,gestion_maintenance.model_alert_record,groupe_accee.group_manager,1,1,1,1
+access_maintenance_record_group_manager,maintenance_record.access_group_manager,gestion_maintenance.model_maintenance_record,groupe_accee.group_manager,1,1,1,1
+access_type_maintenance_record_group_manager,type_maintenance_record.access_group_manager,gestion_maintenance.model_type_maintenance_record,groupe_accee.group_manager,1,1,1,1
+.

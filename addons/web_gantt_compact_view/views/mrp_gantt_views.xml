@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_workorder_view_gantt" model="ir.ui.view">
+        <field name="name">mrp.workorder.view.gantt</field>
+        <field name="model">mrp.workorder</field>
+        <field name="arch" type="xml">
+            <ganttview                
+                date_start = "date_start" 
+                date_stop = "date_finished"                 
+                color ="production_id"                
+                round_dnd_dates = "false"
+                default_group_by = "workcenter_id"
+                default_scale = "month"
+            />   
+        </field>
+    </record>
+
+    <record id="mrp_production_view_gantt" model="ir.ui.view">
+        <field name="name">mrp.production.view.gantt</field>
+        <field name="model">mrp.production</field>
+        <field name="arch" type="xml">
+            <ganttview                
+                date_start = "date_start" 
+                date_stop = "date_finished"                 
+                color ="product_id"
+                round_dnd_dates = "false"
+                default_group_by = "product_id"
+                default_scale = "month"                
+            />   
+        </field>
+    </record>
+
+    <record id="mrp.mrp_workorder_todo" model="ir.actions.act_window">
+        <field name="view_mode">tree,kanban,form,calendar,pivot,graph,ganttview</field>
+    </record>
+
+    <record id="mrp.mrp_production_action" model="ir.actions.act_window">
+        <field name="view_mode">tree,kanban,form,calendar,pivot,graph,ganttview</field>
+    </record>
+
+</odoo>

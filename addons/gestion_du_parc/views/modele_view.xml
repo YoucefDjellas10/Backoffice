@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_modele_form" model="ir.ui.view">
+        <field name="name">modele.form</field>
+        <field name="model">modele</field>
+        <field name="arch" type="xml">
+            <form string="Modele">
+                <sheet>
+                    <group>
+                        <groupe>
+                            <group string="Information géneral" class="custom-group">
+                                <group>
+                                    <field name="vehicule_type"/>
+                                    <field name="categorie"/>
+                                    <field name="name"/>
+                                    <field name="min_age"/>
+                                    <field name="carburant"/>
+                                    <field name="boite_vitesse"/>
+                                    <field name="climatisation" widget="radio"/>
+                                </group>
+                                <group>
+                                    <field name="photo_link" widget="url"/>
+                                    <field name="photo_link_nd" widget="url"/>
+                                    <field name="photo_link_pay" widget="url"/>
+                                    <field name="stickers"/>
+                                    <field name="nombre_deplace"/>
+                                    <field name="nombre_de_porte"/>
+                                    <field name="nombre_de_bagage"/>
+                                </group>
+                            </group>
+                        </groupe>
+                        <group string="Information Marketing" class="custom-group">
+                            <group>
+                                <field name="description_fr"/>
+                                <field name="marketing_text_fr"/>
+                                <field name="condition_fr"/>
+                            </group>
+                            <group>
+                                <field name="description_en"/>
+                                <field name="description_ar"/>
+                                <field name="marketing_text_en"/>
+                                <field name="marketing_text_ar"/>
+                                <field name="condition_en"/>
+                            </group>
+                        </group>
+                        <hr style="border: none; background-color: transparent; margin: 10px 0;"/>
+
+                        <button name="action_open_create_vehicule" type="object" string="Ajouter Véhicule"
+                                class="btn-primary"/>
+                        <hr/>
+
+                        <field name="vehicule_ids" style="border: 2px solid black;">
+                            <tree create="false" delete="false">
+                                <field name="zone" decoration-bf="1"/>
+                                <field name="matricule" decoration-bf="1"/>
+                                <field name="numero" widget="badge"/>
+                                <field name="date_debut_service" decoration-bf="1"/>
+                            </tree>
+                        </field>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_modele_tree" model="ir.ui.view">
+        <field name="name">modele.tree</field>
+        <field name="model">modele</field>
+        <field name="arch" type="xml">
+            <tree string="Modele">
+                <field name="categorie"/>
+                <field name="name"/>
+                <field name="min_age"/>
+                <field name="stickers"/>
+                <field name="vehicule_type"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Définition de l'action -->
+    <record id="action_modele" model="ir.actions.act_window">
+        <field name="name">Modèles</field>
+        <field name="res_model">modele</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_modele_sub"
+              name="Modèles"
+              parent="menu_gestion_du_parc"
+              sequence="2"
+              action="action_modele"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

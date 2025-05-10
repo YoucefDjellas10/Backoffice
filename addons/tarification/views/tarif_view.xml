@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_tarifs_form" model="ir.ui.view">
+        <field name="name">tarifs.form</field>
+        <field name="model">tarifs</field>
+        <field name="arch" type="xml">
+            <form string="Tarifs">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="saison"/>
+                            <field name="modele"/>
+                            <field name="categorie"/>
+                            <field name="prix"/>
+                            <field name="nb_jour"/>
+                        </group>
+                        <group groups="access_rights_groups.group_admin">
+                            <field name="periodes" widget="many2many_tags"/>
+                            <field name="nbr_de"/>
+                            <field name="nbr_au"/>
+                            <field name="date_depart_one"/>
+                            <field name="date_fin_one"/>
+                            <field name="date_depart_two" invisible="not date_depart_two"/>
+                            <field name="date_fin_two" invisible="not date_fin_two"/>
+                            <field name="date_depart_three" invisible="not date_depart_three"/>
+                            <field name="date_fin_three" invisible="not date_fin_three"/>
+                            <field name="date_depart_four" invisible="not date_depart_four"/>
+                            <field name="date_fin_four" invisible="not date_fin_four"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_tarifs_tree" model="ir.ui.view">
+        <field name="name">tarifs.tree</field>
+        <field name="model">tarifs</field>
+        <field name="arch" type="xml">
+            <tree string="tarifs">
+                <field name="saison"/>
+                <field name="modele" readonly="1"/>
+                <field name="prix"/>
+                <field name="nb_jour"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_tarifs_tree_saison" model="ir.ui.view">
+        <field name="name">tarifs.tree</field>
+        <field name="model">tarifs</field>
+        <field name="arch" type="xml">
+            <tree string="tarifs" editable="top">
+                <field name="saison"/>
+                <field name="modele" readonly="1"/>
+                <field name="prix"/>
+                <field name="nb_jour"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_tarifs_search" model="ir.ui.view">
+        <field name="name">tarifs.search</field>
+        <field name="model">tarifs</field>
+        <field name="arch" type="xml">
+            <search>
+                <searchpanel view_types="list,kanban" context="{'default_saison': 3}">
+                    <field name="saison" icon="fa-sun"/>
+                    <field name="modele" icon="fa-cogs"/>
+                </searchpanel>
+                <filter string="Saison A" name="saison_1" domain="[('saison', '=', 1)]"/>
+                <filter string="Saison B" name="saison_2" domain="[('saison', '=', 2)]"/>
+                <filter string="Saison C" name="saison_3" domain="[('saison', '=', 3)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Modèle" name="modele" domain="[]" context="{'group_by':'modele'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_tarifs_search_saison" model="ir.ui.view">
+        <field name="name">tarifs.search</field>
+        <field name="model">tarifs</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter string="Saison A" name="saison_1" domain="[('saison', '=', 1)]"/>
+                <filter string="Saison B" name="saison_2" domain="[('saison', '=', 2)]"/>
+                <filter string="Saison C" name="saison_3" domain="[('saison', '=', 3)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Modèle" name="modele" domain="[]" context="{'group_by':'modele'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Définition de l'action -->
+    <record id="action_tarifs" model="ir.actions.act_window">
+        <field name="name">tarifs</field>
+        <field name="res_model">tarifs</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'group_by': 'modele'}</field>
+
+        <field name="view_id" ref="view_tarifs_tree"/>
+        <field name="search_view_id" ref="view_tarifs_search"/>
+
+    </record>
+
+    <record id="action_tarifs_saison_un" model="ir.actions.act_window">
+        <field name="name">Haute saison</field>
+        <field name="res_model">tarifs</field>
+        <field name="view_mode">tree</field>
+        <field name="domain">[('saison', '=', 1)]</field>
+        <field name="context">{'group_by': 'modele'}</field>
+        <field name="view_id" ref="view_tarifs_tree_saison"/>
+        <field name="search_view_id" ref="view_tarifs_search_saison"/>
+
+    </record>
+
+    <record id="action_tarifs_saison_deux" model="ir.actions.act_window">
+        <field name="name">Basse saison</field>
+        <field name="res_model">tarifs</field>
+        <field name="view_mode">tree</field>
+        <field name="domain">[('saison', '=', 2)]</field>
+        <field name="context">{'group_by': 'modele'}</field>
+        <field name="view_id" ref="view_tarifs_tree_saison"/>
+        <field name="search_view_id" ref="view_tarifs_search_saison"/>
+
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_tarifs_sub"
+              name="Tarifs"
+              sequence="4"
+              parent="menu_tarifications"
+              action="action_tarifs"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+</odoo>

@@ -1,0 +1,16 @@
+<odoo>
+    <data>
+        <!-- Héritage de la vue formulaire pour alert.record -->
+        <record id="view_alert_record_form_inherit" model="ir.ui.view">
+            <field name="name">alert.record.form.inherit</field>
+            <field name="model">alert.record</field>
+            <field name="inherit_id" ref="view_alert_record_form"/>
+            <field name="arch" type="xml">
+                <!-- Assurez-vous que `km_actuel` est visible dans le formulaire des alertes -->
+                <xpath expr="//field[@name='km_actuel']" position="attributes">
+                    <attribute name="invisible">0</attribute>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
