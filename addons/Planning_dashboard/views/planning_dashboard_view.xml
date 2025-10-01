@@ -1,5 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Template QWeb pour le dashboard Ouest -->
+    <template id="planning_dashboard_ouest_template" name="Planning Dashboard Ouest">
+        <table class="table table-sm table-bordered">
+            <t t-foreach="state.days" t-as="day">
+                <td>
+                    <t t-set="dayData" t-value="vehicule.planning[day.label.split(' ')[1]]"/>
+                    <t t-if="dayData">
+                        <div t-attf-class="availability-cell #{dayData.isBlocked ? 'blocked-vehicle BLOQUE' : ''}">
+                            <span t-attf-class="#{dayData.first === 'BLOQUE' ? 'BLOQUE' : ''}">
+                                <t t-esc="dayData.first"/>
+                            </span>
+                            <span t-attf-class="#{dayData.second === 'BLOQUE' ? 'BLOQUE' : ''}">
+                                <t t-esc="dayData.second"/>
+                            </span>
+                        </div>
+                    </t>
+                </td>
+            </t>
+        </table>
+
+        <!-- Légende pour expliquer les couleurs -->
+        <div class="planning-legend" style="margin-top: 15px;">
+            <div class="legend-item">
+                <div class="legend-color legend-blocked"></div>
+                <span>Véhicule Bloqué</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-reserved"></div>
+                <span>Réservé</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-pending"></div>
+                <span>En attente</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-cancelled"></div>
+                <span>Annulé</span>
+            </div>
+        </div>
+    </template>
+
+    <!-- Vues classiques (form/tree) -->
     <record id="planning_dashboard_raison_form" model="ir.ui.view">
         <field name="name">planning.dashboard.form</field>
         <field name="model">planning.dashboard</field>
@@ -16,6 +58,7 @@
             </form>
         </field>
     </record>
+
     <record id="view_planning_dashboard_tree" model="ir.ui.view">
         <field name="name">planning.dashboard.tree</field>
         <field name="model">planning.dashboard</field>
@@ -25,38 +68,51 @@
             </tree>
         </field>
     </record>
+
     <record id="action_planning_dashboard" model="ir.actions.act_window">
         <field name="name">Raison d'annulation</field>
         <field name="res_model">planning.dashboard</field>
         <field name="view_mode">tree,form</field>
     </record>
 
+    <!-- Action Client qui utilise le template QWeb -->
     <record id="planning_dashboard_ouest_action" model="ir.actions.client">
         <field name="name">Ouest</field>
         <field name="tag">planning_dashboard_ouest</field>
     </record>
+
+    <!-- Reservation -->
     <record id="tree_reservation_action" model="ir.actions.client">
         <field name="name">Reservation</field>
         <field name="tag">tree_reservation</field>
     </record>
 
+    <!-- Menus -->
     <menuitem id="planning_menu_dashboard"
-              name="Planning"
+              name="Planning Ouest"
               sequence="0"
               action="planning_dashboard_ouest_action"
-              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_reservation"/>
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_manager_general"/>
 
-    <menuitem id="menu_planning_dashboard_sub_menu"
+    <!--<menuitem id="menu_planning_dashboard_sub_menu"
               name="planning dashboard"
-              sequence="100"
+              sequence="19"
               parent="planning_menu_dashboard"
               action="action_planning_dashboard"
-              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
-    <menuitem id="menu_tree_reservation_sub_menu_"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_manager_general"/>
+-->
+    <menuitem id="menu_tree_reservation_sub_menu"
               name=" Reservation "
-              sequence="100"
+              sequence="20"
               action="tree_reservation_action"
-              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_reservation"/>
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_reservation,access_rights_groups.group_manager_general"/>
 
+    <!-- NOUVEAU : Menu pour le blocage des véhicules--> 
+    <menuitem id="block_car_menu_main"
+              name="Blocage Véhicules"
+              parent="planning_menu_dashboard"
+              action="block_car_action_form"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_manager_general"
+              sequence="220"/>
 
 </odoo>

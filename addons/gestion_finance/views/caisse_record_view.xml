@@ -13,13 +13,13 @@
                                 <group class="custom-group">
                                     <field name="type_caisse"
                                            groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
-                                    <field name="type_caisse" groups="access_rights_groups.group_agent"/>
+                                    <field name="type_caisse" readonly="1"  groups="access_rights_groups.group_manager_general,access_rights_groups.group_agent"/>
                                 </group>
                             </groupe>
                             <group class="custom-group">
                                 <field name="zone"
                                        groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
-                                <field name="zone" groups="access_rights_groups.group_agent"/>
+                                <field name="zone" readonly="1" groups="access_rights_groups.group_manager_general,access_rights_groups.group_agent"/>
                             </group>
                         </group>
                         <group>
@@ -27,20 +27,21 @@
                                 <group class="custom-group" style="margin-left: -1cm;">
                                     <field name="user_id"
                                            groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
-                                    <field name="user_id" groups="access_rights_groups.group_agent"/>
+                                    <field name="user_id" readonly="1" groups="access_rights_groups.group_manager_general,access_rights_groups.group_agent"/>
                                 </group>
                             </groupe>
                             <group class="custom-group">
                                 <field name="dinar" invisible="1"/>
-                                <field name="caisse_dzd" decoration-bf="1"/>
+                                <field name="caisse_dzd" readonly="1" decoration-bf="1"/>
                             </group>
                         </group>
                     </group>
                     <notebook>
                         <page string="Les Dépenses"
-                              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                              groups="access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo">
                             <header>
                                 <button name="action_open_depense_form" type="object"
+                                        groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"
                                         string="Ajouter une dépense" class="oe_highlight"/>
                             </header>
 
@@ -87,7 +88,7 @@
                             </field>
                         </page>
                         <page string="Approvisionnement"
-                              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                              groups="access_rights_groups.group_agent,access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo">
 
                             <field name="recevoir" readonly="1"
                                    style="border: 2px solid #2F336B; padding: 10px; border-radius: 12px;">
@@ -125,12 +126,12 @@
             </tree>
         </field>
     </record>
-    <record id="caisse_record_rule_agent" model="ir.rule">
+    <!--<record id="caisse_record_rule_agent" model="ir.rule">
         <field name="name">Restriction des agents sur les caisses</field>
         <field name="model_id" ref="model_caisse_record"/>
         <field name="domain_force">[('user_id', '=', user.id)]</field>
         <field name="groups" eval="[(4, ref('access_rights_groups.group_agent'))]"/>
-    </record>
+    </record>-->
 
 
     <!-- Définition de l'action -->
@@ -139,17 +140,215 @@
         <field name="res_model">caisse.record</field>
         <field name="view_mode">tree,form</field>
     </record>
+
+    <record id="action_caisse_record_mg" model="ir.actions.act_window">
+        <field name="name">Les Caisses</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('type_caisse', 'in', ['manager_region', 'agent', 'manager_general'])]</field>
+        <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+    </record>
+
+    <menuitem id="menu_caisse_record_sub_mg_tout"
+              name="Les Caisses"
+              sequence="100"
+              action="action_caisse_record_mg"
+              groups="access_rights_groups.group_manager_general"/>
+
     <record id="action_caisse_record_filtered" model="ir.actions.act_window">
         <field name="name">Caisse spécifique</field>
         <field name="res_model">caisse.record</field>
         <field name="view_mode">form</field>
         <field name="res_id">7</field>
     </record>
+    <menuitem id="menu_caisse_record_sub_agent_test"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered"
+              groups="access_rights_groups.agent_test"/>
+    <record id="action_caisse_record_filtered_t1" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">8</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_t1"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered_t1"
+              groups="access_rights_groups.group_tlemcen_one"/>
 
-    <!-- Définition du menu -->
+    <record id="action_caisse_record_filtered_t2" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">9</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_t2"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered_t2"
+              groups="access_rights_groups.group_tlemcen_two"/>
+
+    <record id="action_caisse_record_filtered_a1" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">13</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_a1"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered_a1"
+              groups="access_rights_groups.group_alger_one"/>
+
+    <record id="action_caisse_record_filtered_a2" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">14</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_a2"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered_a2"
+              groups="access_rights_groups.group_alger_two"/>
+
+    <record id="action_caisse_record_filtered_a3" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">15</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_a3"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered_a3"
+              groups="access_rights_groups.group_alger_three"/>
+
+    <record id="action_caisse_record_filtered_a4" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">16</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_a4"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered_a4"
+              groups="access_rights_groups.group_alger_four"/>
+
+    <record id="action_caisse_record_filtered_a5" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">17</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_a5"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered_a5"
+              groups="access_rights_groups.group_alger_five"/>
+
+    <record id="action_caisse_record_filtered_a6" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">18</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_a6"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered_a6"
+              groups="access_rights_groups.group_alger_six"/>
+
+    <record id="action_caisse_record_filtered_o1" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">19</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_o1"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered_o1"
+              groups="access_rights_groups.group_oran_one"/>
+
+    <record id="action_caisse_record_filtered_o2" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">20</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_o2"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered_o2"
+              groups="access_rights_groups.group_oran_two"/>
+
+    <record id="action_caisse_record_filtered_o3" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">21</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_o3"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered_o3"
+              groups="access_rights_groups.group_oran_three"/>
+
+    <record id="action_caisse_record_filtered_o4" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">22</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_o4"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered_o4"
+              groups="access_rights_groups.group_oran_four"/>
+
+    <record id="action_caisse_record_filtered_c1" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">10</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_c1"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered_c1"
+              groups="access_rights_groups.group_constantine_one"/>
+
+    <record id="action_caisse_record_filtered_c2" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">11</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_c2"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered_c2"
+              groups="access_rights_groups.group_constantine_two"/>
+
+    <record id="action_caisse_record_filtered_c3" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">12</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_c3"
+              name="Caisse"
+              sequence="100"
+              action="action_caisse_record_filtered_c3"
+              groups="access_rights_groups.group_constantine_three"/>
+
     <menuitem id="menu_gestion_finance"
-              sequence="5"
-              name="Finanace"
+              sequence="100"
+              name="Finance"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
 
     <menuitem id="menu_gestion_finance_sub"
@@ -163,9 +362,89 @@
               parent="menu_gestion_finance_sub"
               action="action_caisse_record"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
-    <menuitem id="menu_caisse_record_sub_agent"
+
+    <record id="action_caisse_record_manager_general" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">23</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_mg"
+              name="Ma Caisse"
+              sequence="100"
+              action="action_caisse_record_manager_general"
+              groups="access_rights_groups.group_manager_general"/>
+
+
+    <record id="action_caisse_record_mohammed_test" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">24</field>
+    </record>
+    <menuitem id="menu_caisse_record_sub_agent_mtest"
               name="Caisse"
               sequence="100"
-              action="action_caisse_record_filtered"
-              groups="access_rights_groups.group_agent"/>
+              action="action_caisse_record_mohammed_test"
+              groups="access_rights_groups.agent_test_mohammed"/>
+
+
+    
+    <record id="action_caisse_record_liste_tlemcen" model="ir.actions.act_window">
+        <field name="name">Caisse</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('zone.id', '=', 16)]</field>
+    </record>
+
+    <menuitem id="menu_caisse_record_sub_liste_tlemcen"
+              name="liste des Caisses"
+              sequence="200"
+              action="action_caisse_record_liste_tlemcen"
+              parent="menu_caisse_record_sub_agent_t2"
+              groups="access_rights_groups.group_tlemcen_two"/>
+
+    <record id="action_caisse_record_liste_oran" model="ir.actions.act_window">
+        <field name="name">Caisse</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('zone.id', '=', 1)]</field>
+    </record>
+
+    <menuitem id="menu_caisse_record_sub_liste_oran"
+              name="liste des Caisses"
+              sequence="200"
+              action="action_caisse_record_liste_oran"
+              parent="menu_caisse_record_sub_agent_o1"
+              groups="access_rights_groups.group_oran_one"/>
+
+    <record id="action_caisse_record_liste_alger" model="ir.actions.act_window">
+        <field name="name">Caisse</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('zone.id', '=', 2)]</field>
+    </record>
+
+    <menuitem id="menu_caisse_record_sub_liste_alger"
+              name="liste des Caisses"
+              sequence="200"
+              action="action_caisse_record_liste_alger"
+              parent="menu_caisse_record_sub_agent_a6"
+              groups="access_rights_groups.group_alger_six"/>
+
+    <record id="action_caisse_record_liste_est" model="ir.actions.act_window">
+        <field name="name">Caisse</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('zone.id', '=', 3)]</field>
+    </record>
+
+    <menuitem id="menu_caisse_record_sub_liste_est"
+              name="liste des Caisses"
+              sequence="200"
+              action="action_caisse_record_liste_est"
+              parent="menu_caisse_record_sub_agent_c1"
+              groups="access_rights_groups.group_constantine_one"/>
+
 </odoo>
+

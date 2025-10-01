@@ -6,15 +6,14 @@
             <form string="Retour Avance">
                 <sheet>
                     <group>
-                        <group string="information">
-                            <field name="name"/>
-                            <field name="reservation"/>
-                            <field name="date_retour_avance"/>
+                        <group string="Ancienne date">
+                            <field name="name" invisible="1"/>
+                            <field name="reservation" invisible="1"/>
+                            <field name="date_retour_avance" invisible="1"/>
                             <field name="date_heure_fin"/>
                         </group>
-                        <group string="la differance">
-                            <field name="differance_heure"/>
-                            <field name="Differance_jour"/>
+                        <group string="Nouvelle date">
+                            <field name="date_retour_avance"/>
                         </group>
                     </group>
                 </sheet>

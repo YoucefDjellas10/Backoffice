@@ -23,18 +23,59 @@
         <field name="name">MARKETING MANAGER</field>
     </record>
     <record id="group_alger_one" model="res.groups">
-        <field name="name">Alger One</field>
+        <field name="name">Alger 1</field>
     </record>
     <record id="group_alger_two" model="res.groups">
-        <field name="name">Alger two</field>
+        <field name="name">Alger 2</field>
+    </record>
+    <record id="group_alger_three" model="res.groups">
+        <field name="name">Alger 3</field>
+    </record>
+    <record id="group_alger_four" model="res.groups">
+        <field name="name">Alger 4</field>
+    </record>
+    <record id="group_alger_five" model="res.groups">
+        <field name="name">Alger 5</field>
+    </record>
+    <record id="group_alger_six" model="res.groups">
+        <field name="name">Alger 6</field>
+    </record>
+    <record id="group_alger_seven" model="res.groups">
+        <field name="name">Alger 7</field>
     </record>
     <record id="group_constantine_one" model="res.groups">
-        <field name="name">Constantine one</field>
+        <field name="name">Constantine 1</field>
     </record>
     <record id="group_constantine_two" model="res.groups">
-        <field name="name">Constantine two</field>
+        <field name="name">Constantine 2</field>
+    </record>
+    <record id="group_constantine_three" model="res.groups">
+        <field name="name">Constantine 3</field>
+    </record>
+    <record id="group_tlemcen_one" model="res.groups">
+        <field name="name">Tlemcen 1</field>
+    </record>
+    <record id="group_tlemcen_two" model="res.groups">
+        <field name="name">Tlemcen 2</field>
+    </record>
+    <record id="group_oran_one" model="res.groups">
+        <field name="name">Oran 1</field>
+    </record>
+    <record id="group_oran_two" model="res.groups">
+        <field name="name">Oran 2</field>
+    </record>
+    <record id="group_oran_three" model="res.groups">
+        <field name="name">Oran 3</field>
+    </record>
+    <record id="group_oran_four" model="res.groups">
+        <field name="name">Oran 4</field>
+    </record>
+    <record id="agent_test" model="res.groups">
+        <field name="name">Agent test</field>
     </record>
 
-
+    <record id="agent_test_mohammed" model="res.groups">
+        <field name="name">Agent mohammed test</field>
+    </record>
 
 </odoo>

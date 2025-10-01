@@ -46,7 +46,7 @@
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
     <menuitem id="menu_categorie_sub"
               name="Categories"
-              sequence="3"
+              sequence="2"
               parent="menu_gestion_du_parc"
               action="action_categorie"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>

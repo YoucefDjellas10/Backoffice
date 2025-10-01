@@ -5,6 +5,7 @@
             <field name="model_id" ref="model_reservation"/>
             <field name="subject">Confirmation de votre réservation</field>
             <field name="email_from">djellasyoucef10@gmail.com</field>
+            <field name="email_to">bendjillali.m@safarelamir.com</field>
             <field name="body_html" type="html">
                 <head>
 
@@ -214,8 +215,7 @@
                                                                                                 class="es-m-p5b es-m-p10l"
                                                                                                 style="padding:0;Margin:0;padding-top:8px;padding-bottom:5px;padding-left:20px">
                                                                                                 <h1 style="Margin:0;line-height:30px;mso-line-height-rule:exactly;font-family:helvetica, 'helvetica neue', arial, verdana, sans-serif;font-size:27px;font-style:normal;font-weight:normal;color:#edecec">
-                                                                                                    <strong>Achour
-                                                                                                        AZZOUNI
+                                                                                                    <strong><t t-esc="object.client.name"/>
                                                                                                     </strong>
                                                                                                 </h1>
                                                                                             </td>
@@ -240,7 +240,7 @@
                                                                                                     Réservation
                                                                                                     confirmée
                                                                                                     <br/>
-                                                                                                    N°:SEA003986
+                                                                                                    ${object.name}
                                                                                                 </p>
                                                                                             </td>
                                                                                         </tr>
@@ -320,24 +320,19 @@
                                                                                                             Véhicule -
                                                                                                             Modèle :
                                                                                                             <strong>
-                                                                                                                PEUGEOT
-                                                                                                                TRAVELER
-                                                                                                                9
-                                                                                                                places
+                                                                                                                ${object.modele.name}
                                                                                                             </strong>
                                                                                                         </li>
                                                                                                         <hr style="color: #333333; opacity: 0.4;"/>
                                                                                                         <li style="color:#2f4f4f; ">
                                                                                                             Durée :
-                                                                                                            <strong>10
-                                                                                                                jours
+                                                                                                            <strong>${object.duree_dereservation}
                                                                                                             </strong>
                                                                                                         </li>
                                                                                                         <hr style="color: #333333; opacity: 0.4;"/>
                                                                                                         <li style="color:#2f4f4f; ">
                                                                                                             Caution :
-                                                                                                            <strong>
-                                                                                                                500EU
+                                                                                                            <strong>${object.opt_protection_caution}
                                                                                                             </strong>
                                                                                                             <span style="color:#f36a6a;font-weight: 400;">
                                                                                                                 en
@@ -348,8 +343,7 @@
                                                                                                         <li style="color:#2f4f4f; ">
                                                                                                             Reste à
                                                                                                             payer :
-                                                                                                            <strong>
-                                                                                                                817.50EU
+                                                                                                            <strong>${object.total_reduit_euro}
                                                                                                             </strong>
                                                                                                             <span style="color:#f36a6a;font-weight: 400;">
                                                                                                                 en

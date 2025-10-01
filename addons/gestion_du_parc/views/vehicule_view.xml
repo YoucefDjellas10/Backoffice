@@ -96,7 +96,7 @@
     <menuitem id="menu_vehicule_sub"
               name="Vehicules"
               parent="menu_gestion_du_parc"
-              sequence="1"
+              sequence="5"
               action="action_vehicule"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
 </odoo>

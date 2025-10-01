@@ -14,6 +14,7 @@ body {
 
 table {
     max-width: 98%;
+
 }
 
 
@@ -98,8 +99,7 @@ table {
          /* Styles globaux pour le tableau */
        table {
            width: 100%;
-           border-collapse: separate;
-           border-spacing: 0;
+         border: none; border-collapse: collapse;
            border-radius: 18px;
            overflow: hidden;
            background-color: #f0f7f7;
@@ -108,9 +108,12 @@ table {
        }
 
        th, td {
-           border: 1px solid #ccc;
            text-align: center;
            padding: 5px;
+           box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+-webkit-box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+-moz-box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
        }
 
        /* En-tête du tableau */
@@ -118,6 +121,10 @@ table {
            background-color: #0b4459;
            color: white;
            text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
+           box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+-webkit-box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+-moz-box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
        }
 
        /* Cellules spécifiques */
@@ -127,6 +134,10 @@ table {
            text-align: left;
            padding-left: 10px;
            text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
+           box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+-webkit-box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+-moz-box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
        }
 
        td.reserve  {
@@ -136,6 +147,10 @@ table {
            box-shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.2),
                        inset -1px -1px 2px rgba(255, 255, 255, 0.5);
            text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
+           box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+-webkit-box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+-moz-box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
        }
 
        td.maintenance {
@@ -145,6 +160,10 @@ table {
            box-shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.2),
                        inset -1px -1px 2px rgba(255, 255, 255, 0.5);
            text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
+           box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+-webkit-box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+-moz-box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
        }
 
        td.Prise{
@@ -154,9 +173,16 @@ table {
            box-shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.2),
                        inset -1px -1px 2px rgba(255, 255, 255, 0.5);
            text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
+           box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+-webkit-box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+-moz-box-shadow: -5px 1px 0px -3px rgba(255,255,255,0.75) inset;
+text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
 
     
        }
  .large-text {
     font-size: 20px !important;
 }
+
+
+

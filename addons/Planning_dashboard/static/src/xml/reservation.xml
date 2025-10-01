@@ -79,7 +79,7 @@
               <ion-icon name="stats-chart-outline"></ion-icon>
             </div>
     <button class="butn123" t-on-click="searchReservations"> Rechercher </button>
-    <button class="butn123" t-on-click="resetFilters">Rétablir 🗑️</button>      </div>
+    <button class="butn123" t-on-click="resetFilters">Rétablir</button>      </div>
         </div>
 
 

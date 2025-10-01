@@ -160,7 +160,7 @@ class KanbanAgentJs extends Component {
                     fields: [
                         'id', 'name', 'lv_type', 'date_heure_debut', 'date_heure_fin', 'lieu_depart',
                         'lieu_retour', 'vehicule', 'matricule', 'stage', 'duree_dereservation',
-                        'create_date', 'livrer_par', 'modele', 'zone',
+                        'create_date', 'livrer_par', 'modele', 'zone','date_de_livraison',
                         'opt_protection', 'opt_carburant', 'siege_bebe', 'action_date'
                     ],
                     order: 'action_date asc'
@@ -279,7 +279,7 @@ class KanbanAgentJs extends Component {
         const model = 'livraison';
 
         window.open(
-            `http://107.189.24.110:8069/web#id=${reservationId}&menu_id=${menuId}&action=${actionId}&model=${model}&view_type=form`,
+            `https://backoffice.safarelamir.com/web#id=${reservationId}&menu_id=${menuId}&action=${actionId}&model=${model}&view_type=form`,
             '_blank'
         );
     }

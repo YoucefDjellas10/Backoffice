@@ -7,21 +7,27 @@
         <field name="arch" type="xml">
             <form string="options">
                 <sheet>
-                    <group>
-                        <field name="type_option"/>
-                        <field name="name"/>
-                        <field name="name_ar"/>
-                        <field name="name_en"/>
-                        <field name="option_code"/>
-                        <field name="limit_Klm" invisible="not ('KLM' in option_code)"/>
-                        <field name="penalite_Klm" invisible="not ('KLM_ILLIMITED' in option_code)"/>
-                        <field name="description"/>
-                        <field name="tout_modele" widget="radio"/>
-                        <field name="categorie" invisible="tout_modele != 'non' "/>
-                        <field name="caution" invisible="tout_modele != 'non' "/>
-                        <field name="prix" invisible="option_code == 'KLM_LIMIT' "/>
-                        <field name="type_tarif" invisible="option_code == 'KLM_LIMIT' "/>
-                    </group>
+                   <group>
+                        <group>
+                            <field name="type_option"/>
+                            <field name="name"/>
+                            <field name="name_ar"/>
+                            <field name="name_en"/>
+                            <field name="zone"/>
+                            <field name="description"/>
+                            <field name="tout_modele" widget="radio"/>
+                            <field name="categorie" invisible="tout_modele != 'non' "/>
+                        </group>
+                        <group>
+                            <field name="limit_Klm" invisible="not ('KLM' in option_code)"/>
+                            <field name="penalite_Klm" invisible="not ('KLM_ILLIMITED' in option_code)"/>
+                            <field name="caution" invisible="tout_modele != 'non' "/>
+                            <field name="prix" invisible="option_code == 'KLM_LIMIT' "/>
+                            <field name="min_prix" invisible="not ('MAX_P' in option_code)"/>
+                            <field name="type_tarif" invisible="option_code == 'KLM_LIMIT' "/>
+                            <field name="option_code"  readonly="1"/>
+                        </group>
+                    </group>    
                 </sheet>
             </form>
         </field>
@@ -44,11 +50,24 @@
         </field>
     </record>
 
+    <record id="view_options_search" model="ir.ui.view">
+        <field name="name">options.search</field>
+        <field name="model">options</field>
+        <field name="arch" type="xml">
+            <search>
+                <searchpanel view_types="list,kanban" >
+                    <field name="zone" icon="fa-sun"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
     <!-- Définition de l'action -->
     <record id="action_options" model="ir.actions.act_window">
         <field name="name">options</field>
         <field name="res_model">options</field>
         <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_options_search"/>    
     </record>
 
     <!-- Définition du menu -->

@@ -6,6 +6,7 @@ class Tarifs(models.Model):
     _description = 'Tarifs des modèles'
 
     name = fields.Char(string='Name', compute='_compute_name', store=True)
+    zone = fields.Many2one('zone', string='Zone', required=True)
     saison = fields.Many2one('saison', string='Saison', required=True)
     periodes = fields.One2many(string='Périodes', related='saison.periodes')
     modele = fields.Many2one('modele', string='Modèle', required=True)

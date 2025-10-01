@@ -10,6 +10,8 @@
                         <groupe>
                             <group class="custom-group">
                                 <field name="name"/>
+                                <field name="name_en"/>
+                                <field name="name_ar"/>
                                 <field name="du_pts"/>
                                 <field name="au_pts"/>
                                 <field name="reduction"/>

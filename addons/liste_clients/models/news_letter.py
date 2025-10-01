@@ -7,5 +7,5 @@ class NewsLetter(models.Model):
 
     name = fields.Char(string='Name')
     email = fields.Char(string='Emals')
-    subscribe = fields.Selection([('oui', 'Oui'), ('non', 'Non')], string='Civilité', default='oui')
+    subscribe = fields.Selection([('oui', 'Oui'), ('non', 'Non')], string='Abonnement', default='oui')
 

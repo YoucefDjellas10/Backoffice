@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+<t t-name="gestion_maintenance.FilterAlert">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+
+  <div class="filcont">
+      <div>
+        <div class="filtRow">
+          <!-- Modèle -->
+          <div class="filItem">
+              <label for="modeles">Modèles</label>
+              <select id="modeles" t-on-change="updateSelectedModel">
+                  <option value="">Tous</option>
+                  <t t-foreach="state.models" t-as="model" t-key="model.id">
+                      <option t-att-value="model.id"><t t-esc="model.name"/></option>
+                  </t>
+              </select>
+          </div>
+
+          <!-- Zone -->
+          <div class="filItem">
+              <label for="zones">Zone</label>
+              <select id="zones" t-on-change="updateSelectedZone">
+                  <option value="">Toutes</option>
+                  <t t-foreach="state.zones" t-as="zone" t-key="zone.id">
+                      <option t-att-value="zone.id"><t t-esc="zone.name"/></option>
+                  </t>
+              </select>
+          </div>
+
+          <!-- Véhicule -->
+          <div class="filItem">
+              <label for="vehicules">Véhicules</label>
+              <select id="vehicules" t-on-change="updateSelectedVehicule">
+                  <option value="">Tous</option>
+                  <t t-foreach="state.vehicules" t-as="vehicule" t-key="vehicule.id">
+                      <option t-att-value="vehicule.id"><t t-esc="vehicule.name"/></option>
+                  </t>
+              </select>
+          </div>
+
+          <!-- Type de maintenance -->
+          <div class="filItem">
+              <label for="types">Type de maintenance</label>
+              <select id="types" t-on-change="updateSelectedType">
+                  <option value="">Tous</option>
+                  <t t-foreach="state.maintenanceTypes" t-as="type" t-key="type.id">
+                      <option t-att-value="type.id">
+                          <t t-esc="type.name"/>
+                          <t t-if="type.type"> (<t t-esc="type.type"/>)</t>
+                      </option>
+                  </t>
+              </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Boutons -->
+      <div class="filtRow" style="margin: 0">
+          <div class="resulspan">
+              <span style="margin: 14px"><t t-esc="state.maintenanceCount.toLocaleString('fr-FR')"/>
+                  résultats trouvés</span>
+              <ion-icon name="stats-chart-outline"></ion-icon>
+          </div>
+          <button class="butn123" t-on-click="searchAlerts"><span style="padding-right:4px ;">Rechercher</span>  <ion-icon name="search-outline"></ion-icon></button>
+          <button class="butn123" t-on-click="resetFilters">Rétablir 🗑️</button>
+      </div>
+  </div>
+
+  <!-- Tableau -->
+  <table class="ta-BLE">
+      <thead>
+          <tr style="letter-spacing: 1px; background-color: #666671; color: white">
+              <th>Reference ID</th>
+              <th>Maintenance</th>
+              <th>Numéro</th>
+              <th>Échéance</th>
+              <th>Dernier KM</th>
+              <th>Gérer</th>
+          </tr>
+      </thead>
+      <tbody></tbody>
+  </table>
+</t>
+</templates>

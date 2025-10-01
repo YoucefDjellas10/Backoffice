@@ -55,7 +55,6 @@
     <menuitem id="menu_fournisseur_sub_agent"
               name="Liste des fournisseurs"
               sequence="5"
-              parent="menu_caisse_record_sub_agent"
               action="action_fournisseur"
-              groups="access_rights_groups.group_agent"/>
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
 </odoo>

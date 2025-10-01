@@ -19,13 +19,13 @@
         <field name="res_model">ir.cron</field>
         <field name="view_mode">tree</field>
         <field name="view_id" ref="view_ir_cron_optimisation_tree"/>
-        <field name="domain">[('id', 'in', [63, 64, 65])]</field>
+        <field name="domain">[('id', 'in', [21])]</field>
     </record>
 
-    <menuitem id="menu_optimisation_planing_menu"
+    <menuitem id="menu_optimisation_planing_menu_"
               name="Optimisation des Planing"
               sequence="10"
+              parent="Planning_dashboard.planning_menu_dashboard"
               action="action_optimisation_planing"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
-
 </odoo>

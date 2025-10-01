@@ -61,12 +61,12 @@
     </record>
 
 
-    <menuitem id="maintenance_menu_root" name="Maintenances" sequence="10"
-              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_agent"/>
+    <menuitem id="maintenance_menu_root" name="Maintenances" sequence="100"
+              groups="access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_agent"/>
 
     <menuitem id="menu_type_maintenance" name="Maintenance Types"
               parent="maintenance_menu_root"
               action="action_type_maintenance"
               sequence="50"
-              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+              groups="access_rights_groups.group_admin,access_rights_groups.group_manager_general,access_rights_groups.group_ceo"/>
 </odoo>

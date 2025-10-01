@@ -3,9 +3,10 @@ from odoo.exceptions import ValidationError
 from odoo.exceptions import UserError
 import base64
 from datetime import datetime, timedelta, date
-
+import requests
 from io import BytesIO
 from PyPDF2 import PdfMerger
+from odoo.fields import Datetime
 
 
 class Livraison(models.Model):
@@ -119,7 +120,8 @@ class Livraison(models.Model):
                 diff = record.kilomtrage - record.kilometrage_depart
                 option_klm = self.env['options'].search([
                     ('option_code', 'ilike', 'KLM_ILLIMITED'),
-                    ('categorie', '=', record.vehicule.categorie.id)
+                    ('categorie', '=', record.vehicule.categorie.id),
+                    ('zone', '=', record.zone.id)
                 ], limit=1)
                 limit_klm = option_klm.limit_Klm * record.nbr_jour_reservation
                 if diff > limit_klm:
@@ -135,9 +137,9 @@ class Livraison(models.Model):
                 record.diff_klm = (diff - limit_klm)
 
     etat_carburant_retour = fields.Selection([('plein', 'Plein carburant'),
+                                              ('tiere', '3/4 Trois quarts'),
                                               ('demi', '1/2 Un demi'),
-                                              ('quart', '1/4 Un quart'),
-                                              ('tiere', '3/4 Trois quarts')], string='Etat du carburant')
+                                              ('quart', '1/4 Un quart')], string='Etat du carburant')
     penalit_carburant = fields.Monetary(currency_field='currency_da', string='Penalité Carburant',
                                         compute='action_calculate_carburant', store=True)
     penalit_carburant_euro = fields.Monetary(currency_field='currency_id', string='Penalité Carburant',
@@ -186,11 +188,11 @@ class Livraison(models.Model):
     garantie = fields.Boolean(string='Caution déposé', default=False)
     roue_de_secours = fields.Boolean(string='Roue de secours & cric', default=True)
     etat_carburant = fields.Selection([('plein', 'Plein carburant'),
-                                       ('demi', '1/2 Un demi'),
                                        ('tiere', '3/4 Trois quarts'),
+                                       ('demi', '1/2 Un demi'),
                                        ('quart', '1/4 Un quart')], string='Etat du carburant')
 
-    document_fournis = fields.Selection([('passport', 'Passport'), ('cin', 'CIN')], string='document founis')
+    document_fournis = fields.Selection([('passport', 'Passport'), ('cin', 'CIN'), ('rien', 'Rien')], string='document founis')
     signature = fields.Binary(string='Signature', store=True)
     photo = fields.Many2many('ir.attachment', string='Photos')
     photo_degat = fields.Many2many('ir.attachment', 'livraison_photo_degat_rel', string='Photos des dégâts')
@@ -259,6 +261,34 @@ class Livraison(models.Model):
                                     compute='changed_place_hour', readonly=False, store=True)
     is_available = fields.Selection([('oui', 'Oui'), ('non', 'non')], string='Disponible')
     appliquer = fields.Selection([('oui', 'Oui'), ('non', 'non')], string='Disponible')
+
+    def action_create_edit_livraison(self):
+        for record in self:
+            if not record.reservation.date_heure_debut or not record.reservation.date_heure_fin:
+                raise UserError("Les champs date_heure_debut et date_heure_fin doivent être renseignés.")
+
+            date_depart = record.reservation.date_heure_debut.date()
+            date_retour = record.reservation.date_heure_fin.date()
+
+            edit_res = self.env['edit.reservation'].create({
+                'date_depart': date_depart,
+                'date_retour': date_retour,
+                'heure_depart': record.reservation.heure_depart_char,
+                'heure_retour': record.reservation.heure_retour_char,
+                'reservation': record.reservation.id,
+                'lieu_depart': record.reservation.lieu_depart.id if record.reservation.lieu_depart else False,
+                'lieu_retour': record.reservation.lieu_retour.id if record.reservation.lieu_retour else False,
+            })
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'Modifier la réservation',
+                'res_model': 'edit.reservation',
+                'view_mode': 'form',
+                'res_id': edit_res.id,
+                'target': 'new',  
+            }
+
+
 
     def _convert_to_float(self, heure_datetime):
         return heure_datetime.hour + heure_datetime.minute / 60
@@ -431,6 +461,15 @@ class Livraison(models.Model):
         except Exception as e:
             raise UserError(f"Erreur lors de la génération du PDF combiné: {str(e)}")
 
+    def download_combined_documents(self):
+        """Télécharge les documents combinés"""
+        url = f"https://api.safarelamir.com/combined-document-download/?livraison_id={self.id}"
+        return {
+            'type': 'ir.actions.act_url',
+            'url': url,
+            'target': 'new',  # Ouvre dans un nouvel onglet
+        }
+
     def confirme_modifications(self):
         for record in self:
             if not record.reservation:
@@ -561,7 +600,7 @@ class Livraison(models.Model):
     def _compute_sb_total(self):
         for record in self:
             if record.sb_ajout:
-                option_siege_bebe = self.env['options'].search([('option_code', '=', 'S_BEBE_5')], limit=1)
+                option_siege_bebe = self.env['options'].search([('option_code', '=', 'S_BEBE_5'), ('zone', '=', record.zone.id)], limit=1)
                 record.sb_total = option_siege_bebe.prix * record.nbr_jour_reservation if option_siege_bebe else 0
             else:
                 record.sb_total = 0
@@ -576,10 +615,18 @@ class Livraison(models.Model):
             if record.max_ajoute and record.vehicule:
                 option_max = self.env['options'].search([
                     ('option_code', 'ilike', 'MAX'),
-                    ('categorie', '=', record.vehicule.categorie.id)
+                    ('categorie', '=', record.vehicule.categorie.id),
+                    ('zone', '=', record.zone.id)
                 ], limit=1)
 
-                record.max_total = option_max.prix * record.nbr_jour_reservation - record.reservation.opt_protection_total if option_max else 0
+                
+                total_max = option_max.prix * record.nbr_jour_reservation - record.reservation.opt_protection_total if option_max else 0
+                
+                if total_max > 30:
+                    record.max_total = option_max.prix * record.nbr_jour_reservation - record.reservation.opt_protection_total if option_max else 0
+                else:
+                    record.max_total = 30                
+
                 record.max_caution = option_max.caution if option_max else 0
             else:
                 record.max_total = 0
@@ -595,7 +642,8 @@ class Livraison(models.Model):
             if record.standart_ajoute and record.vehicule:
                 option_standart = self.env['options'].search([
                     ('option_code', 'ilike', 'STANDART'),
-                    ('categorie', '=', record.vehicule.categorie.id)
+                    ('categorie', '=', record.vehicule.categorie.id),
+                    ('zone', '=', record.zone.id)
                 ], limit=1)
 
                 record.standart_total = option_standart.prix * record.nbr_jour_reservation - record.reservation.opt_protection_total if option_standart else 0
@@ -611,7 +659,7 @@ class Livraison(models.Model):
     def _compute_nd_driver_total(self):
         for record in self:
             if record.nd_driver_ajoute:
-                option_nd_driver = self.env['options'].search([('option_code', '=', 'ND_DRIVER')], limit=1)
+                option_nd_driver = self.env['options'].search([('option_code', '=', 'ND_DRIVER'), ('zone', '=', record.zone.id)], limit=1)
                 record.nd_driver_total = option_nd_driver.prix * record.nbr_jour_reservation if option_nd_driver else 0
             else:
                 record.nd_driver_total = 0
@@ -640,7 +688,7 @@ class Livraison(models.Model):
     def _compute_carburant_total(self):
         for record in self:
             if record.carburant_ajoute:
-                option_carburant = self.env['options'].search([('option_code', '=', 'P_CARBURANT')], limit=1)
+                option_carburant = self.env['options'].search([('option_code', '=', 'P_CARBURANT'), ('zone', '=', record.zone.id)], limit=1)
                 record.carburant_total_f = option_carburant.prix if option_carburant else 0
             else:
                 record.carburant_total_f = 0
@@ -805,6 +853,7 @@ class Livraison(models.Model):
                 'default_reservation': self.reservation.id,
             }
         }
+    date_de_livraison = fields.Datetime(string='Date de validation')
 
     def action_set_livre(self):
         for record in self:
@@ -868,32 +917,34 @@ class Livraison(models.Model):
                         ], limit=1)
                         record.reservation.nd_client = client_existant
 
-                option_nd_driver = self.env['options'].search([('option_code', '=', 'ND_DRIVER')], limit=1)
+                option_nd_driver = self.env['options'].search([('option_code', '=', 'ND_DRIVER'), ('zone', '=', record.zone.id)], limit=1)
                 record.reservation.opt_nd_driver = option_nd_driver
 
                 record.nd_driver_total = 0
 
             if record.sb_ajout:
-                option_siege_bebe = self.env['options'].search([('option_code', '=', 'S_BEBE_5')], limit=1)
+                option_siege_bebe = self.env['options'].search([('option_code', '=', 'S_BEBE_5'), ('zone', '=', record.zone.id)], limit=1)
                 record.reservation.opt_siege_a = option_siege_bebe
                 record.sb_total = 0
             if record.max_ajoute:
                 option_max = self.env['options'].search([
                     ('option_code', 'ilike', 'MAX'),
-                    ('categorie', '=', record.vehicule.categorie.id)
+                    ('categorie', '=', record.vehicule.categorie.id),
+                    ('zone', '=', record.zone.id)
                 ], limit=1)
                 record.reservation.opt_protection = option_max
                 record.max_total = 0
             if record.standart_ajoute:
                 option_standart = self.env['options'].search([
                     ('option_code', 'ilike', 'STANDART'),
-                    ('categorie', '=', record.vehicule.categorie.id)
+                    ('categorie', '=', record.vehicule.categorie.id),
+                    ('zone', '=', record.zone.id)
                 ], limit=1)
                 record.reservation.opt_protection = option_standart
                 record.standart_total = 0
 
             if record.carburant_ajoute:
-                option_carburant = self.env['options'].search([('option_code', '=', 'P_CARBURANT')], limit=1)
+                option_carburant = self.env['options'].search([('option_code', '=', 'P_CARBURANT'), ('zone', '=', record.zone.id)], limit=1)
                 record.reservation.opt_plein_carburant = option_carburant
                 record.carburant_total_f = 0
 
@@ -912,7 +963,7 @@ class Livraison(models.Model):
 
             record.montant_euro_pay = 0
 
-            if record.total_payer > 10:
+            if record.total_payer > 20:
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
@@ -952,8 +1003,23 @@ class Livraison(models.Model):
 
             record.stage = 'livre'
             record.livrer_par = self.env.user
+            record.date_de_livraison = fields.Datetime.now() + timedelta(hours=1)
             record.reservation.etat_reservation = 'loue'
             record.reservation.color_tag = 10
+            
+            try:
+                api_url = f"https://api.safarelamir.com/success-pickup-email/?livraison_id={record.id}"
+                response = requests.get(api_url, timeout=30)
+            
+            
+                print(f"Status Code: {response.status_code}")
+                print(f"Response: {response.text}")
+             
+            except requests.exceptions.RequestException as e:
+            
+                print(f"Erreur API: {str(e)}")
+            except Exception as e:
+               print(f"Erreur inattendue: {str(e)}")
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
@@ -1027,32 +1093,34 @@ class Livraison(models.Model):
                         ], limit=1)
                         record.reservation.nd_client = client_existant
 
-                option_nd_driver = self.env['options'].search([('option_code', '=', 'ND_DRIVER')], limit=1)
+                option_nd_driver = self.env['options'].search([('option_code', '=', 'ND_DRIVER'), ('zone', '=', record.zone.id)], limit=1)
                 record.reservation.opt_nd_driver = option_nd_driver
 
                 record.nd_driver_total = 0
 
             if record.sb_ajout:
-                option_siege_bebe = self.env['options'].search([('option_code', '=', 'S_BEBE_5')], limit=1)
+                option_siege_bebe = self.env['options'].search([('option_code', '=', 'S_BEBE_5'), ('zone', '=', record.zone.id)], limit=1)
                 record.reservation.opt_siege_a = option_siege_bebe
                 record.sb_total = 0
             if record.max_ajoute:
                 option_max = self.env['options'].search([
                     ('option_code', 'ilike', 'MAX'),
-                    ('categorie', '=', record.vehicule.categorie.id)
+                    ('categorie', '=', record.vehicule.categorie.id),
+                    ('zone', '=', record.zone.id)
                 ], limit=1)
                 record.reservation.opt_protection = option_max
                 record.max_total = 0
             if record.standart_ajoute:
                 option_standart = self.env['options'].search([
                     ('option_code', 'ilike', 'STANDART'),
-                    ('categorie', '=', record.vehicule.categorie.id)
+                    ('categorie', '=', record.vehicule.categorie.id),
+                    ('zone', '=', record.zone.id)
                 ], limit=1)
                 record.reservation.opt_protection = option_standart
                 record.standart_total = 0
 
             if record.carburant_ajoute:
-                option_carburant = self.env['options'].search([('option_code', '=', 'P_CARBURANT')], limit=1)
+                option_carburant = self.env['options'].search([('option_code', '=', 'P_CARBURANT'), ('zone', '=', record.zone.id)], limit=1)
                 record.reservation.opt_plein_carburant = option_carburant
                 record.carburant_total_f = 0
 
@@ -1071,7 +1139,7 @@ class Livraison(models.Model):
 
             record.montant_euro_pay = 0
 
-            if record.total_payer > 10:
+            if record.total_payer > 20:
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
@@ -1109,6 +1177,20 @@ class Livraison(models.Model):
                 record.vehicule.write({'dernier_klm': record.kilomtrage})
             record.stage = 'livre'
             record.livrer_par = self.env.user
+            record.date_de_livraison = fields.Datetime.now() + timedelta(hours=1)
+ 
+            try:
+                api_url = f"https://api.safarelamir.com/confirmation-download/?resrevation_id={record.id}"
+                response = requests.get(api_url, timeout=30)
+          
+                print(f"Livraison ID: {record.id}")
+                print(f"Status Code: {response.status_code}")
+                print(f"Response: {response.text}")
+                        
+            except requests.exceptions.RequestException as e:
+                print(f"Erreur API: {str(e)}")
+            except Exception as e:
+                print(f"Erreur inattendue: {str(e)}")
 
             return {
                 'type': 'ir.actions.client',

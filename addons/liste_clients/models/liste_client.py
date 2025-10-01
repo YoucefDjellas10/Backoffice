@@ -29,7 +29,7 @@ class ListeClient(models.Model):
 
     total_points = fields.Integer(string='Total des points', compute='_compute_total_points', store=True, editable=True)
     total_points_char = fields.Char(string='Total des points', compute='_compute_total_points_char', store=True)
-    solde = fields.Monetary(string='Solde non consomé', currency_field='devise', compute='_compute_solde', store=True)
+    solde = fields.Monetary(string='Solde non consomé', currency_field='devise', compute='_compute_solde', store=True, editable=True)
     devise = fields.Many2one('res.currency', string='Devise', readonly=True,
                              default=lambda self: self.env.ref('base.EUR').id)
     total_reservation = fields.Monetary(currency_field='devise')
@@ -43,6 +43,8 @@ class ListeClient(models.Model):
 
     otp = fields.Char(string='otp')
     otp_created_at = fields.Datetime(string='otp created at')
+    otp_attempts = fields.Integer(string='opt attempts', default=0)
+
 
     create_date = fields.Datetime()
 

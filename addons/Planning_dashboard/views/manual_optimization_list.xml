@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue tree -->
+    <record id="view_manual_optimization_tree" model="ir.ui.view">
+        <field name="name">manual.optimization.tree</field>
+        <field name="model">manual.optimization</field>
+        <field name="arch" type="xml">
+            <tree string="Liste des optimisations">
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="vehicule_actuel_name"/>
+                <field name="vehicule_changer_name"/>
+                <field name="create_uid" string="Créé par"/>
+                <field name="create_date" string="Date de création"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vue form (corrigée) -->
+    <record id="view_manual_optimization_form_list" model="ir.ui.view">
+        <field name="name">manual.optimization.form.list</field>
+        <field name="model">manual.optimization</field>
+        <field name="arch" type="xml">
+            <form string="Détail Optimisation">
+                <group>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                    <field name="vehicule_actuel_name"/>
+                    <field name="vehicule_changer_name"/>
+                    <field name="create_uid" readonly="1"/>
+                    <field name="create_date" readonly="1"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_manual_optimization_list" model="ir.actions.act_window">
+        <field name="name">Liste des optimisations</field>
+        <field name="res_model">manual.optimization</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_manual_optimization_tree"/>
+        <field name="target">current</field>
+        <field name="views" eval="[(ref('view_manual_optimization_tree'), 'tree'),
+                               (ref('view_manual_optimization_form_list'), 'form')]"/>
+    </record>
+
+    <!-- Menu secondaire -->
+    <menuitem id="menu_manual_optimization_list"
+              name="Liste des optimisations"
+              parent="planning_menu_dashboard"
+              action="action_manual_optimization_list"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo" 
+              sequence="210"/>
+</odoo>

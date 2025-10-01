@@ -11,3 +11,5 @@ from . import book_car
 from . import liste_attente
 from . import contact_message
 from . import condition_annumation
+from . import popup_confirmation
+from . import edit_reservation

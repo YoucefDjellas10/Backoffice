@@ -43,7 +43,7 @@
     </tr>
   </table>
 
-<button class="btn-print" style="font-size: 1rem;" t-on-click="printReservations">- 🖨️ Imprimer  -</button>
+
 
 <div class="card-container">
     <t t-foreach="state.filteredReservations" t-as="reservation" t-key="reservation_index">

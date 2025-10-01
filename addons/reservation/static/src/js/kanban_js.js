@@ -86,35 +86,52 @@ export class KanbanReservationJs extends Component {
     try {
         const formattedDate = this.getFormattedDateInput(date);
 
-        // 1. Récupérer les réservations (modèle 'livraison')
-        const reservations = await jsonrpc("/web/dataset/call_kw/livraison/search_read", {
+        // Récupérer les DÉPARTS (livraisons) pour cette date
+        const departures = await jsonrpc("/web/dataset/call_kw/livraison/search_read", {
             model: 'livraison',
             method: 'search_read',
             args: [[
-    '&',
-    ['lv_type', 'in', ['livraison', 'restitution']],
-    '|',
-        '&',
-        ['date_heure_debut', '>=', `${formattedDate} 00:00:00`],
-        ['date_heure_debut', '<=', `${formattedDate} 23:59:59`],
-        '&',
-        ['date_heure_fin', '>=', `${formattedDate} 00:00:00`],
-        ['date_heure_fin', '<=', `${formattedDate} 23:59:59`]
-]],
+                '&',
+                ['lv_type', '=', 'livraison'],
+                '&',
+                ['date_heure_debut', '>=', `${formattedDate} 00:00:00`],
+                ['date_heure_debut', '<=', `${formattedDate} 23:59:59`]
+            ]],
             kwargs: {
                 fields: [
                     'id', 'name', 'lv_type', 'date_heure_debut', 'lieu_depart',
-                    'lieu_retour', 'vehicule', 'matricule', 'stage', 'duree_dereservation',
-                    'create_date', 'livrer_par', 'modele', 'zone',
-                    'opt_protection', 'opt_carburant', 'siege_bebe'  // Champs de livraison
+                    'lieu_retour', 'vehicule', 'matricule', 'stage','duree_dereservation',
+                    'create_date', 'livrer_par', 'modele', 'zone'
                 ]
             }
         });
 
-        // 2. Stocker les données dans le state
-        this.state.reservations = reservations;
-        this.state.filteredReservations = reservations;
-        this.state.operationsCount = reservations.length;
+        // Récupérer les RETOURS (restitutions) pour cette date
+        const returns = await jsonrpc("/web/dataset/call_kw/livraison/search_read", {
+            model: 'livraison',
+            method: 'search_read',
+            args: [[
+                '&',
+                ['lv_type', '=', 'restitution'],
+                '&',
+                ['date_heure_fin', '>=', `${formattedDate} 00:00:00`],
+                ['date_heure_fin', '<=', `${formattedDate} 23:59:59`]
+            ]],
+            kwargs: {
+                fields: [
+                    'id', 'name', 'lv_type', 'date_heure_debut', 'date_heure_fin', 'lieu_depart',
+                    'lieu_retour', 'vehicule', 'matricule', 'stage','duree_dereservation',
+                    'create_date', 'livrer_par', 'modele', 'zone'
+                ]
+            }
+        });
+
+        // Combiner les deux résultats
+        const allReservations = [...departures, ...returns];
+
+        this.state.reservations = allReservations;
+        this.state.filteredReservations = allReservations;
+        this.state.operationsCount = allReservations.length;
         this.applyFilters();
     } catch (error) {
         console.error("Erreur:", error);
@@ -132,6 +149,7 @@ export class KanbanReservationJs extends Component {
             this.fetchReservationsForDate(dateObj);
         }
     }
+
 
     printReservations() {
         const printContent = document.querySelector('.card-container');
@@ -249,7 +267,7 @@ export class KanbanReservationJs extends Component {
     const model = 'livraison'; // Ceci reste inchangé
 
     window.open(
-    `http://107.189.24.110:8069/web#id=${reservationId}&menu_id=${menuId}&action=${actionId}&model=${model}&view_type=form`,
+    `https://backoffice.safarelamir.com/web#id=${reservationId}&menu_id=${menuId}&action=${actionId}&model=${model}&view_type=form`,
     '_blank'
 );
 }

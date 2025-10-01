@@ -28,6 +28,8 @@
         'views/liste_attente_views.xml',
         'views/condition_annulation_view.xml',
         'views/contact_message_view.xml',
+        'views/popup_confirmation_views.xml',
+        'views/edit_reservation_views.xml',
         'data/ir_cron_data.xml',
         'data/email_confirmation.xml',
         'data/email_comming_soon.xml',
@@ -56,6 +58,7 @@
             'reservation/static/src/css/custom_background.css',
             'reservation/static/src/xml/kanban_xml.xml',
             'reservation/static/src/xml/kanban_agent.xml',
+            'reservation/static/src/xml/kanban_reservation_xml.xml',
             'reservation/static/src/js/kanban_js.js',
             'reservation/static/src/js/kanban_agent.js',
 

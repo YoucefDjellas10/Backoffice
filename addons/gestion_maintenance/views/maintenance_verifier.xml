@@ -6,7 +6,7 @@
             <form string="maintenance record">
                 <sheet>
                     <group>
-                        <field name="klm_prochaine" string="Kilométrage"/>
+                        <field name="klm_prochaine" string="Prochaine échéance"/>
                     </group>
                 </sheet>
             </form>

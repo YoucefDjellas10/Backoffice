@@ -9,7 +9,7 @@
                 <header>
                     <field name="status" invisible="1"/>
                     <button name="action_valide_mr" type="object" string="valider ✔" invisible="status != 'en_attente'"
-                            groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                            groups="access_rights_groups.group_constantine_one,access_rights_groups.group_alger_six,access_rights_groups.group_oran_one,access_rights_groups.group_tlemcen_two,access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
                     <button name="action_valide_mg" type="object" string="valider ✅" invisible="status != 'valde_mr'"
                             groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
                     <button name="action_valide" type="object" string="valider ✅" invisible="status != 'valide_mg'"
@@ -19,10 +19,12 @@
 
                     <group class="custom-group">
                         <field name="type_depense"/>
+                        <field name="carburant_motif" invisible="type_depense != 13"/>
                         <field name="type_maintenance_id" invisible="type_depense != 12"/>
                         <field name="vehicule" invisible="type_depense != 12"/>
                         <field name="vehicule_numero"/>
                         <field name="note"/>
+                        <field name="manager_note" groups="access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
                         <field name="dinar" invisible="1"/>
                         <field name="montant_da"/>
                     </group>
@@ -37,7 +39,7 @@
         <field name="model">depense.record</field>
         <field name="arch" type="xml">
             <tree string="depense record">
-                <field name="name"/>
+                <field name="vehicule"/>
                 <field name="zone"/>
                 <field name="create_date"/>
                 <field name="type_depense"/>
@@ -71,12 +73,12 @@
         </field>
     </record>
 
-    <record id="depense_record_rule_agent" model="ir.rule">
+    <!--<record id="depense_record_rule_agent" model="ir.rule">
         <field name="name">Restriction des agents sur les depenses</field>
         <field name="model_id" ref="model_depense_record"/>
         <field name="domain_force">[('create_uid', '=', user.id)]</field>
         <field name="groups" eval="[(4, ref('access_rights_groups.group_agent'))]"/>
-    </record>
+    </record>-->
 
 
     <!-- Définition de l'action -->
@@ -91,6 +93,20 @@
         <field name="view_mode">tree,form</field>
         <field name="domain">[('status', '=', 'en_attente')]</field>
     </record>
+    
+    <record id="action_depense_record_mg" model="ir.actions.act_window">
+        <field name="name">Les Dépenses</field>
+        <field name="res_model">depense.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('status', '!=', 'valide')]</field>
+        <field name="context">{'search_default_filter_valide_mg': 1}</field>
+    </record>
+    <menuitem id="menu_depense_record_sub_mg"
+              name="Les Dépenses"
+              sequence="5"
+              action="action_depense_record_mg"
+              parent="menu_caisse_record_sub_mg_tout"
+              groups="access_rights_groups.group_manager_general"/>
 
     <!-- Définition du menu -->
     <menuitem id="menu_depense_record_sub"
@@ -104,6 +120,71 @@
               parent="menu_depense_record_sub"
               action="action_depense_record"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+
+    <record id="action_depense_record_zone_one" model="ir.actions.act_window">
+        <field name="name">Dépenses Tlemcen</field>
+        <field name="res_model">depense.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('zone.id', '=', 16), ('status', 'in', ['en_attente', 'valde_mr'])]</field>
+        <field name="context">{'search_default_filter_en_attente': 1, 'create': False}</field>
+    </record>
+
+    <menuitem id="menu_depense_record_zone_one"
+              name="Liste des dépenses"
+              parent="menu_caisse_record_sub_agent_t2"
+              action="action_depense_record_zone_one"
+              sequence="1"
+              groups="access_rights_groups.group_tlemcen_two"/>
+
+
+
+    <record id="action_depense_record_zone_two" model="ir.actions.act_window">
+        <field name="name">Dépenses oran</field>
+        <field name="res_model">depense.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('zone.id', '=', 1), ('status', 'in', ['en_attente', 'valde_mr'])]</field>
+        <field name="context">{'search_default_filter_en_attente': 1, 'create': False}</field>
+    </record>
+
+    <menuitem id="menu_depense_record_zone_two"
+              name="Liste des dépenses"
+              parent="menu_caisse_record_sub_agent_o1"
+              action="action_depense_record_zone_two"
+              sequence="1"
+              groups="access_rights_groups.group_oran_one"/>
+
+    <record id="action_depense_record_zone_three" model="ir.actions.act_window">
+        <field name="name">Dépenses alger</field>
+        <field name="res_model">depense.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('zone.id', '=', 2), ('status', 'in', ['en_attente', 'valde_mr'])]</field>
+        <field name="context">{'search_default_filter_en_attente': 1, 'create': False}</field>
+    </record>
+
+    <menuitem id="menu_depense_record_zone_three"
+              name="Liste des dépenses"
+              parent="menu_caisse_record_sub_agent_a6"
+              action="action_depense_record_zone_three"
+              sequence="1"
+              groups="access_rights_groups.group_alger_six"/>
+
+    <record id="action_depense_record_zone_four" model="ir.actions.act_window">
+        <field name="name">Dépenses est</field>
+        <field name="res_model">depense.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('zone.id', '=', 3), ('status', 'in', ['en_attente', 'valde_mr'])]</field>
+        <field name="context">{'search_default_filter_en_attente': 1, 'create': False}</field>
+    </record>
+
+    <menuitem id="menu_depense_record_zone_four"
+              name="Liste des dépenses"
+              parent="menu_caisse_record_sub_agent_c1"
+              action="action_depense_record_zone_four"
+              sequence="1"
+              groups="access_rights_groups.group_constantine_one"/>
+
+
 <!--    <menuitem id="menu_depense_record_sub_sub_agent"-->
 <!--              name="Les Dépenses"-->
 <!--              sequence="0"-->

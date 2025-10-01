@@ -26,6 +26,17 @@ class DepenseRecord(models.Model):
                                ('valide_mg', 'Validé par MG'),
                                ('valide', 'Validé')], string='Etat', default='en_attente')
 
+
+    carburant_motif = fields.Selection([('plein_client', 'Plein client'),
+                                        ('complement', 'Complément'),
+                                        ('service', 'Service'),
+                                        ('mission', 'Mission'),
+                                        ('autre', 'Autre'),],string='Justif. carburant')
+
+
+    manager_note = fields.Text(string='Note Manager')
+
+
     def action_valide_mr(self):
         self.status = 'valde_mr'
 

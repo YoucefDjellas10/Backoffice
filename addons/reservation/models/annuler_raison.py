@@ -6,3 +6,5 @@ class AnnulerRaison(models.Model):
     _description = 'raison d annulation '
 
     name = fields.Char(string='Raison')
+    name_en = fields.Char(string='Raison EN')
+    name_ar = fields.Char(string='Raison AR')

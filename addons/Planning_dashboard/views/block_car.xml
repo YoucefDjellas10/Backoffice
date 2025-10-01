@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue Formulaire -->
+    <record id="view_block_car_form" model="ir.ui.view">
+        <field name="name">block.car.form</field>
+        <field name="model">block.car</field>
+        <field name="arch" type="xml">
+            <form string="Blocage Véhicule">
+                <sheet>
+                    <group>
+                        <field name="vehicule_id"/>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                        <field name="reason"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="block_car_action_form" model="ir.actions.act_window">
+        <field name="name">Blocage Véhicules</field>
+        <field name="res_model">block.car</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_block_car_form"/>
+        <field name="target">current</field>
+    </record>
+
+    <record id="block_car_action_form_" model="ir.actions.act_window">
+        <field name="name">Blocage Véhicules</field>
+        <field name="res_model">block.car</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <!-- Menu -->
+    <menuitem id="block_car_menu_main"
+              name="Blocage Véhicules"
+              parent="planning_menu_dashboard"
+              action="block_car_action_form"
+              groups="access_rights_groups.group_reservation,access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo"
+              sequence="220"/>
+    <menuitem id="block_car_menu_main_"
+              name="Blocage Véhicules liste"
+              parent="planning_menu_dashboard"
+              action="block_car_action_form_"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"
+              sequence="220"/>
+
+</odoo>

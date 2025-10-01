@@ -37,17 +37,17 @@
         </field>
     </record>
 
-    <record id="action_historique_solde" model="ir.actions.act_window">
+    <record id="action__historique_solde" model="ir.actions.act_window">
         <field name="name">Historique solde</field>
         <field name="res_model">historique.solde</field>
-        <field name="view_mode">tree</field>
-        <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+        <field name="view_mode">tree,form</field>
+       
     </record>
 
     <menuitem id="menu_historique_solde_sub"
               sequence="1"
               name="Historique Solde"
               parent="liste_clients.menu_configuration"
-              action="action_historique_solde"
+              action="action__historique_solde"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
 </odoo>

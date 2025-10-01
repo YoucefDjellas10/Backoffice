@@ -161,144 +161,187 @@ export class TreeReservationJs extends Component {
 
     paginationDiv.innerHTML = `
         <button class="butn123 pagination-btn" onclick="component.prevPage()" ${this.state.currentPage === 1 ? 'disabled' : ''}>
-            <
+
         </button>
         <span class="page-info">${this.state.currentPage}/${this.state.totalPages}</span>
         <button class="butn123 pagination-btn" onclick="component.nextPage()" ${this.state.currentPage === this.state.totalPages ? 'disabled' : ''}>
-            >
+
         </button>
     `;
 
     window.component = this;
 }
-
     async searchReservations(useFilters = true) {
-        try {
-            let filters = null;
-            if (useFilters) {
-                filters = {
-                    reference: document.getElementById('reference').value,
-                    prenom: document.getElementById('prenom').value,
-                    nom: document.getElementById('nom').value,
-                    modeles: document.getElementById('modeles').value,
-                    pays: document.getElementById('pays').value,
-                    email: document.getElementById('email').value,
-                    etat: document.getElementById('etat').value,
-                    date_debut_reservation: document.getElementById('date-reservation').value,
-                    date_du: document.getElementById('date-du').value,
-                    date_au: document.getElementById('date-au').value
-                };
-            }
-
-            const response = await jsonrpc("/web/dataset/call_kw/planning.dashboard/action_search_reservations", {
-                model: 'planning.dashboard',
-                method: 'action_search_reservations',
-                args: [{}],
-                kwargs: { filters: filters }
-            });
-
-            const tbody = document.querySelector('.ta-BLE tbody');
-            tbody.innerHTML = '';
-            let totalCount = 0;
-            let allReservations = [];
-
-            if (response) {
-                for (const day in response) {
-                    if (Array.isArray(response[day])) {
-                        allReservations = allReservations.concat(response[day]);
-                        totalCount += response[day].length;
-                    }
-                }
-
-                const startIndex = (this.state.currentPage - 1) * this.state.itemsPerPage;
-                const endIndex = startIndex + this.state.itemsPerPage;
-                const paginatedReservations = allReservations.slice(startIndex, endIndex);
-
-                if (paginatedReservations.length > 0) {
-                    paginatedReservations.forEach(reservation => {
-                        const [ref, client, dateCreation, datePrise, duree, modele, zone, total, reservationId, status] = reservation;
-
-                        const formattedDateCreation = this.formatDate(dateCreation);
-                        const formattedDatePrise = this.formatDate(datePrise);
-
-                        const row = document.createElement('tr');
-                        switch(status) {
-                            case 'annule': row.classList.add('ANNle'); break;
-                            case 'confirmee': row.classList.add('CONFirm'); break;
-                            case 'rejete': row.classList.add('rejetée'); break;
-                            case 'en_attend': row.classList.add('enAtteN'); break;
-                            default: row.classList.add('enAtteN');
-                        }
-                        row.innerHTML = `
-                            <td style="padding: 4px 2px">${ref}</td>
-                            <td style="padding: 4px 2px">${client}</td>
-                            <td style="padding: 4px 2px">${formattedDateCreation}</td>
-                            <td style="padding: 4px 2px">${formattedDatePrise}</td>
-                            <td style="padding: 4px 2px">${duree}</td>
-                            <td style="padding: 4px 2px">${modele}</td>
-                            <td style="padding: 4px 2px">${zone}</td>
-                            <td style="padding: 4px 2px">${total}</td>
-                            <td style="padding: 4px 2px">
-                                <button class="butn123 config-btn" data-reservation-id="${reservationId}">
-                                    <ion-icon name="cog-outline"></ion-icon>
-                                </button>
-                                <button class="butn123 delete-btn" data-reservation-id="${reservationId}">
-                                    <ion-icon name="trash-outline"></ion-icon>
-                                </button>
-                            </td>
-                        `;
-
-                        row.querySelector('.config-btn').addEventListener('click', (e) => {
-    const id = e.currentTarget.getAttribute('data-reservation-id');
-    const url = `${window.location.origin}/web#id=${id}&menu_id=264&action=360&model=reservation&view_type=form`;
-    window.open(url, '_blank');
-});
-
-                        row.querySelector('.delete-btn').addEventListener('click', (e) => {
-                            const id = e.currentTarget.getAttribute('data-reservation-id');
-                            this.deleteReservation(id);
-                        });
-
-                        tbody.appendChild(row);
-                    });
-                }
-            }
-
-            if (totalCount === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="9" style="text-align:center">Aucune réservation trouvée</td>
-                    </tr>
-                `;
-            }
-
-            this.state.totalPages = Math.ceil(totalCount / this.state.itemsPerPage);
-            this.state.reservationCount = totalCount;
-            this.updatePaginationControls();
-
-        } catch (error) {
-            this.state.reservationCount = 0;
-            console.error("Erreur lors de la recherche des réservations :", error);
+    try {
+        let filters = null;
+        if (useFilters) {
+            filters = {
+                reference: document.getElementById('reference').value,
+                prenom: document.getElementById('prenom').value,
+                nom: document.getElementById('nom').value,
+                modeles: document.getElementById('modeles').value,
+                pays: document.getElementById('pays').value,
+                email: document.getElementById('email').value,
+                etat: document.getElementById('etat').value,
+                date_debut_reservation: document.getElementById('date-reservation').value,
+                date_du: document.getElementById('date-du').value,
+                date_au: document.getElementById('date-au').value
+            };
         }
-    }
 
+        const response = await jsonrpc("/web/dataset/call_kw/planning.dashboard/action_search_reservations", {
+            model: 'planning.dashboard',
+            method: 'action_search_reservations',
+            args: [{}],
+            kwargs: { filters: filters }
+        });
+
+        const tbody = document.querySelector('.ta-BLE tbody');
+        tbody.innerHTML = '';
+        let totalCount = 0;
+        let allReservations = [];
+
+        if (response) {
+            for (const day in response) {
+                if (Array.isArray(response[day])) {
+                    allReservations = allReservations.concat(response[day]);
+                    totalCount += response[day].length;
+                }
+            }
+
+            // 🔥 Tri du plus récent au plus ancien (par date de création = index 2)
+            allReservations.sort((a, b) => new Date(b[2]) - new Date(a[2]));
+
+            const startIndex = (this.state.currentPage - 1) * this.state.itemsPerPage;
+            const endIndex = startIndex + this.state.itemsPerPage;
+            const paginatedReservations = allReservations.slice(startIndex, endIndex);
+
+            if (paginatedReservations.length > 0) {
+                paginatedReservations.forEach(reservation => {
+                    const [ref, client, dateCreation, datePrise, duree, modele, zone, total, reservationId, status] = reservation;
+
+                    const formattedDateCreation = this.formatDate(dateCreation);
+                    const formattedDatePrise = this.formatDate(datePrise);
+
+                    const row = document.createElement('tr');
+                    switch(status) {
+                        case 'annule': row.classList.add('annul'); break;
+                        case 'confirmee': row.classList.add('CONFirme'); break;
+                        case 'rejete': row.classList.add('rejeté'); break;
+                        case 'en_attend': row.classList.add('enAtteNt'); break;
+                        default: row.classList.add('enAtteN');
+                    }
+                    row.innerHTML = `
+                        <td style="padding: 4px 2px">${ref}</td>
+                        <td style="padding: 4px 2px">${client}</td>
+                        <td style="padding: 4px 2px">${formattedDateCreation}</td>
+                        <td style="padding: 4px 2px">${formattedDatePrise}</td>
+                        <td style="padding: 4px 2px">${duree}</td>
+                        <td style="padding: 4px 2px">${modele}</td>
+                        <td style="padding: 4px 2px">${zone}</td>
+                        <td style="padding: 4px 2px">${total}</td>
+                        <td style="padding: 4px 2px">
+                            <button class="butn123 config-btn" data-reservation-id="${reservationId}">
+                                <ion-icon name="cog-outline"></ion-icon>
+                            </button>
+                            <button class="butn123 delete-btn" data-reservation-id="${reservationId}">
+                                <ion-icon name="trash-outline"></ion-icon>
+                            </button>
+                        </td>
+                    `;
+
+                    row.querySelector('.config-btn').addEventListener('click', (e) => {
+                        const id = e.currentTarget.getAttribute('data-reservation-id');
+                        const url = `${window.location.origin}/web?debug=1#id=${id}&menu_id=1465&action=360&model=reservation&view_type=form`;
+                        window.open(url, '_blank');
+                    });
+
+                    row.querySelector('.delete-btn').addEventListener('click', (e) => {
+                        const id = e.currentTarget.getAttribute('data-reservation-id');
+                        this.deleteReservation(id);
+                    });
+
+                    tbody.appendChild(row);
+                });
+            }
+        }
+
+        if (totalCount === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" style="text-align:center">Aucune réservation trouvée</td>
+                </tr>
+            `;
+        }
+
+        this.state.totalPages = Math.ceil(totalCount / this.state.itemsPerPage);
+        this.state.reservationCount = totalCount;
+        this.updatePaginationControls();
+
+    } catch (error) {
+        this.state.reservationCount = 0;
+        console.error("Erreur lors de la recherche des réservations :", error);
+    }
+}
+
+    
     formatDate(dateString) {
         if (!dateString) return 'N/A';
-        if (dateString.includes('/')) return dateString;
 
         try {
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) return dateString;
+            let date = null;
+
+            // Cas : déjà au format DD/MM/YYYY HH:MM
+            if (dateString.match(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/)) {
+                const [d, m, rest] = dateString.split('/');
+                const [y, hm] = rest.split(' ');
+                const [h, min] = hm.split(':');
+
+                date = new Date(
+                    parseInt(y),
+                    parseInt(m) - 1,
+                    parseInt(d),
+                    parseInt(h),
+                    parseInt(min)
+                );
+            }
+
+            // Cas : format DD-MM-YYYY HH:MM
+            else if (dateString.match(/^\d{2}-\d{2}-\d{4} \d{2}:\d{2}$/)) {
+                const [d, m, rest] = dateString.split('-');
+                const [y, hm] = rest.split(' ');
+                const [h, min] = hm.split(':');
+
+                date = new Date(
+                    parseInt(y),
+                    parseInt(m) - 1,
+                    parseInt(d),
+                    parseInt(h),
+                    parseInt(min)
+                );
+            }
+
+            // Cas général : ISO ou autre format reconnu par JS
+            else {
+                date = new Date(dateString);
+                if (isNaN(date.getTime())) return dateString;
+            }
+
+            // 👉 Décaler de +2 heures
+            date.setHours(date.getHours() + 2);
 
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
 
-            return `${day}/${month}/${year}`;
+            return `${day}/${month}/${year} ${hours}:${minutes}`;
         } catch (e) {
             return dateString;
         }
     }
+
 }
 
 TreeReservationJs.template = "TreeReservation";

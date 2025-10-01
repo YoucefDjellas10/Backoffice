@@ -7,13 +7,18 @@
         <field name="arch" type="xml">
             <form string="reservation">
                 <header>
-                    <button name="action_print_all_reports"
+               <!--     <button name="action_print_all_reports"
                             string="Imprimer tous les documents"
                             type="object"
                             class="oe_stat_button"
                             icon="fa-print"
+                            invisible="lv_type == 'restitution'"/> -->
+                    <button string="Télécharger tous les documents"
+                            type="object"
+                            name="download_combined_documents"
+                            class="oe_stat_button btn-primary"
+                            icon="fa-download"
                             invisible="lv_type == 'restitution'"/>
-
 
                     <button name="send_email_confiramion_livraison" type="object" string="livraison"
                             class="oe_highlight" invisible="1"/>
@@ -230,33 +235,12 @@
                                    readonly="stage == 'livre'"/>
                             <separator string="Modifier rendez-vous :"
                                        style="background-color: #2F336B; color: white;"/>
-                            <field name="lieu_retour_one" readonly="1"
-                                   invisible="lv_type == 'restitution'"/>
-                            <field name="date_retour_one" readonly="1"
-                                   invisible="lv_type == 'restitution'"/>
-                            <field name="change_heure_retour" invisible="lv_type == 'restitution'"
-                                   readonly="stage == 'livre'" string="Modifier"/>
-
-                            <field name="changed_hour" readonly="stage == 'livre'"
-                                   invisible="lv_type == 'restitution' or not change_heure_retour"/>
-
-                            <field name="changed_place" string="lieu de retour" readonly="stage == 'livre'"
-                                   invisible="lv_type == 'restitution' or not change_heure_retour"/>
-                            <field name="sous_total" readonly="1"
-                                   invisible="1"/>
-                            <field name="is_available" readonly="1"
-                                   invisible="1"/>
-
-                            <br/>
-                            <br/>
                         </group>
                         <div style="display: flex; justify-content: flex-start; gap: 50px; margin-left: 500px;">
-                            <button name="action_verifier_disponibilite" string="Vérifier disponibilité"
+                            <button name="action_create_edit_livraison" string="Modiofier La réservation"
                                     class="oe_highlight btn-warning" type="object"
-                                    invisible="lv_type == 'restitution' or not change_heure_retour"/>
-                            <button name="confirme_modifications" string="Confirmer les modifications"
-                                    class="oe_highlight btn-success" type="object"
-                                    invisible="lv_type == 'restitution' or not change_heure_retour"/>
+                                    invisible="lv_type == 'restitution'"/>
+                            
                         </div>
 
                         <group style=" font-size: 20px; text-align: center;">
@@ -271,6 +255,15 @@
 
 
                     </details>
+                    
+                    <details invisible="lv_type == 'restitution' or stage == 'livre'">
+                        <summary style="font-size: 20px;" invisible="lv_type == 'restitution'">Paiement</summary>
+                        <groupe invisible="lv_type == 'restitution'">
+                        </groupe>
+
+                    </details>
+
+                    
                     <details>
                         <summary style="font-size: 20px;">Signature</summary>
                         <groupe>
@@ -283,12 +276,7 @@
                         </groupe>
 
                     </details>
-                    <details invisible="lv_type == 'restitution' or stage == 'livre'">
-                        <summary style="font-size: 20px;" invisible="lv_type == 'restitution'">Paiement</summary>
-                        <groupe invisible="lv_type == 'restitution'">
-                        </groupe>
 
-                    </details>
                     <details>
                         <summary style="  font-size: 20px;">Note</summary>
                         <group>
@@ -682,10 +670,16 @@
     <record id="action_view_kanban_reservation" model="ir.actions.client">
         <field name="name">Planning Journalier</field>
         <field name="tag">kanban_reservation_dashboard</field>
+        <field name="params" eval="{'template_name': 'kanbanreservation'}"/>
     </record>
     <record id="action_kanban_agent" model="ir.actions.client">
         <field name="name">LV</field>
         <field name="tag">kanban_agent_dashboard</field>
+    </record>
+    <record id="action_view_kanban_reservation_no_print" model="ir.actions.client">
+        <field name="name">Planning Journalier (No Print)</field>
+        <field name="tag">kanban_reservation_dashboard</field> 
+        <field name="params" eval="{'template_name': 'kanbanreservation_no_print'}"/>
     </record>
 
     <!-- Menu pour accéder au kanban agent -->
@@ -696,17 +690,23 @@
               groups="access_rights_groups.group_agent"/>
     <menuitem id="menu_kanban_reservation"
               name="LV"
-              parent="menu_reservation"
               action="action_view_kanban_reservation"
               sequence="10"
-              groups="access_rights_groups.group_admin"/>
+              groups="access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+    
+    <menuitem id="menu_kanban_reservation_"
+              name="LV"
+              action="action_view_kanban_reservation_no_print"
+              sequence="10"
+              groups="access_rights_groups.group_reservation"/>
+
 
     <menuitem id="menu_livraison_sub_menu"
               name="Livraison"
               sequence="3"
               parent="menu_reservation"
               action="action_livraison_admin"
-              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+              groups="access_rights_groups.group_admin"/>
     <!--    <menuitem id="menu_agent_livraison_sub_menu"-->
     <!--              name="LV"-->
     <!--              sequence="1"-->

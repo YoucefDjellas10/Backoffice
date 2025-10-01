@@ -90,7 +90,7 @@
     <menuitem id="menu_modele_sub"
               name="Modèles"
               parent="menu_gestion_du_parc"
-              sequence="2"
+              sequence="0"
               action="action_modele"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
 </odoo>

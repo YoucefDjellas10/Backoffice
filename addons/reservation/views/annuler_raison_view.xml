@@ -9,6 +9,8 @@
                 <sheet>
                     <group class="custom-group" >
                         <field name="name"/>
+                        <field name="name_en"/>
+                        <field name="name_ar"/>
                     </group>
                 </sheet>
             </form>
@@ -21,6 +23,8 @@
         <field name="arch" type="xml">
             <tree string="annuler raison">
                 <field name="name"/>
+                <field name="name_en"/>
+                <field name="name_ar"/>
             </tree>
         </field>
     </record>
@@ -32,11 +36,11 @@
         <field name="view_mode">tree,form</field>
     </record>
 
-    <!-- Définition du menu -->
+ 
     <menuitem id="menu_configuration_sub"
               name="Configuration"
               sequence="10"
-              parent="menu_reservation"
+              parent="Planning_dashboard.menu_tree_reservation_sub_menu"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
     <menuitem id="menu_annuler_raison_sub_menu"
               name="Raison d'annulation"
@@ -44,4 +48,5 @@
               parent="menu_configuration_sub"
               action="action_annuler_raison"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
 </odoo>

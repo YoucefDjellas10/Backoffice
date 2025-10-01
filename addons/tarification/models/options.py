@@ -8,6 +8,7 @@ class Options(models.Model):
     name = fields.Char(string='Nom de l option', required=True)
     name_en = fields.Char(string='option name ', required=True)
     name_ar = fields.Char(string='option name AR', required=True)
+    zone = fields.Many2one('zone', string='Zone')
     type_option = fields.Many2one('type.options', string='Type de l option', required=True)
     description = fields.Text(string='Description')
     tout_modele = fields.Selection([('oui', 'Oui'), ('non', 'Non')], string='Appliquer sur tout les catégories',
@@ -21,4 +22,4 @@ class Options(models.Model):
     caution = fields.Integer(string='caution')
     limit_Klm = fields.Integer(string='Limit KM')
     penalite_Klm = fields.Float(string='Pénalité KM')
-
+    min_prix = fields.Float(string='Prix Min')

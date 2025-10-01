@@ -8,10 +8,20 @@
         'views/alert_view.xml',
         'views/maintenance_view.xml',
         'views/type_maintenance_view.xml',
-        'views/km_actuel.xml',
+       # 'views/km_actuel.xml',
         'views/maintenance_poup.xml',
         'views/maintenance_verifier.xml',
 
     ],
+
+    'assets': {
+        'web.assets_backend': [
+            'gestion_maintenance/static/src/js/alert.js',
+            'gestion_maintenance/static/src/js/alert_agent.js',
+            'gestion_maintenance/static/src/xml/alert_agent.xml',
+            'gestion_maintenance/static/src/xml/alert.xml',
+        ],
+    },
+
     'application': True,
 }

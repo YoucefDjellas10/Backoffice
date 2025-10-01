@@ -1,9 +1,12 @@
-from odoo import fields, models, api
+from odoo import fields, models, api, _
 from odoo.exceptions import ValidationError
 from odoo.exceptions import UserError
 from datetime import datetime, timedelta
 import random
 import string
+import logging
+import requests
+_logger = logging.getLogger(__name__)
 
 
 class Reservation(models.Model):
@@ -92,6 +95,12 @@ class Reservation(models.Model):
     date_de_naissance = fields.Date(string='Date de naissance', related='client.date_de_naissance', store=True)
     permis_date = fields.Date(string='Date permis', related='client.date_de_permis', store=True)
     mobile = fields.Char(string='Mobile', related='client.mobile', store=True)
+    
+    date_depart_char = fields.Char(string='date depart')
+    date_retour_char = fields.Char(string='date retour')
+    heure_depart_char = fields.Char(string='heure depart')
+    heure_retour_char = fields.Char(string='heure retour')
+    lecart = fields.Integer(string='L\'écart')
 
     telephone = fields.Char(string='Téléphone', related='client.telephone', store=True)
     risque = fields.Selection(string='Risque', related='client.risque', store=True)
@@ -125,10 +134,39 @@ class Reservation(models.Model):
     devise_nd = fields.Many2one(string='Devise', related='nd_client.devise', store=True)
     solde_nd = fields.Monetary(string='Solde non consomé', currency_field='devise', related='nd_client.solde', store=True)
 
+    def action_confirmer_reservation(self):
+        for record in self:
+            if not record.id:
+                raise UserError(_("Impossible de confirmer : la réservation n'a pas d'identifiant."))
 
+            url = f"https://api.safarelamir.com/confirmer-resrevation/?reservation_id={record.id}"
 
+            try:
+                response = requests.get(url, timeout=20)
+            except Exception as e:
+                raise UserError(_("Erreur de connexion avec l'API: %s") % str(e))
 
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("operation") == "operation terminé":
+                    record.status = "confirmee"
 
+                    # Notification succès
+                    return {
+                        'type': 'ir.actions.client',
+                        'tag': 'display_notification',
+                        'params': {
+                            'title': _('Succès'),
+                            'message': _('La réservation est confirmée avec succès !'),
+                            'type': 'success',
+                            'sticky': False,
+                        }
+                    }
+                else:
+                    raise UserError(_("L'API a répondu mais avec une erreur: %s") % data.get("operation"))
+            else:
+                raise UserError(
+                    _("Échec de l'appel API. Code HTTP: %s - Réponse: %s") % (response.status_code, response.text))
 
     prix_jour = fields.Integer(string='Prix par jours', compute='_compute_prix_jour', store=True)
     prix_jour_two = fields.Integer(string='Prix Jour Two')
@@ -154,16 +192,56 @@ class Reservation(models.Model):
                                   currency_field='currency_id_reduit')
     total_degrader = fields.Monetary(string='Total des dégradation', currency_field='currency_id_reduit')
     total_ecce_klm = fields.Monetary(string='Total KM non respecté', currency_field='currency_id_reduit')
+    
+    def action_create_edit_reservation(self):
+        for record in self:
+            if not record.date_heure_debut or not record.date_heure_fin:
+                raise UserError("Les champs date_heure_debut et date_heure_fin doivent être renseignés.")
 
+            date_depart = record.date_heure_debut.date()
+            date_retour = record.date_heure_fin.date()
+    
+            edit_res = self.env['edit.reservation'].create({
+                'date_depart': date_depart,
+                'date_retour': date_retour,
+                'heure_depart': record.heure_depart_char,
+                'heure_retour': record.heure_retour_char,
+                'reservation': record.id,
+                'lieu_depart': record.lieu_depart.id if record.lieu_depart else False,
+                'lieu_retour': record.lieu_retour.id if record.lieu_retour else False,
+            })
+
+            # Retourne une action pour ouvrir le form view en pop-up
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'Modifier la réservation',
+                'res_model': 'edit.reservation',
+                'view_mode': 'form',
+                'res_id': edit_res.id,
+                'target': 'new',  # ouvre en modal
+            }
+   
     @api.depends('total_revenue')
     def _compute_montant_paye(self):
         for record in self:
             record.montant_paye = record.total_revenue
 
-    @api.depends('montant_paye', 'total_revenue', 'total_degrader', 'total_ecce_klm', 'date_heure_fin', 'date_heure_debut', 'total_reduit_euro')
+    @api.depends('lecart', 'montant_paye', 'total_degrader', 'total_ecce_klm', 'total_reduit_euro')
     def _compute_reste_payer(self):
-        for record in self:
-            record.reste_payer = record.total_reduit_euro + record.total_degrader + record.total_ecce_klm - record.total_revenue
+        for r in self:
+            rest = (r.total_reduit_euro or 0) + (r.total_degrader or 0) + (r.total_ecce_klm or 0) \
+                   - (r.montant_paye or 0) - (r.lecart or 0)
+            r.reste_payer = rest if rest > 0 else 0
+            _logger.info("compute reste_payer for id %s -> %s", r.id, r.reste_payer)
+
+    @api.onchange('lecart', 'montant_paye', 'total_degrader', 'total_ecce_klm', 'total_reduit_euro')
+    def _onchange_reste_payer(self):
+        # seulement pour rafraîchir la vue avant sauvegarde
+        for r in self:
+            rest = (r.total_reduit_euro or 0) + (r.total_degrader or 0) + (r.total_ecce_klm or 0) \
+                   - (r.montant_paye or 0) - (r.lecart or 0)
+            r.reste_payer = rest if rest > 0 else 0
+
 
     du_au = fields.Char(string='Du ➝ Au', compute='_compute_du_au', store=True)
     du_au_modifier = fields.Char(string='Du ➝ Au (Modifié)')
@@ -482,17 +560,21 @@ class Reservation(models.Model):
                 template.send_mail(record.id, force_send=True)
             else:
                 raise UserError("Modèle de courrier introuvable ou invalide.")
-
     def action_send_confirmation_email(self):
-        template_id = self.env.ref('reservation.email_confirmation_template').id
-        for record in self:
-            if not record.email:
-                raise UserError("L'adresse email est manquante pour %s" % record.name)
-            template = self.env['mail.template'].browse(template_id)
-            if template:
-                template.send_mail(record.id, force_send=True)
-            else:
-                raise UserError("Modèle de courrier introuvable ou invalide.")
+        try:
+            template = self.env.ref('reservation.email_confirmation_template')
+            for record in self:
+                if not record.email:
+                    raise UserError(f"Email manquant pour {record.name}")
+                # Envoyer l'email et désactiver la suppression auto
+                mail_id = template.send_mail(record.id, force_send=True)
+                if mail_id:
+                    mail = self.env['mail.mail'].browse(mail_id)
+                    mail.write({'auto_delete': False})
+                    _logger.info(f"Email envoyé et conservé (ID: {mail.id})")
+        except Exception as e:
+            _logger.error(f"Erreur d'envoi: {str(e)}")
+            raise
 
     @api.depends('livraison', 'livraison.photo')
     def _compute_photo_depart(self):
@@ -816,8 +898,9 @@ class Reservation(models.Model):
                     avance = 1
 
             for supplement in supplements:
-                if supplement.heure_debut_float <= heure_retour_avance_float < supplement.heure_fin_float and avance == 0:
-                    supplements_value += supplement.montant
+                if supplement.heure_debut_float and heure_retour_avance_float and supplement.heure_fin_float:
+                    if supplement.heure_debut_float <= heure_retour_avance_float < supplement.heure_fin_float and avance == 0:
+                        supplements_value += supplement.montant
 
             record.supplements = supplements_value
 
@@ -861,10 +944,10 @@ class Reservation(models.Model):
             total_general = reservation.frais_de_dossier + reservation.options_total + reservation.total_afficher
             reservation.total = total_general
 
-    @api.depends('options_total', 'total_afficher_reduit', 'frais_de_dossier', 'options_total_reduit', 'solde_reduit')
+    @api.depends('lecart','options_total', 'total_afficher_reduit', 'frais_de_dossier', 'options_total_reduit', 'solde_reduit')
     def _compute_total_reduit(self):
         for reservation in self:
-            total_general = reservation.frais_de_dossier + reservation.total_afficher_reduit + reservation.options_total - reservation.options_total_reduit - reservation.solde_reduit
+            total_general = reservation.frais_de_dossier + reservation.total_afficher_reduit + reservation.options_total - reservation.options_total_reduit - reservation.solde_reduit + reservation.lecart
             reservation.total_reduit = total_general
 
     @api.depends('opt_payment_total', 'opt_klm_total', 'opt_nd_driver_total', 'opt_plein_carburant_total',

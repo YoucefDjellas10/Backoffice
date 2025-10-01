@@ -100,3 +100,56 @@ class AlertRecord(models.Model):
 
         }
 
+    @api.model
+    def search_alerts(self, filters=None, offset=0, limit=30):
+        domain = []
+        if filters:
+            if filters.get('model_id'):
+                domain.append(('vehicule_id.modele', '=', int(filters['model_id'])))  # Changé de modele_id à modele
+            if filters.get('zone_id'):
+                domain.append(('vehicule_id.zone', '=', int(filters['zone_id'])))
+            if filters.get('vehicule_id'):
+                domain.append(('vehicule_id', '=', int(filters['vehicule_id'])))
+            if filters.get('type'):
+                domain.append(('type_maintenance_id', '=', int(filters['type'])))
+
+        alerts = self.search(domain, offset=offset, limit=limit)
+        result = [{
+            'id': alert.id,
+            'reference_id': alert.reference_id,
+            'maintenance_type': alert.type_maintenance_id.name if alert.type_maintenance_id else 'N/A',
+            'numero': alert.vehicule_id.numero if alert.vehicule_id else 'N/A',
+            'echeance': alert.date_prochaine_alerte if alert.date_prochaine_alerte else 'N/A',
+            'dernier_klm': alert.vehicule_id.dernier_klm if alert.vehicule_id else 0,
+        } for alert in alerts]
+
+        return {'records': result, 'total_count': len(alerts)}
+
+    @api.model
+    def get_all_models(self):
+        model_records = self.env['model.vehicule'].search([])
+        return [{'id': model.id, 'name': model.name} for model in model_records]
+
+    @api.model
+    def get_all_zones(self):
+        zone_records = self.env['res.zone'].search([])
+        return [{'id': zone.id, 'name': zone.name} for zone in zone_records]
+
+    @api.model
+    def get_all_vehicule(self):
+        vehicules = self.env['vehicule'].search([])
+        return [{
+            'id': v.id,
+            'numero': v.numero,
+            'name': f"{v.numero} - {v.matricule}"  # Plus d'info pour l'utilisateur
+        } for v in vehicules]
+
+    @api.model
+    def get_all_maintenance_types(self):
+        types = self.env['type.maintenance.record'].search([])
+        return [{
+            'id': t.id,
+            'name': t.name,
+            'type': t.type  # Ajoutez ceci si vous voulez filtrer par type
+        } for t in types]
+

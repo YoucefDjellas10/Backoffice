@@ -10,6 +10,7 @@ class Zone(models.Model):
     lieux = fields.One2many('lieux', 'zone', string='lieux')
     manager = fields.Many2one('res.users', string='Manager')
     agent = fields.Many2many('res.users', string='agent')
+    transmission_point = fields.Many2one('lieux', string='Point de transmission', domain="[('zone', '=', id)]", required=True)
 
     def open_create_lieux_wizard(self):
         self.ensure_one()

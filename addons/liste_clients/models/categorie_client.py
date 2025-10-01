@@ -6,6 +6,8 @@ class CategorieClient(models.Model):
     _description = 'Categorie client'
 
     name = fields.Char(string='Catégorie')
+    name_en = fields.Char(string='Catégorie EN')
+    name_ar = fields.Char(string='Catégorie AR')
     du_pts = fields.Integer(string='Du (pts)')
     au_pts = fields.Integer(string='Au (pts)')
     reduction = fields.Integer(string='Réduction %')

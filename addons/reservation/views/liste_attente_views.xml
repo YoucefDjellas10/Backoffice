@@ -63,14 +63,14 @@
 
     <!-- Définition du menu -->
     <menuitem id="menu_lite_atente_sub_menu"
-              name="Liste atente"
+              name="Liste d’attente"
               sequence="60"
               parent="menu_configuration_sub"
               action="action_lite_atente"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
     <menuitem id="menu_lite_atente_sub_menu_resa"
-              name="Liste atente"
+              name="Liste d’attente"
               sequence="200"
               action="action_lite_atente"
-              groups="access_rights_groups.group_reservation"/>
+              groups="access_rights_groups.group_manager_general,access_rights_groups.group_reservation"/>
 </odoo>

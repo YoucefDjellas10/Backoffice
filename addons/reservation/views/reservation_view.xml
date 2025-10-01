@@ -9,11 +9,13 @@
                     <sheet>
 
                         <header>
-
+                            <button name="action_confirmer_reservation"
+                                    string="Confirmer la réservation"
+                                    type="object" invisible="status != 'en_attend'"
+                                    class="btn-primary"/>
                             <field name="status" widget="statusbar"/>
                         </header>
                         <notebook>
-
                             <page string="Résumé">
                                 <div style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin: 10px; position: relative;">
                                     <span style="position: absolute; top: -12px; left: 10px; background-color: white; padding: 0 5px; font-weight: bold; color: #2F336B;font-size: 18px;">
@@ -26,7 +28,7 @@
                                         <field name="etat_reservation" invisible="1"/>
                                         <field name="total_reduit_euro" decoration-bf="total_reduit_euro"/>
                                         <field name="montant_paye" readonly="1" decoration-bf="total_reduit_euro"/>
-                                        <field name="reste_payer" readonly="1" decoration-bf="total_reduit_euro"/>
+                                        <field name="reste_payer" readonly="1" force_save="1" decoration-bf="total_reduit_euro"/>
 
                                         <field name="status" decoration-bf="1"/>
 
@@ -477,6 +479,7 @@
                                             <field name="prix_jour_afficher_reduit"/>
                                             <field name="options_total_reduit"/>
                                             <field name="total_reduit"/>
+                                            <field name="lecart"/>
                                             <field name="total_degrader" readonly="1"/>
                                             <field name="total_ecce_klm" readonly="1"/>
                                         </group>
@@ -486,23 +489,18 @@
 
                             <page string="Prolongation">
                                 <header>
-                                    <button name="action_open_prolongation_popup" string="Prolonger" type="object"
+                                    <button name="action_create_edit_reservation" string="Modifier la réservation" type="object"
                                             class="btn-primary"/>
                                 </header>
                                 <field name="prolongation" readonly="1" invisible="not prolongation">
                                     <tree string="prolongation">
-                                        <field name="stage" widget="badge"
-                                               decoration-warning="stage == 'en_attend'"
-                                               decoration-success="stage == 'confirmee'"/>
-                                        <button name="action_verifier_disponibilite" type="object"
-                                                string="⚡"/>
-                                        <field name="date_fin_un"/>
-                                        <field name="date_prolonge"/>
-                                        <field name="nb_jour_prolonge_l"/>
-                                        <field name="heure_prolonge_l"/>
+                                        <field name="date_du_au"/>
+                                        <field name="date_du_au_new"/>
+                                        <field name="date_prolongation"/>
+                                        <field name="effectuer_par"/>
                                         <field name="devise" optional="hide"/>
                                         <field name="prix_prolongation_devise"/>
-                                        <button string="✅" type="object" name="action_confirm"/>
+                                        
                                     </tree>
                                 </field>
                                 <group>
@@ -519,24 +517,15 @@
                             </page>
                             <page string="Retour a l'avance">
                                 <header>
-                                    <button name="create_retour_avance"
-                                            string="Retour à l'avance"
+                                    <button name="action_create_edit_reservation"
+                                            string="Modifier la réservation"
                                             type="object"
                                             class="oe_highlight"/>
                                 </header>
                                 <sheet invisible="not retour_avace_ids">
-                                    <group>
-                                        <group>
-                                            <field name="retour_avance" readonly="1" invisible="not retour_avace_ids"/>
-                                        </group>
-                                        <group>
-                                            <field name="date_retour_avance" readonly="1"
-                                                   invisible="not retour_avace_ids"/>
-                                        </group>
-                                        <br/>
-                                        <br/>
-                                        <field name="retour_avace_ids" readonly="1" invisible="not retour_avace_ids"/>
-                                    </group>
+                                    
+                                    <field name="retour_avace_ids" readonly="1" invisible="not retour_avace_ids"/>
+                                  
                                 </sheet>
                             </page>
                             <page string="Livraison" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
@@ -842,13 +831,13 @@
         <menuitem id="menu_reservation"
                   name="Reservation"
                   sequence="3"
-                  groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                  groups="access_rights_groups.group_admin"/>
         <menuitem id="menu_reservation_list"
                   name="Reservation"
                   sequence="1"
                   parent="menu_reservation"
                   action="reservation_action"
-                  groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                  groups="access_rights_groups.group_admin"/>
 
     </data>
 </odoo>

@@ -14,6 +14,7 @@
         'views/reservation_inherit.xml',
         'views/livraison_inherit.xml',
         'views/fournisseur_view.xml',
+        'views/refund_table_view.xml',
     ],
     'application': True,
 }

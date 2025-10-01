@@ -44,10 +44,10 @@
                 </span>
 
                 <div style="padding: 8px;">
-                    <button class="status-btn" style="background-color: #f0f7f7;color: #5d5a8e; border: 1px solid #eeeeee; padding: 6px 12px;margin-left: 12px;width: 20%; cursor: pointer;border-radius: 4px;">Disponible</button>
-                    <button class="status-btn" style="background-color: #9fef88; color:#11601a; border: 1px solid #eeeeee; padding: 6px 12px;border-radius: 4px;margin-left: 12px;width: 20%; cursor: pointer;">Loué</button>
-                    <button class="status-btn" style="background-color: #f17062;color: rgb(102, 12, 12); border: 1px solid #eeeeee; padding: 6px 12px;border-radius: 4px;margin-left: 12px;width: 20%; cursor: pointer;">Réservé</button>
-                    <button class="status-btn" style="background-color: #eaf172;color:#4d5e0c; border: 1px solid #eeeeee; padding: 6px 12px;border-radius: 4px;margin-left: 12px;width: 20%; cursor: pointer;">Maintenance</button>
+                    <button class="status-btn" style="background-color: #f0f7f7;color: #5d5a8e; border: 1px solid #eeeeee; padding: 6px 12px;margin-left: 12px;width: 18%; cursor: pointer;border-radius: 4px;">Disponible</button>
+                    <button class="status-btn" style="background-color: #9fef88; color:#11601a; border: 1px solid #eeeeee; padding: 6px 12px;border-radius: 4px;margin-left: 12px;width: 18%; cursor: pointer;">Loué</button>
+                    <button class="status-btn" style="background-color: #f17062;color: rgb(102, 12, 12); border: 1px solid #eeeeee; padding: 6px 12px;border-radius: 4px;margin-left: 12px;width: 18%; cursor: pointer;">Réservé</button>
+                    <button class="status-btn" style="background-color: #eaf172;color:#4d5e0c; border: 1px solid #eeeeee; padding: 6px 12px;border-radius: 4px;margin-left: 12px;width: 18%; cursor: pointer;">Bloqué</button>
                 </div>
             </div>
  <div style="padding: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
@@ -89,7 +89,7 @@
             <table>
                 <thead>
                     <tr>
-<th rowspan="2" class="large-text" style="background-color: white; color: #333; border: none; width: 150px; height: 50px; text-align: center;">
+<th rowspan="2" class="large-text" style="background-color: white; color: #333; width: 150px; height: 50px; text-align: center;">
     <p t-esc="modelGroup[0]" style="word-wrap: break-word; font-size: 12px; font-weight: bold; margin: 0;"/>
 </th>
                         <t t-foreach="state.days" t-as="day" t-key="day.label">
@@ -109,14 +109,19 @@
                             <t t-foreach="state.days" t-as="day" t-key="day.label">
                                 <t t-set="dayKey" t-value="day.label.split('.')[1].trim()"/>
                                 <t t-set="dayState" t-value="matricule.planning[dayKey] || { first: '0', second: '0' }"/>
-                                <td t-att-class="dayState.first.includes('reserve') ? 'reserve' : dayState.first.includes('loue') ? 'Prise' : ''">
-                                    <t t-if="dayState.first.includes('loue') or dayState.first.includes('reserve')">
+                                <!-- CORRECTION: Classe BLOQUE avec priorité -->
+                                <td t-att-class="dayState.first === 'BLOQUE' ? 'BLOQUE' :
+                                                dayState.first.includes('reserve') ? 'reserve' :
+                                                dayState.first.includes('loue') ? 'Prise' : ''">
+                                    <t t-if="dayState.first === 'BLOQUE'">
+                                    </t>
+                                    <t t-elif="dayState.first.includes('loue') or dayState.first.includes('reserve')">
                                         <t t-if="dayState.first.includes(':')">
                                             R<t t-esc="dayState.first.split(' ')[1]"/>
                                         </t>
                                     </t>
                                     <t t-else="">
-                                        -
+                                        <span class="tiret-transparent">-</span>
                                     </t>
                                 </td>
                             </t>
@@ -125,14 +130,19 @@
                             <t t-foreach="state.days" t-as="day" t-key="day.label">
                                 <t t-set="dayKey" t-value="day.label.split('.')[1].trim()"/>
                                 <t t-set="dayState" t-value="matricule.planning[dayKey] || { first: '0', second: '0' }"/>
-                                <td t-att-class="dayState.second.includes('reserve') ? 'reserve' : dayState.second.includes('loue') ? 'Prise' : ''">
-                                    <t t-if="dayState.second.includes('loue') or dayState.second.includes('reserve')">
+                                <!-- CORRECTION: Classe BLOQUE avec priorité -->
+                                <td t-att-class="dayState.second === 'BLOQUE' ? 'BLOQUE' :
+                                                dayState.second.includes('reserve') ? 'reserve' :
+                                                dayState.second.includes('loue') ? 'Prise' : ''">
+                                    <t t-if="dayState.second === 'BLOQUE'">
+                                    </t>
+                                    <t t-elif="dayState.second.includes('loue') or dayState.second.includes('reserve')">
                                         <t t-if="dayState.second.includes(':')">
                                             D <t t-esc="dayState.second.split(' ')[1]"/>
                                         </t>
                                     </t>
                                     <t t-else="">
-                                        -
+                                        <span class="tiret-transparent">-</span>
                                     </t>
                                 </td>
                             </t>
@@ -143,18 +153,11 @@
                     </t>
                 </tbody>
             </table>
-
-
         </div>
     </t>
 </t>
 <t t-else="">
     <p class="ms-3">Aucune donnée à afficher. Cliquez sur "Rechercher" pour afficher les résultats.</p>
-
-<button class="refresh-btn" t-on-click="fetchReservationsLast3Days"
- style="margin-left: 2%;">
-    Afficher les réservations des 3 derniers jours 🔄
-</button></t>    </body>
-
+</t>    </body>
     </t>
 </templates>

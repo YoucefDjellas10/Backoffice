@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_historique_tree" model="ir.ui.view">
+        <field name="name">historique.modification.tree</field>
+        <field name="model">historique.modification</field>
+        <field name="arch" type="xml">
+            <tree string="Journal des Modifications" default_order="date_modification desc">
+                <field name="date_modification"/>
+                <field name="user_id"/>
+                <field name="model_display_name"/>
+                <field name="field_display_name"/>
+                <field name="old_value_display"/>
+                <field name="new_value_display"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_historique_form" model="ir.ui.view">
+        <field name="name">historique.modification.form</field>
+        <field name="model">historique.modification</field>
+        <field name="arch" type="xml">
+            <form string="Journal des Modifications">
+                <sheet>
+                    <group>
+                        <field name="date_modification" readonly="1"/>
+                        <field name="user_id" readonly="1"/>
+                        <field name="model_display_name" readonly="1"/>
+                        <field name="model_id" readonly="1"/>
+                        <field name="field_display_name" readonly="1"/>
+                        <field name="old_value_display" readonly="1"/>
+                        <field name="new_value_display" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_historique" model="ir.actions.act_window">
+        <field name="name">Journal des Modifications</field>
+        <field name="res_model">historique.modification</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_historique_root" name="Historique" sequence="10" 
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+    <menuitem id="menu_historique"
+              name="Journal Modifications"
+              parent="menu_historique_root"
+              action="action_historique"
+              sequence="1"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+</odoo>

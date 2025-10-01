@@ -1,30 +1,31 @@
 /* @odoo-module */
 
 import { registry } from '@web/core/registry'
-const { Component, onMounted, useState } = owl
+const { Component, onMounted, useState, onPatched } = owl
 import { jsonrpc } from "@web/core/network/rpc_service"
 
 export class PlanningDashboardOuest extends Component {
     setup() {
-    this.state = useState({
-    matricules: [],
-    zones: [],
-    models: [],
-    vehicules: [],
-    selectedModel: "",
-    selectedZone: null,
-    selectedMonth: new Date().getMonth() + 1,
-    selectedYear: new Date().getFullYear(),
-    days: [],
-    selectedMonthName: this.getMonthName(new Date().getMonth() + 1),
-    updateTime: this.getCurrentTime(),
-    startDay: 1,
-    showTable: false,
-    displayedModelName: "Aucun modèle sélectionné",
-    displayedMatricules: [],
-    isSearchClicked: false,
-    groupedByModel: {} // Ajoutez cette ligne
-});
+        this.state = useState({
+            matricules: [],
+            zones: [],
+            models: [],
+            vehicules: [],
+            selectedModel: "",
+            selectedZone: null,
+            selectedMonth: new Date().getMonth() + 1,
+            selectedYear: new Date().getFullYear(),
+            days: [],
+            selectedMonthName: this.getMonthName(new Date().getMonth() + 1),
+            updateTime: this.getCurrentTime(),
+            startDay: 1,
+            showTable: false,
+            displayedModelName: "Aucun modèle sélectionné",
+            displayedMatricules: [],
+            isSearchClicked: false,
+            groupedByModel: {},
+            blockedVehicles: {} // NOUVEAU : pour stocker les véhicules bloqués
+        });
 
         this.months = [
             { id: 1, name: "Jan" }, { id: 2, name: "Fév" }, { id: 3, name: "Mar" },
@@ -40,7 +41,88 @@ export class PlanningDashboardOuest extends Component {
             await this.fetchVehicule();
             this.generateDays();
             this.updateCurrentTime();
+            this.addBlockedVehicleCSS(); // NOUVEAU
         });
+        onPatched(() => {
+            this.applyBlockedVehicleStyles();
+        });
+    }
+
+    addBlockedVehicleCSS() {
+        if (document.querySelector('#blocked-vehicle-styles')) {
+            return;
+        }
+
+        const cssStyles = `
+            <style id="blocked-vehicle-styles">
+                .BLOQUE,
+                .planning-cell-blocked,
+                .blocked-vehicle,
+                td.BLOQUE,
+                span.BLOQUE {
+                    background-color: #edf37d !important;
+                    color: #748b1a !important;
+                    font-weight: 500 !important;
+                    box-shadow: inset 1px 1px 2px rgba(100, 100, 100, 0.2),
+                                inset -1px -1px 2px rgba(255, 255, 255, 0.5),
+                                -5px 1px 0px -3px rgba(255, 255, 255, 0.75) inset;
+                                -webkit-box-shadow: -5px 1px 0px -3px rgba(255, 255, 255, 0.75) inset;
+                                -moz-box-shadow: -5px 1px 0px -3px rgba(255, 255, 255, 0.75) inset;
+                text-shadow: 0px 0px 2px rgba(51, 51, 51, 0.1);
+                text-align: center;
+                padding: 4px;
+                border: none !important;
+                }
+            </style> `;
+
+        document.head.insertAdjacentHTML('beforeend', cssStyles);
+    }
+
+    // NOUVEAU : Appliquer les styles aux éléments contenant "BLOQUE"
+    applyBlockedVehicleStyles() {
+        setTimeout(() => {
+            const cells = document.querySelectorAll('td, span, div');
+
+            cells.forEach(cell => {
+                const text = cell.textContent || cell.innerText;
+                if (text && text.includes('BLOQUE')) {
+                    cell.classList.add('BLOQUE');
+                    cell.style.backgroundColor = '#ffc107';
+                    cell.style.color = '#000000';
+                    cell.style.fontWeight = 'bold';
+                    cell.style.border = '2px solid #ffb300';
+                    cell.style.textAlign = 'center';
+                    cell.style.padding = '4px';
+                    cell.style.borderRadius = '4px';
+
+                    if (!cell.hasAttribute('title')) {
+                        cell.setAttribute('title', 'Véhicule bloqué - Non disponible');
+                    }
+                }
+            });
+        }, 100);
+    }
+
+    // NOUVEAU : Récupérer les véhicules bloqués pour une période
+    async fetchBlockedVehicles() {
+        try {
+            const startDate = new Date(this.state.selectedYear, this.state.selectedMonth - 1, this.state.startDay);
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 14);
+
+            const response = await jsonrpc("/web/dataset/call_kw/planning.dashboard/get_blocked_vehicles_for_period", {
+                model: 'planning.dashboard',
+                method: 'get_blocked_vehicles_for_period',
+                args: [startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]],
+                kwargs: {}
+            });
+
+            this.state.blockedVehicles = response || {};
+            console.log("Véhicules bloqués récupérés:", this.state.blockedVehicles);
+        } catch (error) {
+            console.error("Erreur lors de la récupération des véhicules bloqués:", error);
+            this.state.blockedVehicles = {};
+        }
     }
 
     async fetchMatricules() {
@@ -57,8 +139,7 @@ export class PlanningDashboardOuest extends Component {
         }
     }
 
-
-       async fetchModele() {
+    async fetchModele() {
         const vehicules = await jsonrpc("/web/dataset/call_kw/reservation/get_all_vehicule", {
             model: 'reservation',
             method: 'get_all_vehicule',
@@ -67,7 +148,8 @@ export class PlanningDashboardOuest extends Component {
         });
         this.state.vehicules = vehicules.map(vehicule => ({ id: vehicule.id, name: vehicule.name }));
     }
-        async fetchVehicule() {
+
+    async fetchVehicule() {
         const models = await jsonrpc("/web/dataset/call_kw/reservation/get_all_modele", {
             model: 'reservation',
             method: 'get_all_modele',
@@ -99,113 +181,103 @@ export class PlanningDashboardOuest extends Component {
         }
     }
 
-
     generateDays() {
-    const { selectedMonth, selectedYear, startDay } = this.state;
-    const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-    let days = [];
+        const { selectedMonth, selectedYear, startDay } = this.state;
+        const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+        let days = [];
 
-    // Obtenir le jour actuel
-    const today = new Date();
-    const currentDay = today.getDate();
-    const currentMonth = today.getMonth() + 1; // Les mois commencent à 0 en JavaScript
-    const currentYear = today.getFullYear();
+        const today = new Date();
+        const currentDay = today.getDate();
+        const currentMonth = today.getMonth() + 1;
+        const currentYear = today.getFullYear();
 
-    // Calculer le startDay uniquement si c'est le mois actuel et le startDay est à sa valeur par défaut (1)
-    let calculatedStartDay = startDay;
-    if (selectedMonth === currentMonth && selectedYear === currentYear && startDay === 1) {
-        if (currentDay > 15) {
-            // Afficher les 15 derniers jours du mois
-            const lastDayOfMonth = new Date(currentYear, currentMonth, 0).getDate(); // Dernier jour du mois
-            calculatedStartDay = Math.max(1, lastDayOfMonth - 14); // 15 jours incluant le dernier jour
-        }
-    }
-
-    let currentDayIter = calculatedStartDay;
-    let currentMonthIter = selectedMonth;
-    let currentYearIter = selectedYear;
-
-    for (let i = 0; i < 15; i++) {
-        // Vérifier si on dépasse le dernier jour du mois
-        const daysInMonth = new Date(currentYearIter, currentMonthIter, 0).getDate();
-        if (currentDayIter > daysInMonth) {
-            currentDayIter = 1; // Recommencer à 1
-            currentMonthIter += 1; // Passer au mois suivant
-            if (currentMonthIter > 12) {
-                currentMonthIter = 1;
-                currentYearIter += 1;
+        let calculatedStartDay = startDay;
+        if (selectedMonth === currentMonth && selectedYear === currentYear && startDay === 1) {
+            if (currentDay > 15) {
+                const lastDayOfMonth = new Date(currentYear, currentMonth, 0).getDate();
+                calculatedStartDay = Math.max(1, lastDayOfMonth - 14);
             }
         }
 
-        const date = new Date(currentYearIter, currentMonthIter - 1, currentDayIter);
-        const dayName = dayNames[date.getDay()];
-        const formattedDay = currentDayIter.toString().padStart(2, "0");
-        const formattedMonth = currentMonthIter.toString().padStart(2, "0");
+        let currentDayIter = calculatedStartDay;
+        let currentMonthIter = selectedMonth;
+        let currentYearIter = selectedYear;
 
-        days.push({ label: `${dayName}. ${formattedDay}/${formattedMonth}` });
+        for (let i = 0; i < 15; i++) {
+            const daysInMonth = new Date(currentYearIter, currentMonthIter, 0).getDate();
+            if (currentDayIter > daysInMonth) {
+                currentDayIter = 1;
+                currentMonthIter += 1;
+                if (currentMonthIter > 12) {
+                    currentMonthIter = 1;
+                    currentYearIter += 1;
+                }
+            }
 
-        currentDayIter += 1; // Passer au jour suivant
+            const date = new Date(currentYearIter, currentMonthIter - 1, currentDayIter);
+            const dayName = dayNames[date.getDay()];
+            const formattedDay = currentDayIter.toString().padStart(2, "0");
+            const formattedMonth = currentMonthIter.toString().padStart(2, "0");
+
+            days.push({ label: `${dayName}. ${formattedDay}/${formattedMonth}` });
+
+            currentDayIter += 1;
+        }
+
+        if (selectedMonth === currentMonth && selectedYear === currentYear && startDay === 1) {
+            this.state.startDay = calculatedStartDay;
+        }
+
+        this.state.days = days;
     }
-
-    // Mettre à jour l'état startDay uniquement si c'est le mois actuel et le startDay est à sa valeur par défaut (1)
-    if (selectedMonth === currentMonth && selectedYear === currentYear && startDay === 1) {
-        this.state.startDay = calculatedStartDay;
-    }
-
-    this.state.days = days;
-}
 
     switchToNext15Days() {
-    let { selectedMonth, selectedYear, startDay } = this.state;
+        let { selectedMonth, selectedYear, startDay } = this.state;
 
-    // Calculer le nouveau startDay
-    let newStartDay = startDay + 15;
+        let newStartDay = startDay + 15;
 
-    // Vérifier si on dépasse la fin du mois
-    const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
-    if (newStartDay > daysInMonth) {
-        newStartDay -= daysInMonth; // Ajuster pour le mois suivant
-        selectedMonth += 1; // Passer au mois suivant
-        if (selectedMonth > 12) {
-            selectedMonth = 1;
-            selectedYear += 1; // Passer à l'année suivante
+        const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+        if (newStartDay > daysInMonth) {
+            newStartDay -= daysInMonth;
+            selectedMonth += 1;
+            if (selectedMonth > 12) {
+                selectedMonth = 1;
+                selectedYear += 1;
+            }
         }
+
+        this.state.startDay = newStartDay;
+        this.state.selectedMonth = selectedMonth;
+        this.state.selectedYear = selectedYear;
+        this.state.selectedMonthName = this.getMonthName(selectedMonth);
+
+        this.generateDays();
+        this.fetchAvailabilityPlanning(this.state.selectedZone, this.state.selectedModel);
     }
 
-    // Mettre à jour l'état
-    this.state.startDay = newStartDay;
-    this.state.selectedMonth = selectedMonth;
-    this.state.selectedYear = selectedYear; // Mettre à jour l'année
-    this.state.selectedMonthName = this.getMonthName(selectedMonth);
+    switchToPrevious15Days() {
+        let { selectedMonth, selectedYear, startDay } = this.state;
 
-    // Regénérer les jours et récupérer les disponibilités
-    this.generateDays();
-    this.fetchAvailabilityPlanning(this.state.selectedZone, this.state.selectedModel);
-}
+        let newStartDay = startDay - 15;
 
-switchToPrevious15Days() {
-    let { selectedMonth, selectedYear, startDay } = this.state;
-
-    let newStartDay = startDay - 15;
-
-    if (newStartDay < 1) {
-        selectedMonth -= 1;
-        if (selectedMonth < 1) {
-            selectedMonth = 12;
-            selectedYear -= 1; // Passer à l'année précédente
+        if (newStartDay < 1) {
+            selectedMonth -= 1;
+            if (selectedMonth < 1) {
+                selectedMonth = 12;
+                selectedYear -= 1;
+            }
+            const daysInPrevMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+            newStartDay += daysInPrevMonth;
         }
-        const daysInPrevMonth = new Date(selectedYear, selectedMonth, 0).getDate();
-        newStartDay += daysInPrevMonth;
+
+        this.state.startDay = newStartDay;
+        this.state.selectedMonth = selectedMonth;
+        this.state.selectedYear = selectedYear;
+        this.state.selectedMonthName = this.getMonthName(selectedMonth);
+
+        this.generateDays();
+        this.fetchAvailabilityPlanning(this.state.selectedZone, this.state.selectedModel);
     }
-
-    this.state.startDay = newStartDay;
-    this.state.selectedMonth = selectedMonth;
-    this.state.selectedYear = selectedYear; // Mettre à jour l'année
-    this.state.selectedMonthName = this.getMonthName(selectedMonth);
-
-    this.generateDays();
-    this.fetchAvailabilityPlanning(this.state.selectedZone, this.state.selectedModel);
-}
 
     selectMonth(month) {
         this.state.selectedMonth = month;
@@ -221,147 +293,156 @@ switchToPrevious15Days() {
     }
 
     updateSelectedModel(event) {
-    const selectedId = event.target.value; // Récupère la valeur sélectionnée
-    this.state.selectedModel = selectedId; // Met à jour l'état avec l'ID du modèle (ou une chaîne vide si "tous les modèles" est sélectionné)
+        const selectedId = event.target.value;
+        this.state.selectedModel = selectedId;
 
-    // Mettre à jour le nom du modèle affiché
-    if (selectedId === "") {
-        this.state.selectedModelName = "Tous les modèles";
-    } else {
-        const selectedModel = this.state.models.find(model => model.id == selectedId);
-        this.state.selectedModelName = selectedModel ? selectedModel.name : "Aucun modèle sélectionné";
+        if (selectedId === "") {
+            this.state.selectedModelName = "Tous les modèles";
+        } else {
+            const selectedModel = this.state.models.find(model => model.id == selectedId);
+            this.state.selectedModelName = selectedModel ? selectedModel.name : "Aucun modèle sélectionné";
+        }
     }
-}
 
     updateSelectedZone(event) {
         const selectedZone = event.target.value;
         this.state.selectedZone = selectedZone;
         console.log("Zone sélectionnée :", selectedZone);
-
         this.fetchMatricules(selectedZone);
     }
 
-    updateSelectedModel(event) {
-    const selectedId = event.target.value;
-    const selectedModel = this.state.models.find(model => model.id == selectedId);
-
-    this.state.selectedModel = selectedModel ? selectedModel.id : "";
-    this.state.selectedModelName = selectedModel ? selectedModel.name : "tous les modèles";
-}
-
-
-    onClick() {
-    if (!this.state.selectedZone) {
-        alert("Veuillez sélectionner une zone avant de continuer !");
-        return;
-    }
-
-    // Activer l'état isSearchClicked
-    this.state.isSearchClicked = true;
-
-    // Mettre à jour le modèle affiché dans le tableau
-    if (this.state.selectedModel === "") {
-        this.state.displayedModelName = "Tous les modèles";
-    } else {
-        const selectedModel = this.state.models.find(model => model.id == this.state.selectedModel);
-        this.state.displayedModelName = selectedModel ? selectedModel.name : "Aucun modèle sélectionné";
-    }
-
-    // Lancer la recherche
-    this.fetchAvailabilityPlanning(this.state.selectedZone, this.state.selectedModel);
-
-    // Afficher le tableau
-    this.state.showTable = true;
-
-    // Appeler la méthode pour récupérer les réservations des 3 derniers jours
-    this.fetchReservationsLast3Days();
-}
-
-    async fetchReservationsLast3Days() {
-    try {
-        const response = await jsonrpc("/web/dataset/call_kw/planning.dashboard/action_get_reservations_last_3_days", {
-            model: 'planning.dashboard',
-            method: 'action_get_reservations_last_3_days',
-            args: [{}],
-            kwargs: {}
-        });
-
-        console.log("Réservations des 3 derniers jours :", response);
-    } catch (error) {
-        console.error("Erreur lors de la récupération des réservations des 3 derniers jours :", error);
-    }
-}
-
-    async fetchAvailabilityPlanning(zone_id = null, model_id = null) {
-    try {
-        const kwargs = {
-            zone_id: zone_id,
-            selected_month: this.state.selectedMonth,
-            selected_year: this.state.selectedYear,
-            start_day: this.state.startDay
-        };
-
-        if (model_id !== "") {
-            kwargs.model_id = model_id;
+    async onClick() {
+        if (!this.state.selectedZone) {
+            alert("Veuillez sélectionner une zone avant de continuer !");
+            return;
         }
 
-        const response = await jsonrpc("/web/dataset/call_kw/planning.dashboard/get_availibality_planning", {
-            model: 'planning.dashboard',
-            method: 'get_availibality_planning',
-            args: [{}],
-            kwargs: kwargs
-        });
+        this.state.isSearchClicked = true;
 
-        const groupedByModel = {};
+        if (this.state.selectedModel === "") {
+            this.state.displayedModelName = "Tous les modèles";
+        } else {
+            const selectedModel = this.state.models.find(model => model.id == this.state.selectedModel);
+            this.state.displayedModelName = selectedModel ? selectedModel.name : "Aucun modèle sélectionné";
+        }
 
-        const lines = response.split('\n');
-        for (const line of lines) {
-            const modeleMatch = line.match(/(.+?) : /); // Capture le nom du modèle
-            if (modeleMatch) {
-                const modele = modeleMatch[1].trim();
-                if (!groupedByModel[modele]) {
-                    groupedByModel[modele] = [];
-                }
+        // NOUVEAU : Récupérer les véhicules bloqués avant le planning
+        await this.fetchBlockedVehicles();
 
-                const vehicules = line.split('},');
-                for (const vehicule of vehicules) {
-                    const matriculeMatch = vehicule.match(/matricule = ([^,]+)/);
-                    const numeroMatch = vehicule.match(/Numero = ([^,]+)/);
-                    const planningMatch = vehicule.match(/\[(.+?)\]/g);
+        this.fetchAvailabilityPlanning(this.state.selectedZone, this.state.selectedModel);
+        this.state.showTable = true;
+        this.fetchReservationsLast3Days();
+    }
 
-                    if (matriculeMatch && numeroMatch && planningMatch) {
-                        const planning = {};
+    async fetchReservationsLast3Days() {
+        try {
+            const response = await jsonrpc("/web/dataset/call_kw/planning.dashboard/action_get_reservations_last_3_days", {
+                model: 'planning.dashboard',
+                method: 'action_get_reservations_last_3_days',
+                args: [{}],
+                kwargs: {}
+            });
 
-                        for (const block of planningMatch) {
-                            const entries = block.slice(1, -1).split(',');
-                            const [firstEntry, secondEntry] = entries.map(entry => entry.trim());
+            console.log("Réservations des 3 derniers jours :", response);
+        } catch (error) {
+            console.error("Erreur lors de la récupération des réservations des 3 derniers jours :", error);
+        }
+    }
 
-                            const [date1, value1] = firstEntry.split('=').map(s => s.trim());
-                            const [date2, value2] = secondEntry.split('=').map(s => s.trim());
+    async fetchAvailabilityPlanning(zone_id = null, model_id = null) {
+        try {
+            const kwargs = {
+                zone_id: zone_id,
+                selected_month: this.state.selectedMonth,
+                selected_year: this.state.selectedYear,
+                start_day: this.state.startDay
+            };
 
-                            if (date1 === date2) {
-                                planning[date1] = {
-                                    first: value1,
-                                    second: value2
-                                };
+            if (model_id !== "") {
+                kwargs.model_id = model_id;
+            }
+
+            const response = await jsonrpc("/web/dataset/call_kw/planning.dashboard/get_availibality_planning", {
+                model: 'planning.dashboard',
+                method: 'get_availibality_planning',
+                args: [{}],
+                kwargs: kwargs
+            });
+
+            const groupedByModel = {};
+            const lines = response.split('\n');
+
+            for (const line of lines) {
+                const modeleMatch = line.match(/(.+?) : /);
+                if (modeleMatch) {
+                    const modele = modeleMatch[1].trim();
+                    if (!groupedByModel[modele]) {
+                        groupedByModel[modele] = [];
+                    }
+
+                    const vehicules = line.split('},');
+                    for (const vehicule of vehicules) {
+                        const vehiculeIdMatch = vehicule.match(/id = ([^,]+)/);
+                        const matriculeMatch = vehicule.match(/matricule = ([^,]+)/);
+                        const numeroMatch = vehicule.match(/Numero = ([^,]+)/);
+                        const planningMatch = vehicule.match(/\[(.+?)\]/g);
+
+                        if (matriculeMatch && numeroMatch && planningMatch) {
+                            const planning = {};
+
+                            for (const block of planningMatch) {
+                                const entries = block.slice(1, -1).split(',');
+                                const [firstEntry, secondEntry] = entries.map(entry => entry.trim());
+
+                                const [date1, value1] = firstEntry.split('=').map(s => s.trim());
+                                const [date2, value2] = secondEntry.split('=').map(s => s.trim());
+
+                                if (date1 === date2) {
+                                    let finalValue1 = value1;
+                                    let finalValue2 = value2;
+
+                                    // NOUVEAU : Vérifier si le véhicule est bloqué ce jour-là
+                                    const vehiculeId = vehiculeIdMatch ? parseInt(vehiculeIdMatch[1].trim()) : null;
+                                    if (vehiculeId && this.state.blockedVehicles[vehiculeId]) {
+                                        const [day, month] = date1.split('/');
+                                        const checkDate = `${this.state.selectedYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+
+                                        for (const block of this.state.blockedVehicles[vehiculeId]) {
+                                            if (checkDate >= block.date_from && checkDate <= block.date_to) {
+                                                finalValue1 = "BLOQUE";
+                                                finalValue2 = "BLOQUE";
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    planning[date1] = {
+                                        first: finalValue1,
+                                        second: finalValue2,
+                                        isBlocked: finalValue1 === "BLOQUE" || finalValue2 === "BLOQUE"
+                                    };
+                                }
                             }
-                        }
 
-                        groupedByModel[modele].push({
-                            id: groupedByModel[modele].length + 1,
-                            matricule: `${matriculeMatch[1].trim()} (${numeroMatch[1].trim()})`,
-                            planning: planning
-                        });
+                            groupedByModel[modele].push({
+                                id: vehiculeIdMatch ? parseInt(vehiculeIdMatch[1].trim()) : groupedByModel[modele].length + 1,
+                                matricule: `${matriculeMatch[1].trim()} (${numeroMatch[1].trim()})`,
+                                planning: planning
+                            });
+                        }
                     }
                 }
             }
-        }
 
-        this.state.groupedByModel = groupedByModel;
-    } catch (error) {
-        console.error("Erreur lors de la récupération des disponibilités :", error);
+            this.state.groupedByModel = groupedByModel;
+
+            // NOUVEAU : Appliquer les styles après la mise à jour des données
+            setTimeout(() => this.applyBlockedVehicleStyles(), 200);
+
+        } catch (error) {
+            console.error("Erreur lors de la récupération des disponibilités :", error);
+        }
     }
-}
 }
 
 PlanningDashboardOuest.template = "PlanningDashboardOuest";

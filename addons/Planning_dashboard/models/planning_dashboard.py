@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
-from odoo import models, fields,api
+from odoo import models, fields, api
 
 
 class PlanningDashboard(models.Model):
     _name = 'planning.dashboard'
-    _description = 'Pzlanning Dashboard'
+    _description = 'Planning Dashboard'
 
     name = fields.Char(string="Nom de l'événement", required=True)
     date = fields.Date(string="Date de l'événement")
@@ -18,9 +18,10 @@ class PlanningDashboard(models.Model):
         modele_records = self.env['modele'].search([])
         return [{'id': modele.id, 'name': modele.name} for modele in modele_records]
 
-    def get_all_matricules(self):
-        vehicules = self.env['vehicule'].search([])
-        return [{'id': vehicule.id, 'matricule': vehicule.matricule} for vehicule in vehicules]
+    @api.model
+    def get_all_maintenance_types(self):
+        types = self.env['type.maintenance.record'].search([])
+        return [{'id': t.id, 'name': t.name} for t in types]
 
     def get_all_vehicule(self):
         vehicule_records = self.env['vehicule'].search([])
@@ -48,7 +49,11 @@ class PlanningDashboard(models.Model):
         start_date = datetime(selected_year, selected_month, start_day)
         end_date = start_date + timedelta(days=14)  # 15 jours au total
 
-        today = fields.Datetime.now().date()
+        # RÉCUPÉRER LES VÉHICULES BLOQUÉS POUR CETTE PÉRIODE
+        blocked_vehicles = self.env['block.car'].get_blocked_vehicles_for_period(
+            start_date.strftime('%Y-%m-%d'),
+            end_date.strftime('%Y-%m-%d')
+        )
 
         for record in vehicule_records:
             modele = record.modele.name
@@ -59,10 +64,30 @@ class PlanningDashboard(models.Model):
 
             current_date = start_date
             while current_date <= end_date:
-                day_str = current_date.strftime("%d/%m")  # Format "16/02"
-                planning[day_str] = ["0", "0"]  # Initialiser chaque jour avec deux entrées
+                day_str = current_date.strftime("%d/%m")
+                planning[day_str] = ["0", "0"]
                 current_date += timedelta(days=1)
 
+            # APPLIQUER D'ABORD LES BLOCAGES (PRIORITÉ SUR LES RÉSERVATIONS)
+            if record.id in blocked_vehicles:
+                for block_info in blocked_vehicles[record.id]:
+                    block_start = datetime.strptime(str(block_info['date_from']), '%Y-%m-%d').date()
+                    block_end = datetime.strptime(str(block_info['date_to']), '%Y-%m-%d').date()
+
+                    current_check_date = max(block_start, start_date.date())
+                    end_check_date = min(block_end, end_date.date())
+
+                    while current_check_date <= end_check_date:
+                        day_str = current_check_date.strftime("%d/%m")
+
+                        if day_str in planning:
+                            # Marquer comme BLOQUE avec métadonnées pour le frontend
+                            planning[day_str][0] = "BLOQUE"
+                            planning[day_str][1] = "BLOQUE"
+
+                        current_check_date += timedelta(days=1)
+
+            # TRAITER LES RÉSERVATIONS (NE PAS ÉCRASER LES BLOCAGES)
             reservations = self.env['reservation'].search([
                 ('vehicule', '=', record.id),
                 ('date_heure_debut', '<=', end_date.strftime("%Y-%m-%d 23:59:59")),
@@ -72,25 +97,33 @@ class PlanningDashboard(models.Model):
             for reservation in reservations:
                 start_res = reservation.date_heure_debut
                 end_res = reservation.date_heure_fin
-                etat_reservation = reservation.etat_reservation  # Récupérer l'état de la réservation
+                etat_reservation = reservation.etat_reservation
 
-                for day in planning.keys():
-                    check_date = datetime.strptime(f"{day}/{selected_year}", "%d/%m/%Y").date()
-                    if start_res.date() <= check_date <= end_res.date():
-                        status = etat_reservation  # Utiliser l'état de réservation directement
+                current_check_date = max(start_res.date(), start_date.date())
+                end_check_date = min(end_res.date(), end_date.date())
 
-                        # Jour de début
-                        if check_date == start_res.date():
-                            planning[day][1] = f"{status} {start_res.strftime('%H:%M')}"  # Deuxième entrée
+                while current_check_date <= end_check_date:
+                    day_str = current_check_date.strftime("%d/%m")
 
-                        # Jour de retour
-                        elif check_date == end_res.date():
-                            planning[day][0] = f"{status} {end_res.strftime('%H:%M')}"  # Première entrée
+                    if day_str in planning:
+                        # VÉRIFIER SI CE JOUR N'EST PAS DÉJÀ BLOQUÉ
+                        if planning[day_str][0] != "BLOQUE" and planning[day_str][1] != "BLOQUE":
+                            status = etat_reservation
 
-                        # Jour entre début et fin
-                        else:
-                            planning[day][0] = status  # Première entrée
-                            planning[day][1] = status  # Deuxième entrée
+                            # Jour de début
+                            if current_check_date == start_res.date():
+                                planning[day_str][1] = f"{status} {start_res.strftime('%H:%M')}"
+
+                            # Jour de retour
+                            elif current_check_date == end_res.date():
+                                planning[day_str][0] = f"{status} {end_res.strftime('%H:%M')}"
+
+                            # Jour entre début et fin
+                            else:
+                                planning[day_str][0] = status
+                                planning[day_str][1] = status
+
+                    current_check_date += timedelta(days=1)
 
             days_str = ", ".join([
                 f"[{date} = {planning[date][0]}, {date} = {planning[date][1]}]"
@@ -104,17 +137,22 @@ class PlanningDashboard(models.Model):
 
         return '\n'.join(result)
 
+    # Dans planning_dashboard.py
+    @api.model
+    def check_vehicle_availability(self, vehicule_id, date_from, date_to):
+        """
+        Vérifie si un véhicule est disponible pour une période donnée
+        """
+        return self.env['block.car'].check_vehicle_availability(vehicule_id, date_from, date_to)
+    # Reste du code inchangé...
     def action_search_reservations(self, filters=None):
         domain = []
 
-        # Cas 1: Premier chargement (filters=None) → 3 derniers jours
         if filters is None:
             three_days_ago = datetime.now() - timedelta(days=3)
             domain.append(('create_date', '>=', three_days_ago.strftime('%Y-%m-%d 00:00:00')))
 
-        # Cas 2: Recherche cliquée (filters={}) → Toutes les réservations
         elif isinstance(filters, dict):
-            # On applique seulement les filtres si ils existent
             if filters.get('reference'):
                 domain.append(('name', 'ilike', filters['reference']))
             if filters.get('prenom'):
@@ -130,8 +168,7 @@ class PlanningDashboard(models.Model):
             if filters.get('email'):
                 domain.append(('client.email', 'ilike', filters['email']))
             if filters.get('date_debut_reservation'):
-                selected_date = filters[
-                    'date_debut_reservation']  # Changé de 'date_creation' à 'date_debut_reservation'
+                selected_date = filters['date_debut_reservation']
                 domain.extend([
                     ('date_heure_debut', '>=', selected_date + ' 00:00:00'),
                     ('date_heure_debut', '<=', selected_date + ' 23:59:59')
@@ -143,7 +180,6 @@ class PlanningDashboard(models.Model):
 
         reservations = self.env['reservation'].search(domain)
 
-        # Grouper les réservations par jour
         reservations_by_day = {}
         for reservation in reservations:
             create_date = reservation.create_date
@@ -160,20 +196,18 @@ class PlanningDashboard(models.Model):
             total_reduit_euro = reservation.total_reduit_euro if reservation.total_reduit_euro else 0
 
             reservations_by_day[day_str].append([
-                reservation.name,  # reference
-                client,  # client
-                datetime_str,  # date création
-                date_debut_str,  # date début
-                duree,  # durée
-                modele,  # modèle
-                zone,  # zone
-                total_reduit_euro,  # total
-                reservation.id,  # ID de réservation
-                reservation.status  # Statut (ajouté)
-
+                reservation.name,
+                client,
+                datetime_str,
+                date_debut_str,
+                duree,
+                modele,
+                zone,
+                total_reduit_euro,
+                reservation.id,
+                reservation.status
             ])
 
-        # Afficher les réservations dans le log (optionnel)
         for day, reservations_list in reservations_by_day.items():
             print(f"{day}:")
             print("{ " + ", ".join(

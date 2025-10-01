@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_manual_optimization_form" model="ir.ui.view">
+        <field name="name">manual.optimization.form</field>
+        <field name="model">manual.optimization</field>
+        <field name="arch" type="xml">
+            <form string="Optimisation manuelle">
+                <sheet>
+                    <group>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                        <field name="vehicule_actuel"
+                               options="{'no_create': True, 'no_open': True}"
+                               required="1"/>
+                        <field name="vehicule_changer"
+                               options="{'no_create': True, 'no_open': True}"
+                               required="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Effectuer" type="object" name="action_validate" class="btn-primary"/>
+                    <button string="Annuler" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="manual_optimization_action" model="ir.actions.act_window">
+        <field name="name">Optimisation manuelle</field>
+        <field name="res_model">manual.optimization</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_manual_optimization_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="manual_optimization_menu"
+              name="Optimisation manuelle"
+              parent="planning_menu_dashboard"
+              action="manual_optimization_action"
+              groups="access_rights_groups.group_manager_general,access_rights_groups.group_reservation,access_rights_groups.group_admin,access_rights_groups.group_ceo"
+              sequence="200"/>
+</odoo>

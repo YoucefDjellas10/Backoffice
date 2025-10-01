@@ -10,6 +10,7 @@
                     <group>
                         <group>
                             <field name="saison"/>
+                            <field name="zone"/>
                             <field name="modele"/>
                             <field name="categorie"/>
                             <field name="prix"/>
@@ -39,9 +40,10 @@
         <field name="name">tarifs.tree</field>
         <field name="model">tarifs</field>
         <field name="arch" type="xml">
-            <tree string="tarifs">
+            <tree string="tarifs" editable="bottom">
                 <field name="saison"/>
                 <field name="modele" readonly="1"/>
+                <field name="zone"/>
                 <field name="prix"/>
                 <field name="nb_jour"/>
             </tree>
@@ -68,6 +70,7 @@
             <search>
                 <searchpanel view_types="list,kanban" context="{'default_saison': 3}">
                     <field name="saison" icon="fa-sun"/>
+                    <field name="zone" icon="fa-sun"/>
                     <field name="modele" icon="fa-cogs"/>
                 </searchpanel>
                 <filter string="Saison A" name="saison_1" domain="[('saison', '=', 1)]"/>

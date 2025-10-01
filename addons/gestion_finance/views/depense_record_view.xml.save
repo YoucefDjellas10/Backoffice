@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_depense_record_form" model="ir.ui.view">
+        <field name="name">depense.record.form</field>
+        <field name="model">depense.record</field>
+        <field name="arch" type="xml">
+            <form string="depense.record">
+                <header>
+                    <field name="status" invisible="1"/>
+                    <button name="action_valide_mr" type="object" string="valider ✔" invisible="status != 'en_attente'"
+                            groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                    <button name="action_valide_mg" type="object" string="valider ✅" invisible="status != 'valde_mr'"
+                            groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                    <button name="action_valide" type="object" string="valider ✅" invisible="status != 'valide_mg'"
+                            groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                </header>
+                <sheet>
+
+                    <group class="custom-group">
+                        <field name="type_depense"/>
+                        <field name="type_maintenance_id" invisible="type_depense != 12"/>
+                        <field name="vehicule" invisible="type_depense != 12"/>
+                        <field name="vehicule_numero"/>
+                        <field name="note"/>
+                        <field name="dinar" invisible="1"/>
+                        <field name="montant_da"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_depense_record_tree" model="ir.ui.view">
+        <field name="name">depense.record.tree</field>
+        <field name="model">depense.record</field>
+        <field name="arch" type="xml">
+            <tree string="depense record">
+                <field name="vehicule"/>
+                <field name="zone"/>
+                <field name="create_date"/>
+                <field name="type_depense"/>
+                <field name="caisse" widget="badge"/>
+                <field name="euro" invisible="1" optional="hide"/>
+                <field name="dinar" invisible="1" optional="hide"/>
+                <field name="montant_da" widget="monetary"/>
+                <field name="note"/>
+
+
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_depense_record_search" model="ir.ui.view">
+        <field name="name">depense.record.search</field>
+        <field name="model">depense.record</field>
+        <field name="arch" type="xml">
+            <search string="depense">
+                <searchpanel view_types="list,kanban">
+                    <field name="zone" icon="fa fa-map-marker"/>
+                    <field name="type_depense" icon="fa fa-briefcase"/>
+                    <field name="status"/>
+                </searchpanel>
+                <filter name="filter_en_attente" string="En Attente" domain="[('status', '=', 'en_attente')]"/>
+                <filter name="filter_valde_mr" string="Validé par MR" domain="[('status', '=', 'valde_mr')]"/>
+                <filter name="filter_valide_mg" string="Validé par MG" domain="[('status', '=', 'valide_mg')]"/>
+                <filter name="filter_valide" string="Validé" domain="[('status', '=', 'valide')]"/>
+
+            </search>
+        </field>
+    </record>
+
+    <record id="depense_record_rule_agent" model="ir.rule">
+        <field name="name">Restriction des agents sur les depenses</field>
+        <field name="model_id" ref="model_depense_record"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('access_rights_groups.group_agent'))]"/>
+    </record>
+
+
+    <!-- Définition de l'action -->
+    <record id="action_depense_record" model="ir.actions.act_window">
+        <field name="name">Les Dépenses</field>
+        <field name="res_model">depense.record</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record id="action_depense_record_agent" model="ir.actions.act_window">
+        <field name="name">Les Dépenses</field>
+        <field name="res_model">depense.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('status', '=', 'en_attente')]</field>
+    </record>
+    
+    <record id="action_depense_record_mg" model="ir.actions.act_window">
+        <field name="name">Les Dépenses</field>
+        <field name="res_model">depense.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('status', '!=', 'valide')]</field>
+        <field name="context">{'search_default_filter_valide_mg': 1}</field>
+    </record>
+    <menuitem id="menu_depense_record_sub_mg"
+              name="Les Dépenses"
+              sequence="5"
+              action="action_depense_record_mg"
+              parent="menu_caisse_record_sub_mg_tout"
+              groups="access_rights_groups.group_manager_general"/>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_depense_record_sub"
+              name="Dépenses"
+              sequence="5"
+              parent="menu_gestion_finance"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+    <menuitem id="menu_depense_record_sub_sub"
+              name="Les Dépenses"
+              sequence="0"
+              parent="menu_depense_record_sub"
+              action="action_depense_record"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+
+    <record id="action_depense_record_zone_one" model="ir.actions.act_window">
+        <field name="name">Dépenses Tlemcen</field>
+        <field name="res_model">depense.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('zone.id', '=', 16), ('status', 'in', ['en_attente', 'valde_mr'])]</field>
+        <field name="context">{'search_default_filter_en_attente': 1, 'create': False}</field>
+    </record>
+
+    <menuitem id="menu_depense_record_zone_one"
+              name="Liste des dépenses"
+              parent="menu_caisse_record_sub_agent_t2"
+              action="action_depense_record_zone_one"
+              sequence="1"
+              groups="access_rights_groups.group_tlemcen_two"/>
+
+
+<!--    <menuitem id="menu_depense_record_sub_sub_agent"-->
+<!--              name="Les Dépenses"-->
+<!--              sequence="0"-->
+<!--              parent="menu_gestion_finance"-->
+<!--              action="action_depense_record_agent"-->
+<!--              groups="access_rights_groups.group_agent"/>-->
+</odoo>

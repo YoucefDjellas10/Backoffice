@@ -115,6 +115,6 @@
     </record>
     <menuitem id="maintenance_menu" name="Maintenances" parent="maintenance_menu_root" action="action_maintenance"
               sequence="3"
-              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_agent"/>
+              groups="access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_agent"/>
 
 </odoo>

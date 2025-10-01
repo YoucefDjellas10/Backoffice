@@ -15,7 +15,7 @@
                             </group>
                         </groupe>
                         <group class="custom-group ">
-                            <field name="vers"/>
+                            <field name="vers" options="{'no_open': True}"/>
                             <field name="dinar" invisible="1"/>
                             <field name="montant_dzd"/>
                         </group>

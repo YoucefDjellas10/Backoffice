@@ -74,15 +74,11 @@
         <field name="model">retour.avance</field>
         <field name="arch" type="xml">
             <tree string="Retour Avance">
-                <field name="name"/>
-                <field name="reservation"/>
-                <field name="date_heure_debut"/>
-                <field name="date_heure_fin"/>
-                <field name="duree_dereservation"/>
-                <field name="lieu_depart"/>
-                <field name="lieu_retour"/>
-                <field name="vehicule"/>
-                <field name="modele"/>
+                <field name="date_du_au"/>
+                <field name="date_du_au_new"/>
+                <field name="effectuer_par"/>
+                <field name="prix_retour_avance"/>
+                <field name="devise" optional="hide"/>
             </tree>
         </field>
     </record>

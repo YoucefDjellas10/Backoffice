@@ -8,7 +8,7 @@ class TypeOptions(models.Model):
     name = fields.Char(string='Nom', compute='_compute_name', store=True)
     depart = fields.Many2one('lieux', string='Départ', required=True)
     zone = fields.Many2one(string='Zone', related='depart.zone', store=True)
-    retour = fields.Many2one('lieux', string='Retour', required=True, domain="[('zone', '=', zone)]")
+    retour = fields.Many2one('lieux', string='Retour', required=True)
     montant = fields.Integer(string='Montant')
 
     @api.depends('depart', 'retour')

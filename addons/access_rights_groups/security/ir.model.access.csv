@@ -1,4 +1,9 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_edit_reservation_admin,Access edit reservation for admin,reservation.model_edit_reservation,access_rights_groups.group_admin,1,1,1,1
+access_edit_reservation_reservation,Access edit reservation for reservation,reservation.model_edit_reservation,access_rights_groups.group_reservation,1,1,1,0
+access_edit_reservation_agent,Access edit reservation for agent,reservation.model_edit_reservation,access_rights_groups.group_agent,1,1,1,0
+access_edit_reservation_ceo,Access edit reservation for ceo,reservation.model_edit_reservation,access_rights_groups.group_ceo,1,1,1,0
+
 access_categorie_admin,Access Categorie for admin,gestion_du_parc.model_categorie,access_rights_groups.group_admin,1,1,1,1
 access_categorie_ceo,Access Categorie for ceo,gestion_du_parc.model_categorie,access_rights_groups.group_ceo,1,1,1,1
 access_categorie_agent,Access Categorie for agent,gestion_du_parc.model_categorie,access_rights_groups.group_agent,1,0,0,0
@@ -112,7 +117,7 @@ access_lite_atente_reservation,Access lite atente for reservation,reservation.mo
 access_livraison_admin,Access livraison for admin,reservation.model_livraison,access_rights_groups.group_admin,1,1,1,1
 access_livraison_ceo,Access livraison for ceo,reservation.model_livraison,access_rights_groups.group_ceo,1,1,1,1
 access_livraison_agent,Access livraison for agent,reservation.model_livraison,access_rights_groups.group_agent,1,1,0,0
-access_livraison_reservation,Access livraison for reservation,reservation.model_livraison,access_rights_groups.group_reservation,1,1,0,0
+access_livraison_reservation,Access livraison for reservation,reservation.model_livraison,access_rights_groups.group_reservation,1,0,0,0
 
 access_prolongation_admin,Access prolongation for admin,reservation.model_prolongation,access_rights_groups.group_admin,1,1,1,1
 access_prolongation_ceo,Access prolongation for ceo,reservation.model_prolongation,access_rights_groups.group_ceo,1,1,1,1
@@ -224,3 +229,65 @@ access_reservation_demo_ceo,Access reservation_demo for ceo,reservation_demo.mod
 access_planning_dashboard_admin,Access planning_dashboard for admin,Planning_dashboard.model_planning_dashboard,access_rights_groups.group_admin,1,1,1,1
 access_planning_dashboard_ceo,Access planning_dashboard for ceo,Planning_dashboard.model_planning_dashboard,access_rights_groups.group_ceo,1,1,1,1
 access_planning_dashboard_reservation,Access planning_dashboard for group_reservation,Planning_dashboard.model_planning_dashboard,access_rights_groups.group_reservation,1,1,1,1
+
+access_popup_confirmation_admin,Access popup_confirmation for admin,reservation.model_popup_confirmation,access_rights_groups.group_admin,1,1,1,1
+access_popup_confirmation_ceo,Access popup_confirmation for ceo,reservation.model_popup_confirmation,access_rights_groups.group_ceo,1,1,1,1
+
+access_refund_admin,Access refund_table for admin,gestion_finance.model_refund_table,access_rights_groups.group_admin,1,1,1,1
+access_refund_table_ceo,Access refund_table for ceo,gestion_finance.model_refund_table,access_rights_groups.group_ceo,1,1,1,1
+
+access_historique_admin,Access historique for admin,historique.model_historique_modification,access_rights_groups.group_admin,1,1,1,1
+
+access_manual_optimization_admin,Access manual_optimization for admin,Planning_dashboard.model_manual_optimization,access_rights_groups.group_admin,1,1,1,1
+access_manual_optimization_ceo,Access manual_optimization for ceo,Planning_dashboard.model_manual_optimization,access_rights_groups.group_ceo,1,1,1,1
+access_block_car_admin,Access block_car for admin,Planning_dashboard.model_block_car,access_rights_groups.group_admin,1,1,1,1
+access_block_car_ceo,Access block_car for ceo,Planning_dashboard.model_block_car,access_rights_groups.group_ceo,1,1,1,1
+
+access_manual_optimization_reservation,Access manual_optimization for reservation,Planning_dashboard.model_manual_optimization,access_rights_groups.group_reservation,1,1,1,0
+access_manual_optimization_mg,Access manual_optimization for manager general,Planning_dashboard.model_manual_optimization,access_rights_groups.group_manager_general,1,1,1,0
+access_block_car_reservation,Access block_car for reservation,Planning_dashboard.model_block_car,access_rights_groups.group_reservation,1,1,1,0
+access_block_car_mg,Access block_car for mg,Planning_dashboard.model_block_car,access_rights_groups.group_manager_general,1,1,1,0
+
+access_categorie_manager_general,Access Categorie for manager general,gestion_du_parc.model_categorie,access_rights_groups.group_manager_general,1,0,0,0
+access_modele_manager_general,Access Modele for manager general,gestion_du_parc.model_modele,access_rights_groups.group_manager_general,1,0,0,0
+access_vehicule_manager_general,Access Vehicule for manager general,gestion_du_parc.model_vehicule,access_rights_groups.group_manager_general,1,1,0,0
+access_saison_manager_general,Access Saison for manager general,tarification.model_saison,access_rights_groups.group_manager_general,1,0,0,0
+access_periode_manager_general,Access Periode for manager general,tarification.model_periode,access_rights_groups.group_manager_general,1,0,0,0
+access_nb_jour_group_manager_general,Access nb_jour for manager general,gestion_du_parc.model_nb_jour,access_rights_groups.group_manager_general,1,0,0,0
+access_tarifs_manager_general,Access Tarifs for manager general,tarification.model_tarifs,access_rights_groups.group_manager_general,1,0,0,0
+access_frais_livraison_manager_general,Access frais livraison for manager general,tarification.model_frais_livraison,access_rights_groups.group_manager_general,1,0,0,0
+access_supplements_manager_general,Access supplements for manager general,tarification.model_supplements,access_rights_groups.group_manager_general,1,0,0,0
+access_options_manager_general,Access options for manager general,tarification.model_options,access_rights_groups.group_manager_general,1,0,0,0
+access_type_options_manager_general,Access type option for manager general,tarification.model_type_options,access_rights_groups.group_manager_general,1,0,0,0
+access_promotion_manager_general,Access promotion for manager general,tarification.model_promotion,access_rights_groups.group_manager_general,1,0,0,0
+access_type_degradation_manager_general,Access type degradation for manager general,tarification.model_type_degradation,access_rights_groups.group_manager_general,1,0,0,0
+access_bareme_degradation_manager_general,Access bareme degradation for manager general,tarification.model_bareme_degradation,access_rights_groups.group_manager_general,1,0,0,0
+access_algerian_cities_manager_general,Access cities for manager general,lieux.model_algerian_cities,access_rights_groups.group_manager_general,1,0,0,0
+access_lieux_manager_general,Access type lieux for manager general,lieux.model_lieux,access_rights_groups.group_manager_general,1,0,0,0
+access_zone_manager_general,Access zone for manager general,lieux.model_zone,access_rights_groups.group_manager_general,1,0,0,0
+access_annuler_raison_manager_general,Access annuler raison for manager general,reservation.model_annuler_raison,access_rights_groups.group_manager_general,1,0,0,0
+access_degradation_manager_general,Access degradation for manager general,reservation.model_degradation,access_rights_groups.group_manager_general,1,1,1,0
+access_historique_solde_manager_general,Access historique solde for manager general,reservation.model_historique_solde,access_rights_groups.group_manager_general,1,0,0,0
+access_condition_annulation_manager_general,Access condition_annulation for manager general,reservation.model_condition_annulation,access_rights_groups.group_manager_general,1,0,0,0
+access_lite_atente_manager_general,Access lite atente for manager general,reservation.model_lite_atente,access_rights_groups.group_manager_general,1,1,1,1
+access_livraison_manager_general,Access livraison for manager general,reservation.model_livraison,access_rights_groups.group_manager_general,1,1,0,0
+access_prolongation_manager_general,Access prolongation for manager general,reservation.model_prolongation,access_rights_groups.group_manager_general,1,0,1,0
+access_reje_raison_manager_general,Access reje raison for manager general,reservation.model_reje_raison,access_rights_groups.group_manager_general,1,0,0,0
+access_reservation_manager_general,Access reservation for manager general,reservation.model_reservation,access_rights_groups.group_manager_general,1,1,0,0
+access_retour_avance_manager_general,Access retour_avance for manager general,reservation.model_retour_avance,access_rights_groups.group_manager_general,1,0,1,0
+access_sea_annuler_raison_manager_general,Access sea_annuler_raison for manager general,reservation.model_sea_annuler_raison,access_rights_groups.group_manager_general,1,0,0,0
+access_contact_message_manager_general,Access contact_message for manager general,reservation.model_contact_message,access_rights_groups.group_manager_general,1,1,1,1
+access_categorie_client_manager_general,Access categorie_client for manager general,liste_clients.model_categorie_client,access_rights_groups.group_manager_general,1,0,0,0
+access_liste_client_manager_general,Access liste_client for manager general,liste_clients.model_liste_client,access_rights_groups.group_manager_general,1,1,1,0
+access_news_letter_manager_general,Access news_letter for manager general,liste_clients.model_news_letter,access_rights_groups.group_manager_general,1,1,1,0
+access_solde_parrainage_manager_general,Access solde_parrainage for manager general,liste_clients.model_solde_parrainage,access_rights_groups.group_manager_general,1,0,0,0
+access_taux_change_manager_general,Access taux_change for manager general,taux_de_change.model_taux_change,access_rights_groups.group_manager_general,1,0,0,0
+access_maintenance_record_manager_general,Access maintenance_record_ for manager general,gestion_maintenance.model_maintenance_record,access_rights_groups.group_manager_general,1,1,1,0
+access_alert_record_manager_general,Access alert_record for manager general,gestion_maintenance.model_alert_record,access_rights_groups.group_manager_general,1,1,1,0
+access_type_maintenance_record_manager_general,Access type_maintenance_record for manager general,gestion_maintenance.model_type_maintenance_record,access_rights_groups.group_manager_general,1,1,1,0
+access_caisse_record_manager_general,Access caisse_record for manager general,gestion_finance.model_caisse_record,access_rights_groups.group_manager_general,1,1,0,0
+access_depense_record_manager_general,Access depense_record for manager general,gestion_finance.model_depense_record,access_rights_groups.group_manager_general,1,1,1,0
+access_revenue_record_manager_general,Access revenue_record for manager general,gestion_finance.model_revenue_record,access_rights_groups.group_manager_general,1,1,1,0
+access_transfer_argent_manager_general,Access transfer_argent for manager general,gestion_finance.model_transfer_argent,access_rights_groups.group_manager_general,1,1,1,0
+access_type_depens_manager_general,Access type_depens for manager general,gestion_finance.model_type_depens,access_rights_groups.group_manager_general,1,0,0,0
+access_planning_dashboard_manager_general,Access planning_dashboard for manager general,Planning_dashboard.model_planning_dashboard,access_rights_groups.group_manager_general,1,1,1,1

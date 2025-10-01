@@ -55,6 +55,11 @@ class Prolongation(models.Model):
     prix_prolongation_devise = fields.Monetary(string='Prix de prolongation', currency_field='devise',
                                                compute='_compute_prix_prolongation_devise', store=True)
 
+    date_du_au = fields.Char(string='Anciennes dates', readonly=True)
+    date_du_au_new = fields.Char(string='Nouvelles dates', readonly=True)
+    effectuer_par = fields.Many2one('res.users', string='Effectuer pas', readonly=True)
+    date_prolongation = fields.Datetime(string='Date de prolongation')
+
     def action_verifier_disponibilite(self):
         for record in self:
             if record.date_fin_un and record.date_prolonge:
@@ -67,9 +72,43 @@ class Prolongation(models.Model):
                 ])
 
                 if conflicting_reservations:
-                    raise exceptions.ValidationError("Le véhicule n'est pas disponible pendant la période prolongée.")
+                    # Créer un enregistrement temporaire pour la popup de conflit
+                    popup_record = self.env['popup.confirmation'].create({
+                        'message': "Le véhicule n'est pas disponible pendant la période prolongée.",
+                        'popup_type': 'conflit',
+                        'original_record_id': record.id,
+                        'original_model': record._name,
+                    })
+
+                    return {
+                        'type': 'ir.actions.act_window',
+                        'name': 'Conflit de Réservation',
+                        'res_model': 'popup.confirmation',
+                        'res_id': popup_record.id,
+                        'view_mode': 'form',
+                        'target': 'new',
+                        'context': {'default_popup_type': 'conflit'}
+                    }
                 else:
-                    raise exceptions.UserError("Le véhicule est disponible pendant la période prolongée.")
+                    # Créer un enregistrement temporaire pour la popup de disponibilité
+                    popup_record = self.env['popup.confirmation'].create({
+                        'message': "Le véhicule est disponible pendant la période prolongée.",
+                        'popup_type': 'disponible',
+                        'original_record_id': record.id,
+                        'original_model': record._name,
+                    })
+
+                    return {
+                        'type': 'ir.actions.act_window',
+                        'name': 'Confirmation de Disponibilité',
+                        'res_model': 'popup.confirmation',
+                        'res_id': popup_record.id,
+                        'view_mode': 'form',
+                        'target': 'new',
+                        'context': {'default_popup_type': 'disponible'}
+                    }
+
+
 
     @api.depends('total_prolongation', 'devise')
     def _compute_prix_prolongation_devise(self):

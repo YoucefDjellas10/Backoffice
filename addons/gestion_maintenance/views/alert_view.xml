@@ -29,21 +29,24 @@
                     <group>
                         <groupe>
                             <group class="custom-group">
-                                <field name="status" readonly="1"/>
-                                <field name="date_prochaine_alerte" readonly="1"/>
+
+                                <field name="maintenance_id" invisible="1"/>
+                                <field name="vehicule_id" invisible="1"/>
+                                <field name="status" readonly="1" invisible="1"/>
+                                <field name="date_prochaine_alerte" readonly="1" invisible="1"/>
                                 <field name="vehicule_id" readonly="1"/>
-                                <field name="km_actuel" context="{'show_km_actuel': True}"/>
+                                <field name="km_actuel"  invisible="1"/>
 
                                 <field name="zone" readonly="1"/>
-                                <field name="maintenance_created" readonly="1"/>
+                                <field name="maintenance_created" readonly="1" invisible="1"/>
 
                             </group>
                         </groupe>
                         <group class="custom-group">
                             <field name="type_maintenance_id" readonly="1"/>
                             <field name="echeance" readonly="1"/>
-                            <field name="manager" readonly="1"/>
-                            <field name="agent" readonly="1" widget="many2many_tags"/>
+                            <field name="manager" readonly="1" invisible="1"/>
+                            <field name="agent" readonly="1" widget="many2many_tags" invisible="1"/>
 
                         </group>
                     </group>
@@ -114,11 +117,36 @@
 
     </record>
 
+
+    <record id="action_alert_agent" model="ir.actions.client">
+        <field name="name">Alerts des maintenance</field>
+        <field name="tag">alert_js_global</field>
+    </record>
+    <menuitem id="menu_alert_record_agent"
+              name="Alert"
+              sequence="0"
+              parent="maintenance_menu_root"
+              action="action_alert_agent"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_agent"/>
+
+
+
+    <record id="action_alert_agent_finale" model="ir.actions.client">
+        <field name="name">Alerts des maintenance</field>
+        <field name="tag">alert_js_agent</field>
+    </record>
+    <menuitem id="menu_alert_record_agent_finale"
+              name="Alert"
+              sequence="0"
+              parent="maintenance_menu_root"
+              action="action_alert_agent_finale"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_agent"/>
+
     <!-- Menu Item -->
     <menuitem id="menu_alert_record"
               name="Alert"
               sequence="0"
               parent="maintenance_menu_root"
               action="action_alert_record"
-              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_agent"/>
+              groups="access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
 </odoo>

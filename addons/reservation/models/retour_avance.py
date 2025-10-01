@@ -45,6 +45,13 @@ class RetourAvance(models.Model):
     differance_heure = fields.Integer(string='Differance Heure')
     Differance_jour = fields.Integer(string='Differance jour')
 
+    date_du_au = fields.Char(string='Anciennes dates', readonly=True)
+    date_du_au_new = fields.Char(string='Nouvelles dates', readonly=True)
+    effectuer_par = fields.Many2one('res.users', string='Effectuer pas', readonly=True)
+    devise = fields.Many2one('res.currency', string='Devise',
+                             default=lambda self: self.env['res.currency'].browse(125).id)
+    prix_retour_avance = fields.Monetary(string='Total', currency_field='devise', readonly=True)
+
     def action_save_and_close(self):
         for record in self:
             record.reservation.date_retour_avance = record.date_retour_avance

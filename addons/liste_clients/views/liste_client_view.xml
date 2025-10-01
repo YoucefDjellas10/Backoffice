@@ -170,6 +170,10 @@
                 <field name="email"/>
                 <field name="code_prime"/>
                 <field name="telephone"/>
+                <searchpanel view_types="list,kanban">
+                    <field name="categorie_client" icon="fa-sun"/>
+                    <field name="risque" icon="fa-cogs"/>
+                </searchpanel>
             </search>
         </field>
     </record>
@@ -197,5 +201,5 @@
               name="Clients"
               sequence="100"
               action="action_liste_client"
-              groups="access_rights_groups.group_reservation"/>
+              groups="access_rights_groups.group_manager_general,access_rights_groups.group_reservation"/>
 </odoo>
