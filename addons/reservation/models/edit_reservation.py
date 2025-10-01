@@ -1,7 +1,7 @@
 from odoo import fields, models, api
 import requests
 from requests.exceptions import RequestException, HTTPError
-
+#&é"
 
 class Prolongation(models.Model):
     _name = 'edit.reservation'
