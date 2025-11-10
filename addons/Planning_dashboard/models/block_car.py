@@ -20,7 +20,7 @@ class BlockCar(models.Model):
                 ('vehicule', '=', record.vehicule_id.id),
                 ('date_heure_debut', '<=', record.date_to),
                 ('date_heure_fin', '>=', record.date_from),
-                ('etat_reservation', 'in', ['reserve', 'loue'])  # Vérifier seulement réservé ou loué
+                ('status', '=', 'confirmee')  # Vérifier seulement réservé ou loué
             ])
 
             if existing_reservations:

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="gestion_finance.CaisseTemplate">
+        <div class="caisse-container">
+            
+            <!-- Ligne du haut -->
+            <div class="top-row">
+                <!-- Bdia Gauche -->
+                <div class="caisse-box">
+                    <h3 class="box-title">Bdia</h3>
+                    <table class="caisse-table">
+                        <tbody>
+                            <tr>
+                                <td class="label-cell">G</td>
+                                <td class="content-cell">Kilometrik</td>
+                                <td class="value-cell">5000</td>
+                            </tr>
+                            <tr>
+                                <td class="label-cell">Z</td>
+                                <td class="content-cell">Dollas Annik</td>
+                                <td class="value-cell">45000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Déllas Fawaz Droite -->
+                <div class="caisse-box">
+                    <h3 class="box-title">Déllas Fawaz</h3>
+                    <table class="caisse-table single-cell">
+                        <tbody>
+                            <tr>
+                                <td class="label-cell">S</td>
+                                <td class="empty-cell"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Ligne du bas -->
+            <div class="bottom-row">
+                <!-- Mohamad Bedia Gauche -->
+                <div class="caisse-box">
+                    <h3 class="box-title">Mohamad Bedia</h3>
+                    <table class="caisse-table">
+                        <tbody>
+                            <tr>
+                                <td class="label-cell">Z</td>
+                                <td class="content-cell">Facad Zibed</td>
+                                <td class="value-cell">5000</td>
+                            </tr>
+                            <tr>
+                                <td class="label-cell">Y</td>
+                                <td class="content-cell">Hisham Bertha</td>
+                                <td class="value-cell">6000</td>
+                            </tr>
+                            <tr>
+                                <td class="label-cell">O</td>
+                                <td class="content-cell">Samir Hendiche</td>
+                                <td class="value-cell">5000</td>
+                            </tr>
+                            <tr>
+                                <td class="label-cell"></td>
+                                <td class="content-cell">Mohamad Bedia</td>
+                                <td class="value-cell">10000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Kara Droite -->
+                <div class="caisse-box">
+                    <h3 class="box-title">Kara</h3>
+                    <table class="caisse-table">
+                        <tbody>
+                            <tr>
+                                <td class="label-cell">J</td>
+                                <td class="content-cell">Mohamad</td>
+                                <td class="value-cell">5000</td>
+                            </tr>
+                            <tr>
+                                <td class="label-cell">K</td>
+                                <td class="content-cell">ALi</td>
+                                <td class="value-cell">5000</td>
+                            </tr>
+                            <tr>
+                                <td class="label-cell">J</td>
+                                <td class="content-cell">Ahmed</td>
+                                <td class="value-cell">5000</td>
+                            </tr>
+                            <tr>
+                                <td class="label-cell">J</td>
+                                <td class="content-cell">Tarek</td>
+                                <td class="value-cell">5000</td>
+                            </tr>
+                            <tr>
+                                <td class="label-cell"></td>
+                                <td class="content-cell">Omar</td>
+                                <td class="value-cell">5000</td>
+                            </tr>
+                            <tr>
+                                <td class="label-cell"></td>
+                                <td class="content-cell">Othman</td>
+                                <td class="value-cell">5000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,141 @@
+2025-10-08 05:32:24,296 4114581 INFO ? odoo: Odoo version 17.0 
+2025-10-08 05:32:24,296 4114581 INFO ? odoo: Using configuration file at /etc/odoo17.conf 
+2025-10-08 05:32:24,297 4114581 INFO ? odoo: addons paths: ['/opt/odoo17/odoo17/odoo/addons', '/opt/odoo17/odoo17/addons'] 
+2025-10-08 05:32:24,297 4114581 INFO ? odoo: database: SafarElAmir@localhost:5432 
+2025-10-08 05:32:24,461 4114581 INFO ? odoo.addons.base.models.ir_actions_report: Will use the Wkhtmltopdf binary at /usr/local/bin/wkhtmltopdf 
+2025-10-08 05:32:24,718 4114581 INFO ? odoo.service.server: HTTP service (werkzeug) running on vps-d9067db1.vps.ovh.net:8069 
+2025-10-08 05:32:32,196 4114581 INFO ? werkzeug: 127.0.0.1 - - [08/Oct/2025 05:32:32] "GET /web?debug=1 HTTP/1.0" 500 - 0 0.000 0.002
+2025-10-08 05:32:32,201 4114581 ERROR ? werkzeug: Error on request:
+Traceback (most recent call last):
+  File "/opt/odoo17/odoo17/odoo17-venv/lib/python3.10/site-packages/werkzeug/serving.py", line 319, in run_wsgi
+    execute(self.server.app)
+  File "/opt/odoo17/odoo17/odoo17-venv/lib/python3.10/site-packages/werkzeug/serving.py", line 308, in execute
+    application_iter = app(environ, start_response)
+  File "/opt/odoo17/odoo17/odoo/http.py", line 2186, in __call__
+    request._post_init()
+  File "/opt/odoo17/odoo17/odoo/http.py", line 1357, in _post_init
+    self.session, self.db = self._get_session_and_dbname()
+  File "/opt/odoo17/odoo17/odoo/http.py", line 1376, in _get_session_and_dbname
+    session = root.session_store.get(sid)
+  File "/opt/odoo17/odoo17/odoo/tools/func.py", line 28, in __get__
+    value = self.fget(obj)
+  File "/opt/odoo17/odoo17/odoo/http.py", line 2113, in session_store
+    path = odoo.tools.config.session_dir
+  File "/opt/odoo17/odoo17/odoo/tools/config.py", line 760, in session_dir
+    os.makedirs(d, 0o700)
+  File "/usr/local/lib/python3.10/os.py", line 225, in makedirs
+    mkdir(name, mode)
+PermissionError: [Errno 13] Permission denied: '/opt/odoo17/.local/share/Odoo/sessions' - - -
+2025-10-08 05:32:32,322 4114581 INFO ? werkzeug: 127.0.0.1 - - [08/Oct/2025 05:32:32] "GET /favicon.ico HTTP/1.0" 500 - 0 0.000 0.002
+2025-10-08 05:32:32,325 4114581 ERROR ? werkzeug: Error on request:
+Traceback (most recent call last):
+  File "/opt/odoo17/odoo17/odoo17-venv/lib/python3.10/site-packages/werkzeug/serving.py", line 319, in run_wsgi
+    execute(self.server.app)
+  File "/opt/odoo17/odoo17/odoo17-venv/lib/python3.10/site-packages/werkzeug/serving.py", line 308, in execute
+    application_iter = app(environ, start_response)
+  File "/opt/odoo17/odoo17/odoo/http.py", line 2186, in __call__
+    request._post_init()
+  File "/opt/odoo17/odoo17/odoo/http.py", line 1357, in _post_init
+    self.session, self.db = self._get_session_and_dbname()
+  File "/opt/odoo17/odoo17/odoo/http.py", line 1376, in _get_session_and_dbname
+    session = root.session_store.get(sid)
+  File "/opt/odoo17/odoo17/odoo/tools/func.py", line 28, in __get__
+    value = self.fget(obj)
+  File "/opt/odoo17/odoo17/odoo/http.py", line 2113, in session_store
+    path = odoo.tools.config.session_dir
+  File "/opt/odoo17/odoo17/odoo/tools/config.py", line 760, in session_dir
+    os.makedirs(d, 0o700)
+  File "/usr/local/lib/python3.10/os.py", line 225, in makedirs
+    mkdir(name, mode)
+PermissionError: [Errno 13] Permission denied: '/opt/odoo17/.local/share/Odoo/sessions' - - -
+2025-10-08 05:32:33,875 4114581 INFO ? werkzeug: 127.0.0.1 - - [08/Oct/2025 05:32:33] "GET /web/service-worker.js HTTP/1.0" 500 - 0 0.000 0.002
+2025-10-08 05:32:33,878 4114581 ERROR ? werkzeug: Error on request:
+Traceback (most recent call last):
+  File "/opt/odoo17/odoo17/odoo17-venv/lib/python3.10/site-packages/werkzeug/serving.py", line 319, in run_wsgi
+    execute(self.server.app)
+  File "/opt/odoo17/odoo17/odoo17-venv/lib/python3.10/site-packages/werkzeug/serving.py", line 308, in execute
+    application_iter = app(environ, start_response)
+  File "/opt/odoo17/odoo17/odoo/http.py", line 2186, in __call__
+    request._post_init()
+  File "/opt/odoo17/odoo17/odoo/http.py", line 1357, in _post_init
+    self.session, self.db = self._get_session_and_dbname()
+  File "/opt/odoo17/odoo17/odoo/http.py", line 1376, in _get_session_and_dbname
+    session = root.session_store.get(sid)
+  File "/opt/odoo17/odoo17/odoo/tools/func.py", line 28, in __get__
+    value = self.fget(obj)
+  File "/opt/odoo17/odoo17/odoo/http.py", line 2113, in session_store
+    path = odoo.tools.config.session_dir
+  File "/opt/odoo17/odoo17/odoo/tools/config.py", line 760, in session_dir
+    os.makedirs(d, 0o700)
+  File "/usr/local/lib/python3.10/os.py", line 225, in makedirs
+    mkdir(name, mode)
+PermissionError: [Errno 13] Permission denied: '/opt/odoo17/.local/share/Odoo/sessions' - - -
+2025-10-08 05:32:34,090 4114581 INFO ? werkzeug: 127.0.0.1 - - [08/Oct/2025 05:32:34] "GET /web?debug=1 HTTP/1.0" 500 - 0 0.000 0.002
+2025-10-08 05:32:34,094 4114581 ERROR ? werkzeug: Error on request:
+Traceback (most recent call last):
+  File "/opt/odoo17/odoo17/odoo17-venv/lib/python3.10/site-packages/werkzeug/serving.py", line 319, in run_wsgi
+    execute(self.server.app)
+  File "/opt/odoo17/odoo17/odoo17-venv/lib/python3.10/site-packages/werkzeug/serving.py", line 308, in execute
+    application_iter = app(environ, start_response)
+  File "/opt/odoo17/odoo17/odoo/http.py", line 2186, in __call__
+    request._post_init()
+  File "/opt/odoo17/odoo17/odoo/http.py", line 1357, in _post_init
+    self.session, self.db = self._get_session_and_dbname()
+  File "/opt/odoo17/odoo17/odoo/http.py", line 1376, in _get_session_and_dbname
+    session = root.session_store.get(sid)
+  File "/opt/odoo17/odoo17/odoo/tools/func.py", line 28, in __get__
+    value = self.fget(obj)
+  File "/opt/odoo17/odoo17/odoo/http.py", line 2113, in session_store
+    path = odoo.tools.config.session_dir
+  File "/opt/odoo17/odoo17/odoo/tools/config.py", line 760, in session_dir
+    os.makedirs(d, 0o700)
+  File "/usr/local/lib/python3.10/os.py", line 225, in makedirs
+    mkdir(name, mode)
+PermissionError: [Errno 13] Permission denied: '/opt/odoo17/.local/share/Odoo/sessions' - - -
+2025-10-08 05:32:34,266 4114581 INFO ? werkzeug: 127.0.0.1 - - [08/Oct/2025 05:32:34] "GET /favicon.ico HTTP/1.0" 500 - 0 0.000 0.002
+2025-10-08 05:32:34,271 4114581 ERROR ? werkzeug: Error on request:
+Traceback (most recent call last):
+  File "/opt/odoo17/odoo17/odoo17-venv/lib/python3.10/site-packages/werkzeug/serving.py", line 319, in run_wsgi
+    execute(self.server.app)
+  File "/opt/odoo17/odoo17/odoo17-venv/lib/python3.10/site-packages/werkzeug/serving.py", line 308, in execute
+    application_iter = app(environ, start_response)
+  File "/opt/odoo17/odoo17/odoo/http.py", line 2186, in __call__
+    request._post_init()
+  File "/opt/odoo17/odoo17/odoo/http.py", line 1357, in _post_init
+    self.session, self.db = self._get_session_and_dbname()
+  File "/opt/odoo17/odoo17/odoo/http.py", line 1376, in _get_session_and_dbname
+    session = root.session_store.get(sid)
+  File "/opt/odoo17/odoo17/odoo/tools/func.py", line 28, in __get__
+    value = self.fget(obj)
+  File "/opt/odoo17/odoo17/odoo/http.py", line 2113, in session_store
+    path = odoo.tools.config.session_dir
+  File "/opt/odoo17/odoo17/odoo/tools/config.py", line 760, in session_dir
+    os.makedirs(d, 0o700)
+  File "/usr/local/lib/python3.10/os.py", line 225, in makedirs
+    mkdir(name, mode)
+PermissionError: [Errno 13] Permission denied: '/opt/odoo17/.local/share/Odoo/sessions' - - -
+2025-10-08 05:32:35,804 4114581 INFO ? werkzeug: 127.0.0.1 - - [08/Oct/2025 05:32:35] "GET /web/service-worker.js HTTP/1.0" 500 - 0 0.000 0.001
+2025-10-08 05:32:35,807 4114581 ERROR ? werkzeug: Error on request:
+Traceback (most recent call last):
+  File "/opt/odoo17/odoo17/odoo17-venv/lib/python3.10/site-packages/werkzeug/serving.py", line 319, in run_wsgi
+    execute(self.server.app)
+  File "/opt/odoo17/odoo17/odoo17-venv/lib/python3.10/site-packages/werkzeug/serving.py", line 308, in execute
+    application_iter = app(environ, start_response)
+  File "/opt/odoo17/odoo17/odoo/http.py", line 2186, in __call__
+    request._post_init()
+  File "/opt/odoo17/odoo17/odoo/http.py", line 1357, in _post_init
+    self.session, self.db = self._get_session_and_dbname()
+  File "/opt/odoo17/odoo17/odoo/http.py", line 1376, in _get_session_and_dbname
+    session = root.session_store.get(sid)
+  File "/opt/odoo17/odoo17/odoo/tools/func.py", line 28, in __get__
+    value = self.fget(obj)
+  File "/opt/odoo17/odoo17/odoo/http.py", line 2113, in session_store
+    path = odoo.tools.config.session_dir
+  File "/opt/odoo17/odoo17/odoo/tools/config.py", line 760, in session_dir
+    os.makedirs(d, 0o700)
+  File "/usr/local/lib/python3.10/os.py", line 225, in makedirs
+    mkdir(name, mode)
+PermissionError: [Errno 13] Permission denied: '/opt/odoo17/.local/share/Odoo/sessions' - - -
+2025-10-08 05:32:37,416 4114581 INFO ? odoo.service.server: Initiating shutdown 
+2025-10-08 05:32:37,416 4114581 INFO ? odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2025-10-08 05:32:37,806 4114581 INFO ? odoo.sql_db: ConnectionPool(used=0/count=0/max=64): Closed 2 connections  

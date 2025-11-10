@@ -19,7 +19,7 @@
         <field name="res_model">ir.cron</field>
         <field name="view_mode">tree</field>
         <field name="view_id" ref="view_ir_cron_optimisation_tree"/>
-        <field name="domain">[('id', 'in', [21])]</field>
+        <field name="domain">[('id', 'in', [36])]</field>
     </record>
 
     <menuitem id="menu_optimisation_planing_menu_"

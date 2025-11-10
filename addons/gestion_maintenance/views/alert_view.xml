@@ -5,10 +5,11 @@
         <field name="model">alert.record</field>
         <field name="arch" type="xml">
             <tree string="Alert">
-                <field name="reference_id"/>
+                
                 <field name="type_maintenance_id" decoration-bf="1"/>
                 <field name="numero" widget="badge"/>
                 <field name="echeance"/>
+                <field name="status"/>
             </tree>
         </field>
     </record>
@@ -74,6 +75,11 @@
         <field name="model">alert.record</field>
         <field name="arch" type="xml">
             <search string="Search Alert Records">
+                <searchpanel>
+                    <field name="type_maintenance_id" icon="fa-car"/>                    
+                    <field name="vehicule_id" icon="fa-car"/>
+                    <field name="zone" icon="fa-map-marker"/> 
+                </searchpanel>
                 <filter name="filter_maintenance_created" string="Résolu"
                         domain="[('maintenance_created', '=', True)]"/>
                 <filter name="filter_maintenance_not_created" string="En attente"
@@ -113,8 +119,7 @@
         <field name="res_model">alert.record</field>
         <field name="view_mode">tree,calendar,form</field>
         <field name="search_view_id" ref="view_alert_record_search"/>
-        <field name="context">{'search_default_filter_maintenance_not_created': 1}</field>
-
+        <field name="domain">[('maintenance_created', '=', False)]</field>
     </record>
 
 
@@ -122,12 +127,12 @@
         <field name="name">Alerts des maintenance</field>
         <field name="tag">alert_js_global</field>
     </record>
-    <menuitem id="menu_alert_record_agent"
+    <menuitem id="menu__alert_record_agent"
               name="Alert"
               sequence="0"
               parent="maintenance_menu_root"
               action="action_alert_agent"
-              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_agent"/>
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
 
 
 
@@ -135,18 +140,18 @@
         <field name="name">Alerts des maintenance</field>
         <field name="tag">alert_js_agent</field>
     </record>
-    <menuitem id="menu_alert_record_agent_finale"
+    <menuitem id="menu__alert_record_agent_finale"
               name="Alert"
               sequence="0"
               parent="maintenance_menu_root"
               action="action_alert_agent_finale"
-              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_agent"/>
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
 
     <!-- Menu Item -->
-    <menuitem id="menu_alert_record"
+    <menuitem id="menu__alert_record"
               name="Alert"
               sequence="0"
               parent="maintenance_menu_root"
               action="action_alert_record"
-              groups="access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+              groups="access_rights_groups.group_agent,access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
 </odoo>

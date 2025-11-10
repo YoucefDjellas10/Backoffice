@@ -2,6 +2,9 @@ from odoo import models, fields, api
 from odoo.exceptions import UserError
 import random
 import string
+import logging
+from datetime import datetime
+_logger = logging.getLogger(__name__)
 
 
 class ListeClient(models.Model):
@@ -47,6 +50,27 @@ class ListeClient(models.Model):
 
 
     create_date = fields.Datetime()
+
+
+    @api.model
+    def _generate_code_prime(self):
+        domain = [
+            ('code_prime', '=like', '01%'),  # code_prime commence par "01"
+            ('categorie_client.name', '!=', 'DRIVER')  # catégorie différente de "DRIVER"
+        ]
+        all_ids = self.env['liste.client'].search(domain).ids
+        for i in range(0, len(all_ids), 700):
+            batch_ids = all_ids[i:i + 700]
+            for record in self.env['liste.client'].browse(batch_ids):
+                prefix = "01"
+                if record.categorie_client:
+                    name = record.categorie_client.name
+                    prefix = {"ESSENTIEL": "02", "EXCELLENT": "03", "VIP": "04"}.get(name, "01")
+                year_suffix = str(datetime.now().year)[-2:]
+                random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+                record.code_prime = f"{prefix}{year_suffix}{random_part}"
+
+
 
     @api.depends('solde_total', 'solde_consomer')
     def _compute_solde(self):
@@ -145,3 +169,201 @@ class ListeClient(models.Model):
     def _compute_total_points_char(self):
         for record in self:
             record.total_points_char = f"{record.total_points} pts"
+
+
+    def action_normaliser_noms_prenoms(self):
+        tous_les_clients = self.env['liste.client'].search([])
+        compteur = 0
+
+        for client in tous_les_clients:
+            modifie = False
+            if client.nom:
+                nom_normalise = client.nom.strip().upper()
+                if client.nom != nom_normalise:
+                    client.nom = nom_normalise
+                    modifie = True
+
+            if client.prenom:
+                prenom_normalise = client.prenom.strip().upper()
+                if client.prenom != prenom_normalise:
+                    client.prenom = prenom_normalise
+                    modifie = True
+
+            if modifie:
+                compteur += 1
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Normalisation terminée',
+                'message': f'{compteur} client(s) ont été mis à jour avec succès.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+
+
+    def action_supprimer_doublons(self):
+        """
+        Lance la suppression des doublons en arrière-plan
+        """
+        # Lancer le traitement en arrière-plan
+        self.env.ref('liste_clients.cron_supprimer_doublons').method_direct_trigger()
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Traitement lancé',
+                'message': 'La suppression des doublons a été lancée en arrière-plan. '
+                           'Vous serez notifié par email quand le traitement sera terminé.',
+                'type': 'info',
+                'sticky': True,
+            }
+        }
+
+    def cron_supprimer_doublons(self):
+        """
+        Méthode appelée par le cron pour supprimer les doublons
+        Traitement optimisé pour grandes quantités de données
+        """
+        import time
+
+        _logger.info("=" * 80)
+        _logger.info("DÉBUT DE LA SUPPRESSION DES DOUBLONS")
+        _logger.info("=" * 80)
+
+        try:
+            # Charger les clients par batch
+            batch_size = 500
+            offset = 0
+            clients_dict = {}
+            clients_dict_inverse = {}
+            total_traites = 0
+
+            while True:
+                # Charger un batch
+                clients_batch = self.env['liste.client'].search([], limit=batch_size, offset=offset)
+
+                if not clients_batch:
+                    break
+
+                _logger.info(f"Chargement du batch {offset}-{offset + len(clients_batch)}...")
+
+                # Traiter ce batch
+                for client in clients_batch:
+                    nom = (client.nom or '').strip().upper()
+                    prenom = (client.prenom or '').strip().upper()
+
+                    if not nom or not prenom:
+                        continue
+
+                    # Dictionnaire normal
+                    key_normal = (nom, prenom)
+                    if key_normal not in clients_dict:
+                        clients_dict[key_normal] = []
+                    clients_dict[key_normal].append(client.id)
+
+                    # Dictionnaire inversé
+                    key_inverse = (prenom, nom)
+                    if key_inverse not in clients_dict_inverse:
+                        clients_dict_inverse[key_inverse] = []
+                    clients_dict_inverse[key_inverse].append(client.id)
+
+                total_traites += len(clients_batch)
+                offset += batch_size
+
+                # Commit et pause
+                self.env.cr.commit()
+                time.sleep(0.2)
+
+            _logger.info(f"Total de {total_traites} clients analysés")
+            _logger.info("Début de la détection des doublons...")
+
+            # Détecter les doublons
+            doublons_traites = set()
+            records_a_supprimer = []
+            nb_groupes = 0
+
+            # Doublons normaux
+            for key, client_ids in clients_dict.items():
+                if len(client_ids) > 1:
+                    clients_non_traites = [cid for cid in client_ids if cid not in doublons_traites]
+
+                    if len(clients_non_traites) > 1:
+                        nb_groupes += 1
+                        groupe = self.env['liste.client'].browse(clients_non_traites)
+
+                        for cid in clients_non_traites:
+                            doublons_traites.add(cid)
+
+                        # Garder celui avec risque élevé
+                        record_a_garder = groupe.filtered(lambda r: r.risque == 'eleve')
+                        if not record_a_garder:
+                            record_a_garder = groupe.sorted(lambda r: r.create_date)[0]
+                        else:
+                            record_a_garder = record_a_garder[0]
+
+                        records_a_supprimer.extend((groupe - record_a_garder).ids)
+
+            # Doublons inversés
+            for key_normal, client_ids in clients_dict.items():
+                nom, prenom = key_normal
+                key_inverse = (prenom, nom)
+
+                if key_inverse in clients_dict and key_normal != key_inverse:
+                    client_ids_inverses = clients_dict[key_inverse]
+                    tous_ids = list(set(client_ids + client_ids_inverses))
+                    clients_non_traites = [cid for cid in tous_ids if cid not in doublons_traites]
+
+                    if len(clients_non_traites) > 1:
+                        nb_groupes += 1
+                        groupe = self.env['liste.client'].browse(clients_non_traites)
+
+                        for cid in clients_non_traites:
+                            doublons_traites.add(cid)
+
+                        record_a_garder = groupe.filtered(lambda r: r.risque == 'eleve')
+                        if not record_a_garder:
+                            record_a_garder = groupe.sorted(lambda r: r.create_date)[0]
+                        else:
+                            record_a_garder = record_a_garder[0]
+
+                        records_a_supprimer.extend((groupe - record_a_garder).ids)
+
+            _logger.info(f"{nb_groupes} groupes de doublons détectés")
+
+            # Supprimer par petits batch
+            nb_supprimes = len(records_a_supprimer)
+            if records_a_supprimer:
+                delete_batch_size = 100
+                for i in range(0, len(records_a_supprimer), delete_batch_size):
+                    batch = records_a_supprimer[i:i + delete_batch_size]
+                    self.env['liste.client'].browse(batch).unlink()
+                    _logger.info(f"Supprimé: {min(i + delete_batch_size, nb_supprimes)}/{nb_supprimes}")
+                    self.env.cr.commit()
+                    time.sleep(0.5)
+
+            _logger.info("=" * 80)
+            _logger.info(f"TERMINÉ: {nb_groupes} groupes, {nb_supprimes} suppressions")
+            _logger.info("=" * 80)
+
+            # Envoyer notification à l'admin
+            admin_user = self.env.ref('base.user_admin')
+            if admin_user:
+                self.env['mail.message'].create({
+                    'subject': 'Suppression des doublons terminée',
+                    'body': f'<p>La suppression des doublons est terminée:</p>'
+                            f'<ul>'
+                            f'<li>{nb_groupes} groupes de doublons trouvés</li>'
+                            f'<li>{nb_supprimes} enregistrements supprimés</li>'
+                            f'</ul>',
+                    'model': 'res.users',
+                    'res_id': admin_user.id,
+                    'message_type': 'notification',
+                })
+
+        except Exception as e:
+            _logger.error(f"ERREUR lors de la suppression des doublons: {str(e)}", exc_info=True)
+            raise

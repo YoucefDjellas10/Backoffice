@@ -1,5 +1,8 @@
 from odoo import fields, models, api
 from odoo.exceptions import UserError
+import logging
+_logger = logging.getLogger(__name__)
+from datetime import datetime
 
 
 class Revenue(models.Model):
@@ -35,7 +38,7 @@ class Revenue(models.Model):
                                store=True)
     mode_paiement = fields.Selection([('carte', 'Banque'),
                                       ('liquide', 'Liquide'),
-                                      ('autre', 'Autre')], string='Mode de paiement')
+                                      ('autre', 'Autre')], string='Mode de paiement', required=True)
     total_encaisse = fields.Monetary(string='Total', currency_field='dinar', compute='_compute_ecart_eur_dinar',
                                      store=True)
 
@@ -70,11 +73,110 @@ class Revenue(models.Model):
             else:
                 record.total_reduit_dinar = 0
 
+    
     @api.model
     def create(self, vals):
+        montant = vals.get('montant', 0) or 0
+        montant_dzd = vals.get('montant_dzd', 0) or 0
+        if montant <= 0 and montant_dzd <= 0:
+            raise UserError("Impossible de créer une recette : le montant en € ou en Dinar doit être supérieur à 0.")
         record = super(Revenue, self).create(vals)
         record.name = 'R-{:03d}'.format(record.id)
         return record
+
+
+    @api.model
+    def action_search_revenues(self, filters=False, page=1, limit=30):
+        """
+        Recherche les encaissements selon les filtres donnés par le frontend OWL.
+        """
+        domain = []
+
+        if filters:
+            # Filtre réservation par texte (recherche sur le champ name)
+            if filters.get('reservation'):
+                reservation_ref = filters['reservation'].strip()
+                # Recherche les réservations dont le name contient la référence
+                reservation_ids = self.env['reservation'].search([
+                    ('name', 'ilike', reservation_ref)
+                ]).ids
+                if reservation_ids:
+                    domain.append(('reservation', 'in', reservation_ids))
+                else:
+                    # Aucune réservation trouvée, on retourne un résultat vide
+                    domain.append(('reservation', '=', False))
+
+            if filters.get('zone'):
+                domain.append(('zone', '=', filters['zone']))
+            if filters.get('vehicule'):
+                domain.append(('vehicule', '=', filters['vehicule']))
+            if filters.get('mode_paiement'):
+                domain.append(('mode_paiement', '=', filters['mode_paiement']))
+            if filters.get('effectue_par'):
+                domain.append(('create_uid', '=', filters['effectue_par']))
+
+            # Filtres date : Du / Au - Recherche sur create_date OU reservation.create_date
+            du_str = filters.get('du')
+            au_str = filters.get('au')
+            if du_str and au_str:
+                try:
+                    du = datetime.strptime(du_str, '%Y-%m-%d')
+                    au = datetime.strptime(au_str, '%Y-%m-%d')
+                    au = au.replace(hour=23, minute=59, second=59)
+
+                    # Domaine pour les dates : (create_date entre du et au) OU (create_date vide ET reservation.create_date entre du et au)
+                    date_domain = [
+                        '|',
+                        '&', ('create_date', '>=', du), ('create_date', '<=', au),
+                        '&', ('create_date', '=', False),
+                        '&', ('reservation.create_date', '>=', du), ('reservation.create_date', '<=', au)
+                    ]
+
+                    # Ajouter le domaine de dates au domaine principal
+                    domain.extend(date_domain)
+
+                except Exception as e:
+                    print(f"Erreur conversion date: {e}")
+
+        # Pagination
+        offset = (page - 1) * limit
+
+        # Recherche
+        revenues = self.search(domain, offset=offset, limit=limit, order='id desc')
+        total_count = self.search_count(domain)
+
+        # Calcul des totaux (toutes lignes correspondantes)
+        total_records = self.search(domain)
+
+
+        total_montant_dzd = sum(total_records.mapped('montant_dzd'))
+        total_montant_eur = sum(total_records.mapped('montant'))
+
+        # Formatage pour le frontend
+        revenues_data = []
+        for rev in revenues:
+            # Déterminer la date à afficher : create_date du revenue ou create_date de la réservation
+            display_date = rev.create_date
+            if not display_date and rev.reservation and rev.reservation.create_date:
+                display_date = rev.reservation.create_date
+
+            revenues_data.append({
+                'id': rev.id,
+                'reservation_ref': rev.reservation.name if rev.reservation else '',
+                'create_date': display_date.strftime('%d/%m/%Y %H:%M') if display_date else '',
+                'effectuer_par': rev.create_uid.name if rev.create_uid else '',
+                'mode_paiement': dict(rev._fields['mode_paiement'].selection).get(rev.mode_paiement, ''),
+                'montant_eur': f"{rev.montant:.2f}",
+                'montant_dzd': f"{rev.montant_dzd:.2f}",
+            })
+
+
+        return {
+            'revenues': revenues_data,
+            'total_count': total_count,
+            'total_montant_dzd': round(total_montant_dzd, 2),
+            'total_montant_eur': round(total_montant_eur, 2),
+        }
 
 
 class ReservationInheritRevenue(models.Model):
@@ -90,6 +192,95 @@ class ReservationInheritRevenue(models.Model):
 
             record.total_revenue = sum(record.revenue_ids.mapped('montant')) + sum(
                 record.revenue_ids.mapped('montant_dzd')) / taux_change.montant
+
+    def action_calculate_total_revenue(self):
+        """
+        Méthode pour calculer le total_revenue pour toutes les réservations
+        contenant 'SEA' dans le nom
+        """
+        try:
+            # Récupérer le taux de change une seule fois
+            taux_change = self.env['taux.change'].search([('id', '=', 2)], limit=1)
+
+            if not taux_change:
+                raise ValueError("Le taux de change n'a pas été trouvé")
+
+            if taux_change.montant == 0:
+                raise ZeroDivisionError("Le taux de change ne peut pas être zéro")
+
+            # Récupérer toutes les réservations contenant 'SEA'
+            reservations = self.env['reservation'].search([
+                ('name', 'ilike', 'SEA')
+            ])
+
+            if not reservations:
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Information',
+                        'message': "Aucune réservation trouvée contenant 'SEA'",
+                        'type': 'info',
+                        'sticky': False,
+                    }
+                }
+
+            # Parcourir toutes les réservations et calculer le total_revenue
+            count_success = 0
+            for record in reservations:
+                try:
+                    montant_principal = sum(record.revenue_ids.mapped('montant'))
+                    montant_dzd_converti = sum(record.revenue_ids.mapped('montant_dzd')) / taux_change.montant
+                    record.total_revenue = montant_principal + montant_dzd_converti
+                    count_success += 1
+                except Exception as e:
+                    _logger.error(f"Erreur lors du calcul pour {record.name}: {str(e)}")
+
+            # Notification de succès
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Succès',
+                    'message': f"{count_success} réservation(s) calculée(s) avec succès",
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+
+        except ZeroDivisionError:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Erreur',
+                    'message': "Le taux de change ne peut pas être zéro",
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+        except ValueError as e:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Erreur',
+                    'message': str(e),
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
+        except Exception as e:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Erreur',
+                    'message': f"Une erreur s'est produite: {str(e)}",
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
 
 
 class LivraisonInheritRevebue(models.Model):

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_block_reason_form" model="ir.ui.view">
+        <field name="name">block.reason.form</field>
+        <field name="model">block.reason</field>
+        <field name="arch" type="xml">
+            <form string="block reason">
+                <sheet>
+                    <groupe>
+                        <group class="custom-group">
+                            <field name="name"/>
+                        </group>
+                    </groupe>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_block_reason_tree" model="ir.ui.view">
+        <field name="name">block.reason.tree</field>
+        <field name="model">block.reason</field>
+        <field name="arch" type="xml">
+            <tree string="block reason">
+                <field name="name" decoration-bf="name != ''"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_block_reason" model="ir.actions.act_window">
+        <field name="name">Raison de bloque</field>
+        <field name="res_model">block.reason</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_block_reason_sub"
+              sequence="0"
+              name="Raison de bloquage"
+              parent="menu_configuration"
+              action="action_block_reason"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue arbre -->
+    <record id="view_transfert_revenue_request_tree" model="ir.ui.view">
+        <field name="name">transfert.revenue.request.tree</field>
+        <field name="model">transfert.revenue.request</field>
+        <field name="arch" type="xml">
+            <tree string="Demandes de transfert">
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="zone_id"/>
+                <field name="manager_id"/>
+                <field name="state"/>
+                <field name="total_montant"/>
+                <field name="total_montant_dzd"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vue formulaire -->
+    <record id="view_transfert_revenue_request_form" model="ir.ui.view">
+        <field name="name">transfert.revenue.request.form</field>
+        <field name="model">transfert.revenue.request</field>
+        <field name="arch" type="xml">
+            <form string="Demande de transfert de recettes">
+                <header>
+                    <button name="action_calculer" string="Calculer" type="object"
+                            class="btn-primary"
+                            invisible="state != 'brouillon'"/>
+
+                    <button name="action_demander" string="Demander" type="object"
+                            class="btn-secondary"
+                            invisible="state != 'brouillon'"/>
+
+                    <button name="action_verser" string="Versé" type="object"
+                            class="btn-success"
+                            invisible="state != 'demande'"/>
+
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="brouillon,demande,verse"/>
+                </header>
+
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="zone_id" required="1" readonly="state != 'brouillon'"/>
+                            <field name="manager_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="total_montant" readonly="1"/>
+                            <field name="total_montant_dzd" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <field name="date_from"
+                               widget="daterange"
+                               string="Période"
+                               options="{'end_date_field': 'date_to'}"
+                               required="1"
+                               readonly="state != 'brouillon'"/>
+                    </group>
+
+                    <!-- Tableau des recettes -->
+                    <field name="revenues" readonly="1">
+                        <tree>
+                            <field name="name"/>
+                            <field name="reservation"/>
+                            <field name="vehicule"/>
+                            <field name="montant"/>
+                            <field name="montant_dzd"/>
+                            <field name="mode_paiement"/><field name="create_uid" string="Effectuer par" widget="many2one_avatar_user"/>
+
+
+                        </tree>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="transfert_revenue_agent_rule" model="ir.rule">
+        <field name="name">Restriction d'accès aux transfert des encaissement  par zone pour les agents</field>
+        <field name="model_id" ref="gestion_finance.model_transfert_revenue_request"/>
+        <field name="domain_force">[('zone_id', 'in', user.zone_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('access_rights_groups.group_agent'))]"/>
+    </record>
+    <record id="action_transfert_revenue_request" model="ir.actions.act_window">
+        <field name="name">Transferts des Recettes</field>
+        <field name="res_model">transfert.revenue.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_transfert_revenue_request_tree"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créez votre première demande de transfert
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_transfert_revenue_request"
+              name="Transferts des recettes"
+              sequence="6"
+              parent="menu_finance_recette"
+              action="action_transfert_revenue_request"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+
+    <record id="action_transfert_revenue_request_manager" model="ir.actions.act_window">
+        <field name="name">Transferts Recettes</field>
+        <field name="res_model">transfert.revenue.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state', '=', 'demande')]</field>
+        <field name="view_id" ref="view_transfert_revenue_request_tree"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Aucune demande de versement
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_transfert_revenue_request_manager"
+              name="Transferts des encaissements"
+              sequence="1000"
+              action="action_transfert_revenue_request_manager"
+              groups="access_rights_groups.group_constantine_one,access_rights_groups.group_alger_six,access_rights_groups.group_oran_one,access_rights_groups.group_tlemcen_two,access_rights_groups.group_admin"/>
+
+</odoo>

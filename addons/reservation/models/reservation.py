@@ -6,6 +6,7 @@ import random
 import string
 import logging
 import requests
+from dateutil.relativedelta import relativedelta
 _logger = logging.getLogger(__name__)
 
 
@@ -27,16 +28,169 @@ class Reservation(models.Model):
                                        default=lambda self: fields.Datetime.now())
     date_heure_debut_format = fields.Char(string='Date heure debut',
                                           compute='_compute_date_heure_debut_format')
+        
     create_date_trimmed = fields.Char(
         string="Date",
-        compute="_compute_create_date_trimmed",
         store=False
     )
+
+    def download__combined_documents(self):
+        """Télécharge les documents combinés"""
+        url = f"https://api.safarelamir.com/combined-document-download/?reservation_id={self.id}"
+        return {
+            'type': 'ir.actions.act_url',
+            'url': url,
+            'target': 'new',  # Ouvre dans un nouvel onglet
+        }
 
     def _compute_create_date_trimmed(self):
         for record in self:
             if record.create_date:
-                record.create_date_trimmed = record.create_date.strftime('%Y-%m-%d %H:%M')
+                record.create_date_trimmed = record.create_date.strftime('%d/%m/%Y %H:%M')
+
+
+
+    @api.model
+    def _cron_clean_duplicate_reservations(self, limit=300):
+        """
+        Nettoyage progressif et doux des doublons de réservations.
+        Traite les doublons (name + client) par petits lots pour ne pas saturer la mémoire.
+        """
+        _logger.info("🚀 [CRON Doux] Démarrage du nettoyage des doublons de réservations (par lot de %s)...", limit)
+
+        # Trouver les combinaisons (name, client) qui ont plus d'une occurrence
+        self.env.cr.execute("""
+            SELECT name, client
+            FROM reservation
+            WHERE client IS NOT NULL AND name IS NOT NULL
+            GROUP BY name, client
+            HAVING COUNT(*) > 1
+            LIMIT %s
+        """, (limit,))
+        duplicates = self.env.cr.fetchall()
+
+        if not duplicates:
+            _logger.info("✅ Aucun doublon détecté dans cette passe.")
+            return
+
+        total_deleted = 0
+
+        for name, client_id in duplicates:
+            records = self.search([('name', '=', name), ('client', '=', client_id)])
+            if len(records) < 2:
+                continue
+
+            rec_with_livraison = records.filtered(lambda r: len(r.livraison) > 0)
+            rec_without_livraison = records.filtered(lambda r: len(r.livraison) == 0)
+
+            record_to_delete = False
+
+            if len(rec_with_livraison) == 1 and len(rec_without_livraison) >= 1:
+                record_to_delete = rec_without_livraison[0]
+            elif len(rec_with_livraison) == 0 or len(rec_with_livraison) == len(records):
+                record_to_delete = records.sorted(lambda r: r.create_date)[0]
+            else:
+                record_to_delete = records[0]
+
+            if record_to_delete:
+                try:
+                    _logger.info("🗑️ Suppression du doublon ID %s (client=%s, name=%s)", record_to_delete.id, client_id, name)
+                    record_to_delete.unlink()
+                    total_deleted += 1
+                except Exception as e:
+                    _logger.warning("❌ Erreur suppression %s: %s", record_to_delete.id, e)
+
+            # ✅ Libération mémoire (important avec 29k records)
+            self.env.clear()
+
+        _logger.info("💤 Nettoyage partiel terminé. %s doublon(s) supprimé(s) dans cette passe.", total_deleted)
+        _logger.info("🕒 Le prochain cron continuera le traitement automatiquement.")
+
+    @api.model
+    def cron_update_annule_records(self):
+        """
+        Met à jour les réservations : si status == 'annule' alors etat_reservation = 'annule'
+        Optimisée pour traiter de grands volumes (> 20k lignes).
+        """
+        _logger.info("=== Début cron_update_annule_records ===")
+
+        # Exécution SQL directe pour éviter de charger tous les enregistrements
+        query = """
+            UPDATE reservation
+            SET etat_reservation = 'annule'
+            WHERE status = 'annule'
+              AND (etat_reservation IS DISTINCT FROM 'annule');
+        """
+        self.env.cr.execute(query)
+        self.env.cr.commit()
+
+        _logger.info("=== Fin cron_update_annule_records ===")
+
+
+    @api.model
+    def cron_update_reservations_to_loue(self):
+        """Cron pour passer les réservations confirmées à 'loué',
+        mettre à jour la livraison et créer le revenu si reste_payer > 20."""
+        
+        # Date limite
+        date_limite = datetime(2025, 10, 25)
+
+        # On récupère toutes les réservations concernées
+        reservations = self.search([
+            ('status', '=', 'confirmee'),
+            ('etat_reservation', '!=', 'loue'),
+            ('date_heure_debut', '<', date_limite)
+        ])
+
+        if not reservations:
+            return
+
+        _logger.info(f"CRON: {len(reservations)} réservations trouvées pour mise à jour en 'loué'.")
+
+        # Précharger les livraisons en une seule requête
+        livraisons = self.env['livraison'].search([
+            ('reservation', 'in', reservations.ids),
+            ('lv_type', '=', 'livraison')
+        ])
+
+        # Mapping reservation_id -> livraison record
+        livraison_map = {l.reservation.id: l for l in livraisons}
+
+        revenues_to_create = []
+
+        for reservation in reservations:
+            # 1. Mise à jour du statut
+            reservation.etat_reservation = 'loue'
+
+            # 2. Mettre à jour la livraison liée
+            livraison = livraison_map.get(reservation.id)
+            if livraison:
+                livraison.stage = 'livre'
+                # On vérifie que le champ existe avant d’écrire
+                if hasattr(livraison, 'date_de_livraison'):
+                    livraison.date_de_livraison = reservation.date_heure_debut
+
+            # 3. Créer un revenue.record si reste_payer > 20
+            if reservation.reste_payer and reservation.reste_payer > 20:
+                revenues_to_create.append({
+                    'reservation': reservation.id,
+                    'montant': reservation.reste_payer,
+                    'mode_paiement': 'liquide',
+                })
+
+        # Création en masse des records revenue.record
+        if revenues_to_create:
+            self.env['revenue.record'].create(revenues_to_create)
+            _logger.info(f"CRON: {len(revenues_to_create)} revenus créés pour les réservations louées.")
+
+        _logger.info("CRON terminé : mise à jour des réservations et livraisons effectuée avec succès.")
+
+    def action_adjust_create_date(self):
+        for record in self:
+            if record.create_date:
+                record.create_date_trimmed = record.create_date.strftime('%d/%m/%Y %H:%M')
+        return True
+
 
     def _compute_date_heure_debut_format(self):
         for record in self:
@@ -54,10 +208,10 @@ class Reservation(models.Model):
             if record.date_heure_fin:
                 record.date_heure_fin_format = record.date_heure_fin.strftime('%d-%m-%Y %H:%M')
 
-    nbr_jour_reservation = fields.Integer(string='Durée',
-                                          compute='_compute_nbr_jour_reservation', store=True)
-    duree_dereservation = fields.Char(string='Durée', compute='_compute_duree_dereservation', store=True)
+    nbr_jour_reservation = fields.Integer(string='Durée', readonly=True, store=True)
 
+    duree_dereservation = fields.Char(string='Durée', compute='_compute_duree_dereservation', store=True)
+    exchange_amount = fields.Float(string='change')
     num_vol = fields.Char()
     lieu_depart = fields.Many2one('lieux', string='Lieu de départ', required=True)
     numero_lieu = fields.Char(string='Numero lieu', related='lieu_depart.mobile', store=True)
@@ -100,7 +254,352 @@ class Reservation(models.Model):
     date_retour_char = fields.Char(string='date retour')
     heure_depart_char = fields.Char(string='heure depart')
     heure_retour_char = fields.Char(string='heure retour')
-    lecart = fields.Integer(string='L\'écart')
+    lecart = fields.Float(string='L\'écart', help="Le montant saisi sera ajouté au total (+).")
+
+    @api.model
+    def _cron_update_exchange_amount(self):
+        date_limite = datetime(2025, 9, 30, 23, 59, 59)
+        date_fin_octobre = datetime(2025, 10, 31, 23, 59, 59)
+        reservations = self.search([
+            ('create_date', '>', date_limite)
+        ])
+        for reservation in reservations:
+            create_date = fields.Datetime.from_string(reservation.create_date)
+            if create_date <= date_fin_octobre:
+                reservation.exchange_amount = 250
+            else:
+                reservation.exchange_amount = 260
+        return True
+
+    @api.model
+    def cron_verify_recent_reservations(self):
+        """
+        Vérifie et corrige les réservations créées dans la dernière heure :
+        1. Recalcule et corrige le reste_payer si nécessaire
+        2. Corrige les dates/heures à partir des champs char
+        """
+        _logger.info("=== Début de la vérification des réservations récentes ===")
+
+        # Calculer l'heure limite (il y a 1 heure)
+        one_hour_ago = fields.Datetime.now() - timedelta(hours=7000)
+
+        # Rechercher les réservations créées dans la dernière heure
+        recent_reservations = self.search([
+            ('create_date', '>=', one_hour_ago)
+        ])
+
+        if not recent_reservations:
+            _logger.info("Aucune réservation récente trouvée")
+            return True
+
+        _logger.info(f"Traitement de {len(recent_reservations)} réservation(s) récente(s)")
+
+        corrections_revenue = 0
+        corrections_refunds = 0
+        corrections_reste_payer = 0
+        corrections_dates = 0
+        erreurs = []
+
+        for reservation in recent_reservations:
+            try:
+                try:
+                    
+                    
+                    if reservation.exchange_amount and reservation.exchange_amount > 0:
+                        total_revenue_calcule = (
+                                sum(reservation.revenue_ids.mapped('montant')) +
+                                sum(reservation.revenue_ids.mapped('montant_dzd')) / reservation.exchange_amount
+                        )
+                    else:
+                        # Si pas de taux de change, calculer sans conversion DZD
+                        total_revenue_calcule = sum(reservation.revenue_ids.mapped('montant'))
+                        if not reservation.exchange_amount:
+                            _logger.warning(
+                                f"Réservation {reservation.name}: taux de change ID=2 introuvable"
+                            )
+
+                    # Comparer avec tolérance de 0.01
+                    if abs(reservation.total_revenue - total_revenue_calcule) > 0.01:
+                        _logger.warning(
+                            f"Réservation {reservation.name} (ID: {reservation.id}): "
+                            f"total_revenue incorrect {reservation.total_revenue} → {total_revenue_calcule}"
+                        )
+                        reservation.write({'total_revenue': total_revenue_calcule})
+                        corrections_revenue += 1
+
+                except Exception as e:
+                    erreurs.append(
+                        f"Réservation {reservation.name} - Erreur calcul total_revenue: {e}"
+                    )
+                    _logger.exception(f"Erreur calcul total_revenue pour réservation {reservation.id}")
+
+                    # ===== 2. VÉRIFICATION DU TOTAL_REFUNDS =====
+                try:
+                    refunds_effectues = reservation.refunds_ids.filtered(
+                        lambda r: r.status == 'effectuer'
+                    )
+                    total_refunds_calcule = sum(refunds_effectues.mapped('amount'))
+
+                    # Comparer avec tolérance de 0.01
+                    if abs(reservation.total_refunds - total_refunds_calcule) > 0.01:
+                        _logger.warning(
+                            f"Réservation {reservation.name} (ID: {reservation.id}): "
+                            f"total_refunds incorrect {reservation.total_refunds} → {total_refunds_calcule}"
+                        )
+                        reservation.write({'total_refunds': total_refunds_calcule})
+                        corrections_refunds += 1
+
+                except Exception as e:
+                    erreurs.append(
+                        f"Réservation {reservation.name} - Erreur calcul total_refunds: {e}"
+                    )
+                    _logger.exception(f"Erreur calcul total_refunds pour réservation {reservation.id}")
+
+                    # Rafraîchir les valeurs après les éventuelles corrections
+                
+
+
+                # ===== 1. VÉRIFICATION DU RESTE À PAYER =====
+                reste_payer_calcule = (
+                        reservation.total_reduit_euro +
+                        reservation.total_degrader +
+                        reservation.total_ecce_klm -
+                        reservation.total_revenue +
+                        reservation.total_refunds
+                )
+
+                # Comparer avec une tolérance de 0.01 pour éviter les erreurs de float
+                if abs(reservation.reste_payer - reste_payer_calcule) > 0.01:
+                    _logger.warning(
+                        f"Réservation {reservation.name} (ID: {reservation.id}): "
+                        f"reste_payer incorrect {reservation.reste_payer} → {reste_payer_calcule}"
+                    )
+                    reservation.write({'reste_payer': reste_payer_calcule})
+                    corrections_reste_payer += 1
+
+                # ===== 2. CORRECTION DES DATES/HEURES =====
+                date_debut_corrigee = None
+                date_fin_corrigee = None
+
+                # Corriger date_heure_debut
+                if reservation.date_depart_char and reservation.heure_depart_char:
+                    try:
+                        date_debut_corrigee = self._parse_date_heure(
+                            reservation.date_depart_char,
+                            reservation.heure_depart_char
+                        )
+                    except Exception as e:
+                        erreurs.append(
+                            f"Réservation {reservation.name} - Erreur parsing date début: {e}"
+                        )
+
+                # Corriger date_heure_fin
+                if reservation.date_retour_char and reservation.heure_retour_char:
+                    try:
+                        date_fin_corrigee = self._parse_date_heure(
+                            reservation.date_retour_char,
+                            reservation.heure_retour_char
+                        )
+                    except Exception as e:
+                        erreurs.append(
+                            f"Réservation {reservation.name} - Erreur parsing date fin: {e}"
+                        )
+
+                # Appliquer les corrections si nécessaires
+                vals_to_write = {}
+
+                if date_debut_corrigee:
+                    date_debut_actuelle = fields.Datetime.from_string(reservation.date_heure_debut)
+                    # Vérifier si décalage > 30 minutes (pour éviter corrections inutiles)
+                    if abs((date_debut_corrigee - date_debut_actuelle).total_seconds()) > 1800:
+                        vals_to_write['date_heure_debut'] = fields.Datetime.to_string(date_debut_corrigee)
+                        _logger.info(
+                            f"Réservation {reservation.name}: date_heure_debut corrigée "
+                            f"{date_debut_actuelle} → {date_debut_corrigee}"
+                        )
+
+                if date_fin_corrigee:
+                    date_fin_actuelle = fields.Datetime.from_string(reservation.date_heure_fin)
+                    if abs((date_fin_corrigee - date_fin_actuelle).total_seconds()) > 1800:
+                        vals_to_write['date_heure_fin'] = fields.Datetime.to_string(date_fin_corrigee)
+                        _logger.info(
+                            f"Réservation {reservation.name}: date_heure_fin corrigée "
+                            f"{date_fin_actuelle} → {date_fin_corrigee}"
+                        )
+
+                if vals_to_write:
+                    reservation.write(vals_to_write)
+                    corrections_dates += 1
+
+            except Exception as e:
+                erreurs.append(f"Réservation {reservation.name} (ID: {reservation.id}): {str(e)}")
+                _logger.exception(f"Erreur lors du traitement de la réservation {reservation.id}")
+
+        # Rapport final
+        _logger.info("=== Fin de la vérification ===")
+        _logger.info(f"Réservations traitées: {len(recent_reservations)}")
+        _logger.info(f"Corrections reste_payer: {corrections_reste_payer}")
+        _logger.info(f"Corrections dates/heures: {corrections_dates}")
+
+        if erreurs:
+            _logger.warning(f"Erreurs rencontrées ({len(erreurs)}):")
+            for erreur in erreurs:
+                _logger.warning(f"  - {erreur}")
+
+        return True
+
+    def _parse_date_heure(self, date_char, heure_char):
+        """
+        Convertit date_char (JJ/MM/YYYY ou YYYY-MM-DD) + heure_char (HH:MM)
+        en datetime Python en tenant compte du timezone Africa/Algiers
+        """
+        import pytz
+
+        # Nettoyer les espaces
+        date_char = date_char.strip() if date_char else ''
+        heure_char = heure_char.strip() if heure_char else '00:00'
+
+        if not date_char:
+            raise ValueError("Date vide")
+
+        # Essayer différents formats de date
+        date_obj = None
+        for fmt in ['%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y']:
+            try:
+                date_obj = datetime.strptime(date_char, fmt).date()
+                break
+            except ValueError:
+                continue
+
+        if not date_obj:
+            raise ValueError(f"Format de date non reconnu: {date_char}")
+
+        # Parser l'heure
+        try:
+            heure_obj = datetime.strptime(heure_char, '%H:%M').time()
+        except ValueError:
+            # Si format invalide, utiliser 00:00
+            _logger.warning(f"Format d'heure invalide: {heure_char}, utilisation de 00:00")
+            heure_obj = datetime.strptime('00:00', '%H:%M').time()
+
+        # Combiner date + heure (datetime naïf)
+        datetime_combine = datetime.combine(date_obj, heure_obj)
+
+        # Localiser dans le timezone Algeria (Africa/Algiers)
+        tz_algiers = pytz.timezone('Africa/Algiers')
+        datetime_local = tz_algiers.localize(datetime_combine)
+
+        # Convertir en UTC (ce qu'Odoo attend)
+        datetime_utc = datetime_local.astimezone(pytz.UTC)
+
+        # Retourner sans timezone info (Odoo préfère les datetime naïfs en UTC)
+        return datetime_utc.replace(tzinfo=None)
+
+    def confirmer_lecart(self):
+        for record in self:
+            params = {
+                'reservation_id': record.id if record.id else '',
+                'montant': record.lecart if record.lecart else 0,
+            }
+
+            url = "https://api.safarelamir.com/ajouter-ecart/"
+            try:
+                response = requests.get(url, params=params, timeout=20)
+                if response.status_code == 200:
+                    return {
+                        'type': 'ir.actions.client',
+                        'tag': 'reload',
+                    }
+                else:
+                    return {
+                        'type': 'ir.actions.client',
+                        'tag': 'display_notification',
+                        'params': {
+                            'title': 'Erreur',
+                            'message': f"Un problème est survenu (status: {response.status_code})",
+                            'type': 'danger',
+                            'sticky': True,
+                        }
+                    }
+
+            except Exception as e:
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Erreur',
+                        'message': f"Erreur lors de l'appel API: {str(e)}",
+                        'type': 'danger',
+                        'sticky': True,
+                    }
+                }
+
+
+    def action_ouvrir_ecart_pop_up(self):
+        return {
+            'name': 'Ajouter un écart',
+            'type': 'ir.actions.act_window',
+            'res_model': 'reservation',
+            'view_mode': 'form',
+            'view_id': self.env.ref('reservation.view_liste_ajouter_ecart_pop_up').id,
+            'res_id': self.id,
+            'target': 'new',  
+            'context': {
+                'default_lecart': self.lecart, 
+            }
+        } 
+
+    def confirmer_l_annulation(self):
+        for record in self:
+            params = {
+                'reservation_id': record.id if record.id else '',
+                'motif': record.annuler_raison.id if record.annuler_raison.id else ''
+            }
+
+            url = "https://api.safarelamir.com/cancel-from-system/"
+            try:
+                response = requests.get(url, params=params, timeout=20)
+                if response.status_code == 200:
+                    return {
+                        'type': 'ir.actions.client',
+                        'tag': 'reload',
+                    }
+                else:
+                    return {
+                        'type': 'ir.actions.client',
+                        'tag': 'display_notification',
+                        'params': {
+                            'title': 'Erreur',
+                            'message': f"Un problème est survenu (status: {response.status_code})",
+                            'type': 'danger',
+                            'sticky': True,
+                        }
+                    }
+
+            except Exception as e:
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Erreur',
+                        'message': f"Erreur lors de l'appel API: {str(e)}",
+                        'type': 'danger',
+                        'sticky': True,
+                    }
+                }
+
+    def action_annuler_request_pop_up(self):
+        return {
+            'name': 'Anuler la réservation',
+            'type': 'ir.actions.act_window',
+            'res_model': 'reservation',
+            'view_mode': 'form',
+            'view_id': self.env.ref('reservation._view_annuler_reservation_pop_up').id,
+            'res_id': self.id,
+            'target': 'new',
+
+        }
+
 
     telephone = fields.Char(string='Téléphone', related='client.telephone', store=True)
     risque = fields.Selection(string='Risque', related='client.risque', store=True)
@@ -129,6 +628,11 @@ class Reservation(models.Model):
     categorie_client_nd = fields.Many2one(string='Categorie', related='nd_client.categorie_client', store=True)
     options_gratuit_nd = fields.Many2many('options', string='Options Gratuites',
                                        related='nd_client.options_gratuit')
+
+    confirmation_date = fields.Datetime(string='Date de confitmation')
+    cancelation_date = fields.Datetime(string='Date d\'annulation')
+
+
     code_prime_nd = fields.Char(string='Code Prime', related='nd_client.code_prime', store=True, readonly=True)
     reduction_nd = fields.Integer(string='Réduction %', related='nd_client.reduction', store=True)
     devise_nd = fields.Many2one(string='Devise', related='nd_client.devise', store=True)
@@ -168,23 +672,23 @@ class Reservation(models.Model):
                 raise UserError(
                     _("Échec de l'appel API. Code HTTP: %s - Réponse: %s") % (response.status_code, response.text))
 
-    prix_jour = fields.Integer(string='Prix par jours', compute='_compute_prix_jour', store=True)
+    prix_jour = fields.Integer(string='Prix par jours', readonly=True, store=True)
     prix_jour_two = fields.Integer(string='Prix Jour Two')
     nbr_jour_two = fields.Integer(string='Nombre de Jours Two')
     nbr_jour_one = fields.Integer(string='Nombre de Jours One')
-    frais_de_livraison = fields.Integer(string='Frais de livraison', compute='_compute_frais_livraison', store=True)
+    frais_de_livraison = fields.Integer(string='Frais de livraison', readonly=True, store=True)
     options = fields.Many2many('options', string='Options', store=True, domain="[('id', '!=', 10)]")
-    options_total = fields.Integer(string='Total des options', compute='_compute_options_total', store=True)
-    options_total_reduit = fields.Integer(string='Total options reduit', compute='_compute_options_total_reduit',
+    options_total = fields.Integer(string='Total des options', readonly=True, store=True)
+    options_total_reduit = fields.Integer(string='Total options reduit', readonly=True,
                                           store=True)
 
-    total = fields.Integer(string='Total Général', compute='_compute_total', store=True)
-    total_reduit = fields.Integer(string='Total Réduit', compute='_compute_total_reduit', store=True)
+    total = fields.Integer(string='Total Général', readonly=True, store=True)
+    total_reduit = fields.Integer(string='Total Réduit', readonly=True, store=True)
 
     currency_id_reduit = fields.Many2one('res.currency', string='Currency',
                                          default=lambda self: self.env['res.currency'].browse(125).id)
     total_reduit_euro = fields.Monetary(string='Total Réduit (EUR)', currency_field='currency_id_reduit',
-                                        compute='_compute_total_reduit_euro', store=True)
+                                         readonly=True, store=True)
     total_revenue = fields.Float()
     montant_paye = fields.Monetary(string='Montant Payé', compute="_compute_montant_paye", store=True,
                                    currency_field='currency_id_reduit')
@@ -197,10 +701,9 @@ class Reservation(models.Model):
         for record in self:
             if not record.date_heure_debut or not record.date_heure_fin:
                 raise UserError("Les champs date_heure_debut et date_heure_fin doivent être renseignés.")
-
             date_depart = record.date_heure_debut.date()
             date_retour = record.date_heure_fin.date()
-    
+
             edit_res = self.env['edit.reservation'].create({
                 'date_depart': date_depart,
                 'date_retour': date_retour,
@@ -211,14 +714,17 @@ class Reservation(models.Model):
                 'lieu_retour': record.lieu_retour.id if record.lieu_retour else False,
             })
 
-            # Retourne une action pour ouvrir le form view en pop-up
             return {
                 'type': 'ir.actions.act_window',
                 'name': 'Modifier la réservation',
                 'res_model': 'edit.reservation',
                 'view_mode': 'form',
                 'res_id': edit_res.id,
-                'target': 'new',  # ouvre en modal
+                'target': 'new',
+                'context': {
+                    'source_model': 'reservation',
+                    'source_id': record.id,
+                }
             }
    
     @api.depends('total_revenue')
@@ -226,21 +732,16 @@ class Reservation(models.Model):
         for record in self:
             record.montant_paye = record.total_revenue
 
-    @api.depends('lecart', 'montant_paye', 'total_degrader', 'total_ecce_klm', 'total_reduit_euro')
+    total_refunds = fields.Monetary(
+        string='Total des remboursements',
+        currency_field='currency_id'
+    )
+    currency_id = fields.Many2one('res.currency', string='Currency',
+                                  default=lambda self: self.env.ref('base.EUR').id)
+    @api.depends('total_refunds','montant_paye', 'total_revenue', 'total_degrader', 'total_ecce_klm', 'date_heure_fin', 'date_heure_debut', 'total_reduit_euro')
     def _compute_reste_payer(self):
-        for r in self:
-            rest = (r.total_reduit_euro or 0) + (r.total_degrader or 0) + (r.total_ecce_klm or 0) \
-                   - (r.montant_paye or 0) - (r.lecart or 0)
-            r.reste_payer = rest if rest > 0 else 0
-            _logger.info("compute reste_payer for id %s -> %s", r.id, r.reste_payer)
-
-    @api.onchange('lecart', 'montant_paye', 'total_degrader', 'total_ecce_klm', 'total_reduit_euro')
-    def _onchange_reste_payer(self):
-        # seulement pour rafraîchir la vue avant sauvegarde
-        for r in self:
-            rest = (r.total_reduit_euro or 0) + (r.total_degrader or 0) + (r.total_ecce_klm or 0) \
-                   - (r.montant_paye or 0) - (r.lecart or 0)
-            r.reste_payer = rest if rest > 0 else 0
+        for record in self:
+            record.reste_payer = record.total_reduit_euro + record.total_degrader + record.total_ecce_klm - record.total_revenue + record.total_refunds
 
 
     du_au = fields.Char(string='Du ➝ Au', compute='_compute_du_au', store=True)
@@ -256,20 +757,16 @@ class Reservation(models.Model):
             else:
                 record.du_au = ''
 
-    @api.depends('total_reduit')
-    def _compute_total_reduit_euro(self):
-        for record in self:
-            record.total_reduit_euro = record.total_reduit
-
-    total_afficher = fields.Integer(string='Total Afficher', compute='_compute_total_afficher', store=True)
-    total_afficher_reduit = fields.Integer(string='Total Afficher reduit', compute='_compute_total_afficher_reduit',
+    
+    total_afficher = fields.Integer(string='Total Afficher', readonly=True, store=True)
+    total_afficher_reduit = fields.Integer(string='Total Afficher reduit', readonly=True,
                                            store=True)
     prix_jour_afficher = fields.Float(string='Prix par jour Afficher',
-                                      compute='_compute_prix_jour_afficher', store=True)
+                                      readonly=True, store=True)
     prix_jour_afficher_reduit = fields.Float(string='Prix par jour reduit',
-                                             compute='_compute_prix_jour_afficher_reduit', store=True)
-    supplements = fields.Integer(string='Supplements', compute='_compute_supplements', store=True)
-    retour_tard = fields.Integer(string='Retour tard', compute='_compute_retour_tard', store=True)
+                                             readonly=True, store=True)
+    supplements = fields.Integer(string='Supplements', readonly=True, store=True)
+    retour_tard = fields.Integer(string='Retour tard', readonly=True, store=True)
     livraison = fields.One2many('livraison', 'reservation', string='Livraison')
     kilometrage_depart = fields.Integer(string='Kilometrage', compute='_compute_kilometrage_depart', store=True)
 
@@ -307,7 +804,7 @@ class Reservation(models.Model):
     total_prolone = fields.Integer(string='Total prolongé', compute='_compute_total_prolone', store=True)
     depart_retour = fields.Char(string='Départ ➝ retour', compute='_compute_depart_retour', store=True)
     depart_retour_ancien = fields.Char(string='Départ ➝ retour (Ancien)')
-    frais_de_dossier = fields.Integer(string='Frais de dossier', compute='_compute_frais_de_dossier', store=True)
+    frais_de_dossier = fields.Integer(string='Frais de dossier', readonly=True, store=True)
     retour_avance = fields.Boolean(string='Retour a l\' avance', default=False)
     date_retour_avance = fields.Datetime(string='Retour a l\'avance',default=lambda self: fields.Datetime.now() + timedelta(days=3))
     retour_avace_ids = fields.One2many('retour.avance', 'reservation', string='Retour à l avance')
@@ -596,25 +1093,6 @@ class Reservation(models.Model):
             else:
                 record.klm_moyen = ""
 
-    @api.depends('total_afficher', 'reduction')
-    def _compute_total_afficher_reduit(self):
-        for record in self:
-            reduction_amount = (record.total_afficher * record.reduction) / 100
-            record.total_afficher_reduit = record.total_afficher - reduction_amount
-
-    @api.depends('options', 'options_gratuit', 'nbr_jour_reservation')
-    def _compute_options_total_reduit(self):
-        for reservation in self:
-            total_reduit = 0
-            if reservation.options_gratuit:
-                for option in reservation.options:
-                    if option in reservation.options_gratuit:
-                        if option.type_tarif == 'fixe':
-                            total_reduit += option.prix
-                        else:
-                            total_reduit += option.prix * reservation.nbr_jour_reservation
-            reservation.options_total_reduit = total_reduit
-
     @api.depends('etat_reservation')
     def _compute_color(self):
         for record in self:
@@ -640,14 +1118,7 @@ class Reservation(models.Model):
             },
         }
 
-    @api.depends('nbr_jour_reservation')
-    def _compute_frais_de_dossier(self):
-        options_record = self.env['options'].browse(19)
-        if options_record:
-            self.frais_de_dossier = options_record.prix
-        else:
-            self.frais_de_dossier = 0
-
+    
     @api.depends('lieu_depart', 'lieu_retour')
     def _compute_depart_retour(self):
         for record in self:
@@ -661,22 +1132,6 @@ class Reservation(models.Model):
         for reservation in self:
             total = sum(prolongation.total_prolongation for prolongation in reservation.prolongation)
             reservation.total_prolone = total
-
-    @api.constrains('date_heure_debut', 'date_heure_fin', 'vehicule')
-    def _check_vehicle_availability(self):
-        for record in self:
-            if not record.vehicule:
-                continue
-            overlapping_reservations = self.env['reservation'].search([
-                ('vehicule', '=', record.vehicule.id),
-                ('id', '!=', record.id),
-                ('date_heure_debut', '<', record.date_heure_fin),
-                ('date_heure_fin', '>', record.date_heure_debut),
-            ])
-            if overlapping_reservations:
-                raise ValidationError(
-                    f"Le véhicule {record.vehicule.name} n'est pas disponible entre {record.date_heure_debut} et {record.date_heure_fin}."
-                )
 
     def action_open_prolongation_popup(self):
         return {
@@ -845,65 +1300,6 @@ class Reservation(models.Model):
             else:
                 record.is_nd_cond = False
 
-    @api.depends('date_heure_debut', 'date_heure_fin')
-    def _compute_retour_tard(self):
-        for record in self:
-            if record.date_heure_debut and record.date_heure_fin:
-                debut_time = record.date_heure_debut.time()
-                fin_time = record.date_heure_fin.time()
-
-                debut_total_minutes = debut_time.hour * 60 + debut_time.minute
-                fin_total_minutes = fin_time.hour * 60 + fin_time.minute
-
-                ecart_minutes = abs(fin_total_minutes - debut_total_minutes)
-
-                ecart_heures = ecart_minutes / 60
-
-                supplements = self.env['supplements'].search([('valeur', '>', 0)])
-                retour_tard_value = 0
-
-                for supplement in supplements:
-                    if ecart_heures > supplement.reatrd:
-                        if record.prix_jour_two > 0:
-                            retour_tard_value = record.prix_jour_two * 2 / 3
-                        else:
-                            retour_tard_value = record.prix_jour * 2 / 3
-                        break
-
-                record.retour_tard = retour_tard_value
-            else:
-                record.retour_tard = 0
-
-    @api.depends('date_heure_debut', 'date_heure_fin', 'date_retour_avance')
-    def _compute_supplements(self):
-        for record in self:
-            supplements_value = 0
-            avance = 0
-            heure_retour_avance_float = None
-
-            heure_debut_float = self._convert_to_float(record.date_heure_debut + timedelta(hours=1))
-            heure_fin_float = self._convert_to_float(record.date_heure_fin + timedelta(hours=1))
-            if record.date_retour_avance :
-                heure_retour_avance_float = self._convert_to_float(record.date_retour_avance + timedelta(hours=1))
-
-            supplements = self.env['supplements'].search([])
-
-            for supplement in supplements:
-                if supplement.heure_debut_float <= heure_debut_float < supplement.heure_fin_float:
-                    supplements_value += supplement.montant
-
-            for supplement in supplements:
-                if heure_retour_avance_float is not None and supplement.heure_debut_float <= heure_fin_float < supplement.heure_fin_float:
-                    supplements_value += supplement.montant
-                    avance = 1
-
-            for supplement in supplements:
-                if supplement.heure_debut_float and heure_retour_avance_float and supplement.heure_fin_float:
-                    if supplement.heure_debut_float <= heure_retour_avance_float < supplement.heure_fin_float and avance == 0:
-                        supplements_value += supplement.montant
-
-            record.supplements = supplements_value
-
     def _convert_to_float(self, heure_datetime):
         """Convert datetime to float (hours + minutes/60)."""
         return heure_datetime.hour + heure_datetime.minute / 60
@@ -912,61 +1308,6 @@ class Reservation(models.Model):
     def _compute_duree_dereservation(self):
         for record in self:
             record.duree_dereservation = f"{record.nbr_jour_reservation} jours"
-
-    @api.depends('prix_jour', 'nbr_jour_one', 'prix_jour_two', 'nbr_jour_two', 'frais_de_livraison',
-                 'supplements', 'retour_tard')
-    def _compute_total_afficher(self):
-        for reservation in self:
-            reservation.total_afficher = reservation.prix_jour * reservation.nbr_jour_one + \
-                                         reservation.prix_jour_two * reservation.nbr_jour_two + \
-                                         reservation.frais_de_livraison + \
-                                         reservation.supplements + reservation.retour_tard
-
-    @api.depends('total_afficher', 'nbr_jour_reservation')
-    def _compute_prix_jour_afficher(self):
-        for reservation in self:
-            if reservation.nbr_jour_reservation != 0:
-                reservation.prix_jour_afficher = reservation.total_afficher / reservation.nbr_jour_reservation
-            else:
-                reservation.prix_jour_afficher = 0
-
-    @api.depends('total_afficher_reduit', 'nbr_jour_reservation')
-    def _compute_prix_jour_afficher_reduit(self):
-        for reservation in self:
-            if reservation.nbr_jour_reservation != 0:
-                reservation.prix_jour_afficher_reduit = reservation.total_afficher_reduit / reservation.nbr_jour_reservation
-            else:
-                reservation.prix_jour_afficher = 0
-
-    @api.depends('frais_de_dossier', 'supplements', 'total_afficher', 'options')
-    def _compute_total(self):
-        for reservation in self:
-            total_general = reservation.frais_de_dossier + reservation.options_total + reservation.total_afficher
-            reservation.total = total_general
-
-    @api.depends('lecart','options_total', 'total_afficher_reduit', 'frais_de_dossier', 'options_total_reduit', 'solde_reduit')
-    def _compute_total_reduit(self):
-        for reservation in self:
-            total_general = reservation.frais_de_dossier + reservation.total_afficher_reduit + reservation.options_total - reservation.options_total_reduit - reservation.solde_reduit + reservation.lecart
-            reservation.total_reduit = total_general
-
-    @api.depends('opt_payment_total', 'opt_klm_total', 'opt_nd_driver_total', 'opt_plein_carburant_total',
-                 'opt_siege_a_total', 'opt_siege_b_total', 'opt_siege_c_total', 'opt_protection')
-    def _compute_options_total(self):
-        for reservation in self:
-            reservation.options_total = reservation.opt_payment_total + reservation.opt_klm_total + reservation.opt_nd_driver_total + reservation.opt_plein_carburant_total + reservation.opt_siege_a_total + reservation.opt_siege_b_total + reservation.opt_siege_c_total + reservation.opt_protection_total
-
-    @api.depends('lieu_depart', 'lieu_retour')
-    def _compute_frais_livraison(self):
-        for reservation in self:
-            frais_livraison = self.env['frais.livraison'].search([
-                ('depart', '=', reservation.lieu_depart.id),
-                ('retour', '=', reservation.lieu_retour.id)
-            ], limit=1)
-            if frais_livraison:
-                reservation.frais_de_livraison = frais_livraison.montant
-            else:
-                reservation.frais_de_livraison = 0
 
     @api.model
     def _generate_unique_code_(self):
@@ -986,1798 +1327,6 @@ class Reservation(models.Model):
             if record.vehicule.zone != record.zone and not record.zone:
                 raise ValidationError(
                     "Le véhicule sélectionné doit appartenir à la même zone que la zone de livraison.")
-
-    @api.depends('date_heure_debut', 'date_heure_fin')
-    def _compute_nbr_jour_reservation(self):
-        for record in self:
-            if record.date_heure_debut and record.date_heure_fin:
-                date_debut = record.date_heure_debut.date()
-                date_fin = record.date_heure_fin.date()
-
-                delta_days = (date_fin - date_debut).days
-                record.nbr_jour_reservation = delta_days
-            else:
-                record.nbr_jour_reservation = 0
-
-    @api.depends('date_heure_debut', 'date_heure_fin', 'nbr_jour_reservation', 'modele')
-    def _compute_prix_jour(self):
-        for record in self:
-            if not record.modele:
-                continue
-
-            intervals_t_one_un = [
-                (record.modele.date_depart_one_t_one, record.modele.date_fin_one_t_one),
-            ]
-            intervals_t_one_deux = [
-                (record.modele.date_depart_two_t_one, record.modele.date_fin_two_t_one),
-            ]
-            intervals_t_one_trois = [
-                (record.modele.date_depart_three_t_one, record.modele.date_fin_three_t_one),
-            ]
-            intervals_t_one_quatre = [
-                (record.modele.date_depart_four_t_one, record.modele.date_fin_four_t_one),
-            ]
-
-            intervals_t_two_un = [
-                (record.modele.date_depart_one_t_two, record.modele.date_fin_one_t_two),
-            ]
-            intervals_t_two_deux = [
-                (record.modele.date_depart_two_t_two, record.modele.date_fin_two_t_two),
-            ]
-            intervals_t_two_trois = [
-                (record.modele.date_depart_three_t_two, record.modele.date_fin_three_t_two),
-            ]
-            intervals_t_two_quatre = [
-                (record.modele.date_depart_four_t_two, record.modele.date_fin_four_t_two),
-            ]
-
-            intervals_t_three_un = [
-                (record.modele.date_depart_one_t_three, record.modele.date_fin_one_t_three),
-            ]
-            intervals_t_three_deux = [
-                (record.modele.date_depart_two_t_three, record.modele.date_fin_two_t_three),
-            ]
-            intervals_t_three_trois = [
-                (record.modele.date_depart_three_t_three, record.modele.date_fin_three_t_three),
-            ]
-            intervals_t_three_quatre = [
-                (record.modele.date_depart_four_t_three, record.modele.date_fin_four_t_three),
-            ]
-
-            intervals_t_four_un = [
-                (record.modele.date_depart_one_t_four, record.modele.date_fin_one_t_four),
-            ]
-            intervals_t_four_deux = [
-                (record.modele.date_depart_two_t_four, record.modele.date_fin_two_t_four),
-            ]
-            intervals_t_four_trois = [
-                (record.modele.date_depart_three_t_four, record.modele.date_fin_three_t_four),
-            ]
-            intervals_t_four_quatre = [
-                (record.modele.date_depart_four_t_four, record.modele.date_fin_four_t_four),
-            ]
-
-            intervals_t_five = [
-                (record.modele.date_depart_one_t_five, record.modele.date_fin_one_t_five),
-                (record.modele.date_depart_two_t_five, record.modele.date_fin_two_t_five),
-                (record.modele.date_depart_three_t_five, record.modele.date_fin_three_t_five),
-                (record.modele.date_depart_four_t_five, record.modele.date_fin_four_t_five),
-            ]
-            intervals_t_six = [
-                (record.modele.date_depart_one_t_six, record.modele.date_fin_one_t_six),
-                (record.modele.date_depart_two_t_six, record.modele.date_fin_two_t_six),
-                (record.modele.date_depart_three_t_six, record.modele.date_fin_three_t_six),
-                (record.modele.date_depart_four_t_six, record.modele.date_fin_four_t_six),
-            ]
-            intervals_t_seven = [
-                (record.modele.date_depart_one_t_seven, record.modele.date_fin_one_t_seven),
-                (record.modele.date_depart_two_t_seven, record.modele.date_fin_two_t_seven),
-                (record.modele.date_depart_three_t_seven, record.modele.date_fin_three_t_seven),
-                (record.modele.date_depart_four_t_seven, record.modele.date_fin_four_t_seven),
-            ]
-            intervals_t_eight = [
-                (record.modele.date_depart_one_t_eight, record.modele.date_fin_one_t_eight),
-                (record.modele.date_depart_two_t_eight, record.modele.date_fin_two_t_eight),
-                (record.modele.date_depart_three_t_eight, record.modele.date_fin_three_t_eight),
-                (record.modele.date_depart_four_t_eight, record.modele.date_fin_four_t_eight),
-            ]
-            intervals_t_nine = [
-                (record.modele.date_depart_one_t_nine, record.modele.date_fin_one_t_nine),
-                (record.modele.date_depart_two_t_nine, record.modele.date_fin_two_t_nine),
-                (record.modele.date_depart_three_t_nine, record.modele.date_fin_three_t_nine),
-                (record.modele.date_depart_four_t_nine, record.modele.date_fin_four_t_nine),
-            ]
-            intervals_t_ten = [
-                (record.modele.date_depart_one_t_ten, record.modele.date_fin_one_t_ten),
-                (record.modele.date_depart_two_t_ten, record.modele.date_fin_two_t_ten),
-                (record.modele.date_depart_three_t_ten, record.modele.date_fin_three_t_ten),
-                (record.modele.date_depart_four_t_ten, record.modele.date_fin_four_t_ten),
-            ]
-
-            date_heure_debut = record.date_heure_debut.date() if isinstance(record.date_heure_debut,
-                                                                            datetime) else record.date_heure_debut
-            date_heure_fin = record.date_heure_fin.date() if isinstance(record.date_heure_fin,
-                                                                        datetime) else record.date_heure_fin
-
-            if self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_one_un) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                  record.modele.nbr_au_t_one):
-                record.prix_jour = record.modele.prix_one
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_one_deux) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                  record.modele.nbr_au_t_one):
-                record.prix_jour = record.modele.prix_one
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_one_trois) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                  record.modele.nbr_au_t_one):
-                record.prix_jour = record.modele.prix_one
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_one_quatre) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                  record.modele.nbr_au_t_one):
-                record.prix_jour = record.modele.prix_one
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_two_un) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                  record.modele.nbr_au_t_two):
-                record.prix_jour = record.modele.prix_two
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_two_deux) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                  record.modele.nbr_au_t_two):
-                record.prix_jour = record.modele.prix_two
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_two_trois) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                  record.modele.nbr_au_t_two):
-                record.prix_jour = record.modele.prix_two
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_two_quatre) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                  record.modele.nbr_au_t_two):
-                record.prix_jour = record.modele.prix_two
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_three_un) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                  record.modele.nbr_au_t_three):
-                record.prix_jour = record.modele.prix_three
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_three_deux) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                  record.modele.nbr_au_t_three):
-                record.prix_jour = record.modele.prix_three
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_three_trois) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                  record.modele.nbr_au_t_three):
-                record.prix_jour = record.modele.prix_three
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_three_quatre) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                  record.modele.nbr_au_t_three):
-                record.prix_jour = record.modele.prix_three
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_four_un) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                  record.modele.nbr_au_t_four):
-                record.prix_jour = record.modele.prix_four
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_four_deux) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                  record.modele.nbr_au_t_four):
-                record.prix_jour = record.modele.prix_four
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_four_trois) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                  record.modele.nbr_au_t_four):
-                record.prix_jour = record.modele.prix_four
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_four_quatre) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                  record.modele.nbr_au_t_four):
-                record.prix_jour = record.modele.prix_four
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_five) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                  record.modele.nbr_au_t_five):
-                record.prix_jour = record.modele.prix_five
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_six) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                  record.modele.nbr_au_t_six):
-                record.prix_jour = record.modele.prix_six
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_seven) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                  record.modele.nbr_au_t_seven):
-                record.prix_jour = record.modele.prix_seven
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_eight) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                  record.modele.nbr_au_t_eight):
-                record.prix_jour = record.modele.prix_eight
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_nine) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                  record.modele.nbr_au_t_nine):
-                record.prix_jour = record.modele.prix_nine
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-
-            elif self._check_date_in_intervals(date_heure_debut, date_heure_fin, intervals_t_ten) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                  record.modele.nbr_au_t_ten):
-                record.prix_jour = record.modele.prix_ten
-                record.nbr_jour_one = record.nbr_jour_reservation
-                record.prix_jour_two = 0
-                record.nbr_jour_two = 0
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_one_un) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                  record.modele.nbr_au_t_one):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_one_un if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_one_un) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                      record.modele.nbr_au_t_one):
-                    record.prix_jour = record.modele.prix_one
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_one_deux) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                  record.modele.nbr_au_t_one):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_one_deux if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_one_deux) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                      record.modele.nbr_au_t_one):
-                    record.prix_jour = record.modele.prix_one
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_one_trois) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                  record.modele.nbr_au_t_one):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_one_trois if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_one_trois) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                      record.modele.nbr_au_t_one):
-                    record.prix_jour = record.modele.prix_one
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_one_quatre) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                  record.modele.nbr_au_t_one):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_one_quatre if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_one_quatre) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                      record.modele.nbr_au_t_one):
-                    record.prix_jour = record.modele.prix_one
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_two_un) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                  record.modele.nbr_au_t_two):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_two_un if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_two_un) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                      record.modele.nbr_au_t_two):
-                    record.prix_jour = record.modele.prix_two
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_two_deux) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                  record.modele.nbr_au_t_two):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_two_deux if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_two_deux) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                      record.modele.nbr_au_t_two):
-                    record.prix_jour = record.modele.prix_two
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_two_trois) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                  record.modele.nbr_au_t_two):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_two_trois if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_two_trois) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                      record.modele.nbr_au_t_two):
-                    record.prix_jour = record.modele.prix_two
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_two_quatre) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                  record.modele.nbr_au_t_two):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_two_quatre if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_two_quatre) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                      record.modele.nbr_au_t_two):
-                    record.prix_jour = record.modele.prix_two
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_three_un) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                  record.modele.nbr_au_t_three):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_three_un if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_three_un) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                      record.modele.nbr_au_t_three):
-                    record.prix_jour = record.modele.prix_three
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_three_deux) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                  record.modele.nbr_au_t_three):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_three_deux if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_three_deux) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                      record.modele.nbr_au_t_three):
-                    record.prix_jour = record.modele.prix_three
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_three_trois) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                  record.modele.nbr_au_t_three):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_three_trois if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_three_trois) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                      record.modele.nbr_au_t_three):
-                    record.prix_jour = record.modele.prix_three
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_three_quatre) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                  record.modele.nbr_au_t_three):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_three_quatre if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_three_quatre) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                      record.modele.nbr_au_t_three):
-                    record.prix_jour = record.modele.prix_three
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_four_un) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                  record.modele.nbr_au_t_four):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_four_un if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_four_un) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                      record.modele.nbr_au_t_four):
-                    record.prix_jour = record.modele.prix_four
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_four_deux) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                  record.modele.nbr_au_t_four):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_four_deux if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_four_deux) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                      record.modele.nbr_au_t_four):
-                    record.prix_jour = record.modele.prix_four
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_four_trois) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                  record.modele.nbr_au_t_four):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_four_trois if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_four_trois) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                      record.modele.nbr_au_t_four):
-                    record.prix_jour = record.modele.prix_four
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_four_quatre) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                  record.modele.nbr_au_t_four):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_four_quatre if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_four_quatre) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                      record.modele.nbr_au_t_four):
-                    record.prix_jour = record.modele.prix_four
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_five) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                          record.modele.nbr_au_t_five):
-                        record.prix_jour_two = record.modele.prix_five
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_six) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                          record.modele.nbr_au_t_six):
-                        record.prix_jour_two = record.modele.prix_six
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_seven) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                          record.modele.nbr_au_t_seven):
-                        record.prix_jour_two = record.modele.prix_seven
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_eight) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                          record.modele.nbr_au_t_eight):
-                        record.prix_jour_two = record.modele.prix_eight
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_nine) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                          record.modele.nbr_au_t_nine):
-                        record.prix_jour_two = record.modele.prix_nine
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_ten) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                          record.modele.nbr_au_t_ten):
-                        record.prix_jour_two = record.modele.prix_ten
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_five) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                  record.modele.nbr_au_t_five):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_five if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_five) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_five,
-                                                      record.modele.nbr_au_t_five):
-                    record.prix_jour = record.modele.prix_five
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_six) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                  record.modele.nbr_au_t_six):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_six if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_six) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_six,
-                                                      record.modele.nbr_au_t_six):
-                    record.prix_jour = record.modele.prix_six
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_seven) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                  record.modele.nbr_au_t_seven):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_seven if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_seven) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_seven,
-                                                      record.modele.nbr_au_t_seven):
-                    record.prix_jour = record.modele.prix_seven
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_eight) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                  record.modele.nbr_au_t_eight):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_eight if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_eight) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_eight,
-                                                      record.modele.nbr_au_t_eight):
-                    record.prix_jour = record.modele.prix_eight
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_nine) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                  record.modele.nbr_au_t_nine):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_nine if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_nine) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_nine,
-                                                      record.modele.nbr_au_t_nine):
-                    record.prix_jour = record.modele.prix_nine
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            elif self._check_date_in_intervals_start(date_heure_debut, date_heure_fin, intervals_t_ten) and \
-                    self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                  record.modele.nbr_au_t_ten):
-                final_date = max(date_fin for date_depart, date_fin in intervals_t_ten if date_fin)
-                final_date_one = final_date + timedelta(days=1)
-                if self._check_date_in_intervals(date_heure_debut, final_date, intervals_t_ten) and \
-                        self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_ten,
-                                                      record.modele.nbr_au_t_ten):
-                    record.prix_jour = record.modele.prix_ten
-                    date_diff = (final_date - date_heure_debut).days
-                    record.nbr_jour_one = date_diff + 1
-                    if self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_one_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_one,
-                                                          record.modele.nbr_au_t_one):
-                        record.prix_jour_two = record.modele.prix_one
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_two_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_two,
-                                                          record.modele.nbr_au_t_two):
-                        record.prix_jour_two = record.modele.prix_two
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_three_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_three,
-                                                          record.modele.nbr_au_t_three):
-                        record.prix_jour_two = record.modele.prix_three
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_un) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_deux) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_trois) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-                    elif self._check_date_in_intervals(final_date_one, date_heure_fin, intervals_t_four_quatre) and \
-                            self._check_nbr_jour_in_range(record.nbr_jour_reservation, record.modele.nbr_de_t_four,
-                                                          record.modele.nbr_au_t_four):
-                        record.prix_jour_two = record.modele.prix_four
-                        date_diff_one = (date_heure_fin - final_date_one).days
-                        record.nbr_jour_two = date_diff_one
-
-            else:
-                record.prix_jour = 0
-                record.prix_jour_two = 0
-                record.nbr_jour_one = 0
-                record.nbr_jour_two = 0
 
     @staticmethod
     def _check_date_in_intervals(date_debut, date_fin, intervals):
@@ -2801,7 +1350,7 @@ class Reservation(models.Model):
             if interval[0] and interval[1]:
                 if not (interval[0] <= date_debut <= interval[1]) and interval[0] <= date_fin <= interval[1]:
                     return True
-        return False
+        return False 
 
     @staticmethod
     def _check_nbr_jour_in_range(nbr_jour, nbr_de, nbr_au):
@@ -2815,20 +1364,24 @@ class Reservation(models.Model):
 
     @api.model
     def optimize_all_reservations(self):
+        print("===== DÉBUT optimize_all_reservations =====")
         all_models = self.env['modele'].search([])
+        print(f"Nombre de modèles trouvés: {len(all_models)}")
         for model in all_models:
+            print(f"Optimisation du modèle: {model.name}")
             model.optimize_reservations()
             print("Optimisation Ouest")
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': 'Optimisation',
-                    'message': 'Optimisation réussie pour la zone OUEST !',
-                    'type': 'success',
-                    'sticky': False,
-                }
+        print("===== FIN optimize_all_reservations =====")
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Optimisation',
+                'message': 'Optimisation réussie pour la zone OUEST !',
+                'type': 'success',
+                'sticky': False,
             }
+        }
 
     @api.model
     def optimize_all_reservations_centre(self):
@@ -2884,6 +1437,44 @@ class ClientInherit(models.Model):
     total_duree_dereservation = fields.Char(string='Total Durée', compute='_compute_total_duree_dereservation',
                                             store=True)
     klm_moyen = fields.Char(string='Kilometrage moyen', compute='_compute_klm_moyen', store=True)
+    
+    def _cron_recompute_client_fields(self):
+        """Recalcule uniquement les clients avec réservations récemment modifiées"""
+        _logger.info("=== Début du recalcul des champs clients ===")
+        batch_size = 1000
+        Client = self.env['liste.client']
+
+        clients_to_recompute = Client.search([
+            ('total_reservation', '=', 0),
+            ('reservations', '!=', False),
+            ('reservations.status', '=', 'confirmee') 
+       ])
+
+        if not clients_to_recompute:
+            _logger.info("Aucun client à recalculer")
+            return True
+
+        total_clients = len(clients_to_recompute)
+        _logger.info(f"Total clients à traiter: {total_clients}")
+
+        # Traiter par batch
+        for i in range(0, total_clients, batch_size):
+            batch_clients = clients_to_recompute[i:i + batch_size]
+
+            try:
+                batch_clients._compute_klm_moyen()
+                batch_clients._compute_total_reservation()
+                batch_clients._compute_total_jour_reservation()
+                batch_clients._compute_total_duree_dereservation()
+                batch_clients._compute_duree_concat()
+                self.env.cr.commit()
+                _logger.info(f"✓ Traité {min(i + batch_size, total_clients)}/{total_clients} clients")
+            except Exception as e:
+                _logger.error(f"✗ Erreur lors du traitement du batch {i // batch_size + 1}: {str(e)}")
+                self.env.cr.rollback()
+
+        _logger.info("=== Fin du recalcul ===")
+        return True
 
     def send_email_mise_ajour(self):
         template_id = self.env.ref('reservation.template_mise_').id
@@ -3156,8 +1747,10 @@ class ClientInherit(models.Model):
 class ModelesInherit(models.Model):
     _inherit = 'modele'
 
-    def optimize_reservations(self):
-        for model in self:
+    def _optimize_reservations(self):
+        """Appelée par le cron"""
+        models_to_process = self.search([])
+        for model in models_to_process:
             today = datetime.now()
 
             # Filtrer les véhicules ayant `zone` égal à 1
@@ -3395,3 +1988,228 @@ class ModelesInherit(models.Model):
                     'sticky': False,
                 }
             }
+
+    
+    @api.model
+    def optimize_reservations(self, zone_id=None):
+        """
+        Si zone_id fourni -> traite seulement cette zone.
+        Sinon -> traite toutes les zones trouvées via les vehicules.
+        Ne modifie que les réservations dont date_heure_debut >= demain (selon server time).
+
+        NOUVEAU: Ajoute un buffer entre les réservations selon la zone:
+        - Zones 1, 2, 16: buffer de 1 heure
+        - Autres zones: buffer de 4 heures
+        Le buffer est ajouté PHYSIQUEMENT aux dates des réservations (début et fin).
+
+        NOUVEAU: Vérifie les blocages de véhicules (block.car) avant assignation.
+        """
+        # Temps de référence (Odoo)
+        now_str = fields.Datetime.now()
+        now_dt = fields.Datetime.from_string(now_str)
+        tomorrow_dt = now_dt + relativedelta(days=1)
+        tomorrow_str = fields.Datetime.to_string(tomorrow_dt)
+
+        report = []
+
+        # Si zone_id passé -> limiter à cette zone, sinon récupérer toutes les zones liées aux véhicules
+        if zone_id:
+            # essayer de récupérer l'enregistrement zone s'il existe
+            zones = self.env['vehicule'].search([('zone', '!=', False)]).mapped('zone').filtered(
+                lambda z: z.id == int(zone_id))
+            if not zones:
+                _logger.warning("optimize_reservations: zone_id %s introuvable.", zone_id)
+        else:
+            zones = self.env['vehicule'].search([('zone', '!=', False)]).mapped('zone')
+            # si aucune zone trouvée, rien à faire
+            if not zones:
+                _logger.info("optimize_reservations: aucune zone trouvée via vehicules.")
+                return True
+
+        # Parcourir chaque zone
+        for zone in zones:
+            _logger.info("Optimization: traitement de la zone %s (id=%s)", getattr(zone, 'display_name', zone.id),
+                         zone.id)
+
+            # NOUVEAU: Déterminer le buffer selon la zone
+            if zone.id in [1, 2, 16]:
+                buffer = timedelta(hours=1)
+                _logger.info("Zone %s: buffer de 1 heure appliqué", zone.id)
+            else:
+                buffer = timedelta(hours=4)
+                _logger.info("Zone %s: buffer de 4 heures appliqué", zone.id)
+
+            # Pour chaque modele (on peut limiter si tu veux)
+            models_to_process = self.search([])
+
+            for modele in models_to_process:
+                # 0) véhicules du modèle dans la zone courante
+                vehicles = modele.vehicule_ids.filtered(lambda v: v.zone and v.zone.id == zone.id)
+                if not vehicles:
+                    report.append(f"Zone {zone.id} / {modele.display_name}: aucun véhicule dans cette zone")
+                    continue
+
+                # 1) réservations immuables (début < demain) et mobiles (début >= demain) pour ce modèle
+                immovable = self.env['reservation'].search([
+                    ('modele', '=', modele.id),
+                    ('zone', '=', zone.id),
+                    ('status', '=', 'confirmee'),
+                    ('date_heure_debut', '<', tomorrow_str)
+                ])
+                movable = self.env['reservation'].search([
+                    ('modele', '=', modele.id),
+                    ('zone', '=', zone.id),
+                    ('status', '=', 'confirmee'),
+                    ('date_heure_debut', '>=', tomorrow_str)
+                ], order='date_heure_debut')
+
+                if not movable:
+                    report.append(
+                        f"Zone {zone.id} / {modele.display_name}: rien à optimiser à partir de {tomorrow_str}")
+                    continue
+
+                # 2) initialiser assigned: vehicle_id -> last_end (datetime)
+                assigned = {}
+                epoch = datetime(1970, 1, 1)
+                for v in vehicles:
+                    assigned[v.id] = epoch
+
+                # Remplir assigned avec réservations immuables qui sont sur des véhicules de cette zone
+                for r in immovable:
+                    if r.vehicule and r.vehicule.id in assigned:
+                        try:
+                            r_end = fields.Datetime.from_string(r.date_heure_fin)
+                        except Exception:
+                            # s'il manque la date_fin, ignorer la réservation
+                            _logger.warning("Reservation %s sans date_heure_fin, ignorée pour assigned.", r.id)
+                            continue
+                        # MODIFIÉ: Ajouter le buffer à la fin de la réservation immuable
+                        r_end_with_buffer = r_end + buffer
+                        if r_end_with_buffer > assigned[r.vehicule.id]:
+                            assigned[r.vehicule.id] = r_end_with_buffer
+
+                # 3) traitement des movable (dans savepoint pour sécurité)
+                try:
+                    self.env.cr.savepoint()
+                    # Optionnel: clear vehicule sur movable avant réassignation
+                    movable.write({'vehicule': False})
+
+                    # NOUVEAU: Fonction pour vérifier si un véhicule est bloqué pendant une période
+                    def is_vehicle_blocked(vehicle_id, start_datetime, end_datetime):
+                        """
+                        Vérifie si le véhicule est bloqué pendant la période donnée
+                        start_datetime et end_datetime sont des datetime
+                        """
+                        # Convertir les datetime en date pour comparaison avec block.car
+                        start_date = start_datetime.date()
+                        end_date = end_datetime.date()
+
+                        # Chercher des blocages qui chevauchent avec la période
+                        blocks = self.env['block.car'].search([
+                            ('vehicule_id', '=', vehicle_id),
+                            ('date_from', '<=', end_date),
+                            ('date_to', '>=', start_date)
+                        ])
+
+                        if blocks:
+                            _logger.info(
+                                f"Véhicule {vehicle_id} bloqué du {start_date} au {end_date} - {len(blocks)} blocage(s) trouvé(s)")
+                            return True
+                        return False
+
+                    def find_best_vehicle(reservation):
+                        try:
+                            start_dt = fields.Datetime.from_string(reservation.date_heure_debut)
+                        except Exception:
+                            return None
+                        best_vid = None
+                        min_gap = timedelta.max
+                        for vid, last_end in assigned.items():
+                            # Vérifier que le véhicule est disponible (pas occupé)
+                            if last_end <= start_dt:
+                                # NOUVEAU: Vérifier que le véhicule n'est pas bloqué
+                                try:
+                                    end_dt = fields.Datetime.from_string(reservation.date_heure_fin)
+                                except Exception:
+                                    continue
+
+                                if not is_vehicle_blocked(vid, start_dt, end_dt):
+                                    gap = start_dt - last_end
+                                    if gap < min_gap:
+                                        min_gap = gap
+                                        best_vid = vid
+                                else:
+                                    _logger.info(f"Véhicule {vid} ignoré car bloqué pour réservation {reservation.id}")
+                        return best_vid
+
+                    assigned_count = 0
+                    failed = []
+                    blocked_count = 0  # NOUVEAU: Compter les réservations non assignées à cause de blocage
+                    modified_reservations = []  # Pour tracker les réservations modifiées
+
+                    for r in movable.sorted(key=lambda x: x.date_heure_debut):
+                        # skip si dates manquantes
+                        if not r.date_heure_debut or not r.date_heure_fin:
+                            _logger.warning("Reservation %s missing dates => skipped", r.id)
+                            failed.append(r.id)
+                            continue
+
+                        # NOUVEAU: Récupérer les dates originales avant modification
+                        original_start = fields.Datetime.from_string(r.date_heure_debut)
+                        original_end = fields.Datetime.from_string(r.date_heure_fin)
+
+                        best_vid = find_best_vehicle(r)
+                        if best_vid:
+                            # NOUVEAU: Ajouter le buffer aux dates réelles de la réservation
+                            new_start = original_start + buffer
+                            new_end = original_end + buffer
+
+                            # MODIFIÉ: Assigner le véhicule ET modifier les dates avec buffer
+                            r.write({
+                                'vehicule': best_vid,
+                                'date_heure_debut': fields.Datetime.to_string(new_start),
+                                'date_heure_fin': fields.Datetime.to_string(new_end)
+                            })
+
+                            # NOUVEAU: Tracker les modifications pour les logs
+                            modified_reservations.append({
+                                'id': r.id,
+                                'original_start': original_start,
+                                'new_start': new_start,
+                                'original_end': original_end,
+                                'new_end': new_end
+                            })
+
+                            # MODIFIÉ: Mettre à jour assigned avec la nouvelle fin + buffer
+                            new_end_with_buffer = new_end + buffer
+                            if new_end_with_buffer > assigned[best_vid]:
+                                assigned[best_vid] = new_end_with_buffer
+                            assigned_count += 1
+                        else:
+                            failed.append(r.id)
+                            # Vérifier si c'est à cause d'un blocage
+                            for vid in assigned.keys():
+                                if is_vehicle_blocked(vid, original_start, original_end):
+                                    blocked_count += 1
+                                    break
+
+                    report.append(
+                        f"Zone {zone.id} (buffer {buffer}) / {modele.display_name}: assignées {assigned_count}/{len(movable)} ; échouées: {len(failed)} (dont {blocked_count} bloquées)"
+                    )
+                    if failed:
+                        report.append(f" - réservations non assignées ids: {failed}")
+
+                    # NOUVEAU: Log des modifications de dates
+                    if modified_reservations:
+                        _logger.info("Réservations avec dates modifiées (buffer ajouté):")
+                        for mod in modified_reservations:
+                            _logger.info(
+                                f"  Res {mod['id']}: {mod['original_start']} -> {mod['new_start']} | {mod['original_end']} -> {mod['new_end']}")
+
+                except Exception as e:
+                    _logger.exception("Erreur optimisation pour modele %s en zone %s: %s", modele.id, zone.id, e)
+                    report.append(f"Zone {zone.id} / {modele.display_name}: erreur durant l'optimisation: {e}")
+
+                    # Logue le rapport global
+        _logger.info("Rapport optimisation réservations (multi-zone):\n%s", "\n".join(report))
+        return True

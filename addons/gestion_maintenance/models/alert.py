@@ -21,33 +21,22 @@ class AlertRecord(models.Model):
     agent = fields.Many2many(string='Agent', related='zone.agent')
     maintenance_id = fields.Many2one('maintenance.record', string='Maintenance Record')
     alert_km = fields.Integer(string='Alert Km', related='maintenance_id.alert_km', store=True)
-    echeance = fields.Char(string='Échéance', compute='_compute_echeance', store=True)
+    echeance = fields.Char(string='Échéance')
     maintenance_created = fields.Boolean(string='Alert Created', default=False)
     status = fields.Selection([
         ('en_attente', 'En attente'),
         ('realise', 'Réalisé'),
         ('verifie', 'Vérifié')], string='Statut')
 
-    @api.depends('type_maintenance_id', 'alert_km', 'date_prochaine_alerte')
-    def _compute_echeance(self):
-        for record in self:
-            if record.type_maintenance_id and record.type_maintenance_id.type == 'duree':
-                # Si type_maintenance_id est 'duree', l'échéance est la date_prochaine_alerte
-                record.echeance = record.date_prochaine_alerte
-            else:
-                # Sinon, l'échéance est alert_km + 'Km'
-                record.echeance = f"{record.alert_km} Km"
-
-    type_maintenance_id = fields.Many2one(string='Maintenance', related='maintenance_id.type_maintenance_id',
-                                          store=True)
-    type = fields.Selection(string='Type', related='maintenance_id.type')
+    type_maintenance_id = fields.Many2one('type.maintenance.record', string='Maintenance')
+    type = fields.Selection(string='Type', related='type_maintenance_id.type')
     date_prochaine_alerte = fields.Date(string='Date d Alerte')
     prix_da = fields.Float(string='Prix en DA')
     prix_eur = fields.Float(string='Prix en EUR')
     type_maintenance_id1 = fields.Many2one(string='Maintenance', related='maintenance_id.type_maintenance_id')
     type1 = fields.Selection(string='Le type de maintenance', related='type_maintenance_id1.type')
     date_prochaine = fields.Date(string='Prochaine date')
-    klm_prochaine = fields.Char(string='Kilométrage')
+    klm_prochaine = fields.Integer(string='Kilométrage')
 
     @api.model
     def _generate_reference_id(self):

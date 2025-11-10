@@ -1,0 +1,118 @@
+ .filcont {
+      background-color: #cecece;
+      padding: 10px 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 100%;
+      margin: 30px;
+    }
+
+    .filtRow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: end;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+
+    .filItem {
+      flex: 1 1 150px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    input,
+    select {
+      padding: 8px;
+      border: 2px solid #d7d4d4;
+      border-radius: 8px;
+      background-color: #f7f7f7;
+    }
+
+    .butn123 {
+      padding: 6px 8px;
+      border: 1px solid #d7d4d4;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #0d1935;
+      color: white;
+      transition: background-color 0.3s;
+      margin-left: 15px;
+    }
+
+    .butn123:hover {
+      background-color: #324690;
+    }
+
+
+
+    .enAtteN {
+      background-image: linear-gradient(to right, #cecece, #cecece);
+      color: #5a5a5a;
+      letter-spacing: 1px;
+      font-style: italic;
+      border: 1px #e3e0e0 solid;
+    }
+
+    .ANNle {
+      background-color: #cc0000;
+      color: #ffffff;
+      border: 1px #e3e0e0 solid;
+      letter-spacing: 1px;
+    }
+
+    .rejetée {
+      background-color: #f7dc6f;
+      border: 1px #e3e0e0 solid;
+      letter-spacing: 1px;
+    }
+
+    .CONFirm {
+      background-color: #00b300;
+      border: 1px #e3e0e0 solid;
+      letter-spacing: 1px;
+    }
+
+    .ta-BLE {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .ta-BLE tbody tr:hover {
+      background-image: linear-gradient(to right, #edf167, #f7f78e);
+      transition: background-color 0.1s;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .resulspan {
+      text-align: right;
+      width: 80%;
+    }
+
+    .pagination-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .items-per-page select {
+      padding: 5px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+
+    .tiret-transparent {
+      color: transparent;
+    }

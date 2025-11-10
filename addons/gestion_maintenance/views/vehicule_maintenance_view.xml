@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_vehicule_maintennace_form" model="ir.ui.view">
+        <field name="name">vehicule.form</field>
+        <field name="model">vehicule</field>
+        <field name="arch" type="xml">
+            <form string="Vehicule">
+                <header>
+                    <button name="verifier_ou_creer_reservation" string="verifier planning" type="object"
+                            class="btn-primary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <groupe>
+                            <group string="INFO DU MODELE" class="custom-group custom-group-width">
+                                <field name="modele"  readonly="1"/>
+                                <field name="dernier_klm" readonly="1"/>
+                            </group>
+                        </groupe>
+                        <groupe>
+                            <group string="INFO DU VEHICULE" class="custom-group custom-group-width"
+                                   style="margin-left:1cm;">
+                                <field name="matricule" readonly="1"/>
+                                <field name="numero" readonly="1"/>
+                                
+                            </group>
+                        </groupe>
+                    </group>
+                    <notebook>
+                        <page string="maintenance">
+                            <field name="vehicule_ids" readonly="1"> 
+                                <tree default_order="date desc">
+                                    <field name="date"/>
+                                    <field name="type_maintenance_id"/>
+                                    <field name="numero" widget="badge"/>
+                                    <field name="kilometrage"/>
+                                    
+                                    <field name="note"/>
+                                </tree>  
+                            </field>
+                        </page>
+                    </notebook>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_vehicule_maintenance_tree" model="ir.ui.view">
+        <field name="name">vehicule.tree</field>
+        <field name="model">vehicule</field>
+        <field name="arch" type="xml">
+            <tree string="vehicule">
+                <field name="matricule"/>
+                <field name="numero" widget="badge"/>
+                <field name="modele"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <record id="action_vehicule_maintenance" model="ir.actions.act_window">
+        <field name="name">Véhicules</field>
+        <field name="res_model">vehicule</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_vehicule_maintenance_tree"/>
+        <field name="view_ids" eval="[(5, 0, 0), 
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_vehicule_maintenance_tree')}), 
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_vehicule_maintennace_form')})
+        ]"/>
+    </record>
+
+
+    <menuitem id="menu_vehicule_maintenance_sub_"
+              name="Vehicules"
+              parent="maintenance_menu_root"
+              sequence="1"
+              action="action_vehicule_maintenance"
+              groups="access_rights_groups.group_manager_general,access_rights_groups.group_agent,access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

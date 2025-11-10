@@ -11,7 +11,8 @@
        # 'views/km_actuel.xml',
         'views/maintenance_poup.xml',
         'views/maintenance_verifier.xml',
-
+        'views/vehicule_maintenance_view.xml',
+        'data/cron_view.xml',
     ],
 
     'assets': {

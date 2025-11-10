@@ -16,6 +16,8 @@
         'views/solde_parrainage_view.xml',
         'views/filleul_popup.xml',
         'views/news_letter_view.xml',
+        'views/block_reason_view.xml',
+        'data/cron_data.xml',
     ],
     'installable': True,
     'application': True,

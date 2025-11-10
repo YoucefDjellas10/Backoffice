@@ -63,11 +63,6 @@ class RetourAvance(models.Model):
         if self.reservation:
             self.date_retour_avance = self.date_heure_fin
 
-    @api.constrains('date_retour_avance', 'date_heure_fin')
-    def _check_date_retour_avance(self):
-        for record in self:
-            if record.date_retour_avance and record.date_heure_fin and record.date_retour_avance >= record.date_heure_fin:
-                raise ValidationError("La date de retour avancé ne peut pas être après la date de fin.")
 
     @api.depends('date_retour_avance', 'date_heure_fin')
     def _compute_differences(self):

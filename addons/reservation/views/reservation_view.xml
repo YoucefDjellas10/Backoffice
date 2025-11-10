@@ -6,15 +6,31 @@
             <field name="model">reservation</field>
             <field name="arch" type="xml">
                 <form string="reservation">
-                    <sheet>
+                    
 
                         <header>
+                            
+                            <button string="Télécharger tous les documents"
+                                    type="object"
+                                    name="download__combined_documents"
+                                    class="oe_stat_button btn-primary"
+                                    icon="fa-download"
+                                    />
                             <button name="action_confirmer_reservation"
                                     string="Confirmer la réservation"
                                     type="object" invisible="status != 'en_attend'"
-                                    class="btn-primary"/>
+                                    class="btn-success" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                            <button name="action_annuler_request_pop_up"
+                                    string="Annuler la réservation"
+                                    invisible="status != 'confirmee' or etat_reservation == 'loue'"
+                                    type="object"
+                                    class="btn-danger"
+                                    groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+
                             <field name="status" widget="statusbar"/>
                         </header>
+                    <sheet>
                         <notebook>
                             <page string="Résumé">
                                 <div style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin: 10px; position: relative;">
@@ -26,14 +42,17 @@
                                                default="contextual_default_function" unique="1"/>
 
                                         <field name="etat_reservation" invisible="1"/>
-                                        <field name="total_reduit_euro" decoration-bf="total_reduit_euro"/>
+                                        <field name="total_reduit_euro" string="Total"  decoration-bf="total_reduit_euro"/>
                                         <field name="montant_paye" readonly="1" decoration-bf="total_reduit_euro"/>
                                         <field name="reste_payer" readonly="1" force_save="1" decoration-bf="total_reduit_euro"/>
 
-                                        <field name="status" decoration-bf="1"/>
+                                        <field name="status" decoration-bf="1" 
+                                               groups="access_rights_groups.group_admin"/>
 
                                         <field name="color_tag" widget="color_picker" invisible="1"/>
                                         <field name="create_date_trimmed" string="Date de réservation"
+                                               decoration-bf="1" invisible="1"/>
+                                        <field name="create_date" string="Date de réservation"
                                                decoration-bf="1"/>
                                         <field name="date_heure_debut" widget="daterange" string="Du ➝ Au"
                                                options="{'end_date_field': 'date_heure_fin'}" invisible="1"/>
@@ -84,7 +103,11 @@
 
                                                     <td>
                                                         <field name="telephone" nolabel="1"
-                                                               decoration-bf="1"/>
+                                                               decoration-bf="1" invisible="not telephone"/>
+                                        
+                                                        <field name="mobile" nolabel="1"
+                                                               decoration-bf="1" invisible="telephone or not mobile"/>
+                                                   
                                                     </td>
                                                     <td>
                                                         <field name="email" nolabel="1"
@@ -112,17 +135,20 @@
                                                         <field name="solde" nolabel="1"/>
                                                     </td>
                                                 </tr>
-                                                <tr invisible="not nd_client">
+                                                
+                                                <tr invisible="not nom_nd_condicteur">
                                                     <td>
-                                                        <field name="nd_client" nolabel="1" readonly="1"
+                                                        <field name="nom_nd_condicteur" nolabel="1" readonly="1"
+                                                               decoration-bf="1"/>
+                                                        <field name="prenom_nd_condicteur" nolabel="1" readonly="1"
                                                                decoration-bf="1"/>
                                                     </td>
                                                     <td>
-                                                        <field name="permis_date_nd" readonly="1" nolabel="1"
+                                                        <field name="date_de_permis" readonly="1" nolabel="1"
                                                                decoration-bf="1"/>
                                                     </td>
                                                     <td>
-                                                        <field name="date_de_naissance_nd" readonly="1" nolabel="1"
+                                                        <field name="date_nd_condicteur" readonly="1" nolabel="1"
                                                                decoration-bf="1"/>
                                                     </td>
 
@@ -131,7 +157,7 @@
                                                                decoration-bf="1"/>
                                                     </td>
                                                     <td>
-                                                        <field name="email_nd" nolabel="1"
+                                                        <field name="email_nd_condicteur" nolabel="1"
                                                                decoration-bf="1"/>
                                                     </td>
                                                     <td>
@@ -421,30 +447,56 @@
                                 </group>
                             </page>
                             <page string="for testing" groups="access_rights_groups.group_admin">
-                                <group>
+                                <sheet>
                                     <group>
-                                        <field name="date_heure_debut"/>
-                                        <field name="date_heure_fin"/>
-                                        <field name="duree_dereservation"/>
-                                        <field name="lieu_depart"/>
-                                        <field name="lieu_retour"/>
-                                        <field name="vehicule"/>
-                                        <field name="client"/>
-                                        <field name="client_create_date"/>
-                                        <field name="nd_client"/>
-                                        <field name="lieu_depart"/>
-                                        <field name="opt_payment"/>
-                                        <field name="opt_klm"/>
-                                        <field name="opt_protection"/>
-                                        <field name="opt_nd_driver"/>
-                                        <field name="opt_plein_carburant"/>
-                                        <field name="opt_siege_a"/>
-                                        <field name="opt_siege_b"/>
-                                        <field name="opt_siege_c"/>
+                                        <group string="left">
+                                            <field name="name"/>
+                                            <field name="date_heure_debut"/>
+                                            <field name="date_depart_char"/>
+                                            <field name="heure_depart_char"/>
+                                            <separator/>                                          
+                                            <field name="exchange_amount"/>
+                                            <field name="duree_dereservation"/>
+                                            <field name="lieu_depart"/>
+                                            <field name="client"/>
+                                            <field name="client_create_date"/>
+                                            <field name="nd_client"/>
+                                            <field name="opt_nd_driver"/>
+                                            <field name="opt_plein_carburant"/>
+                                            <field name="opt_siege_a"/>
+                                            <field name="nom_nd_condicteur"/>
+                                            <field name="prenom_nd_condicteur"/>
+                                            <field name="date_de_permis"/>
+                                        </group>
+                                        <group string="right">
+                                            <field name="status"/>
+                                            <field name="date_heure_fin"/>
+                                            <field name="date_retour_char"/>
+                                            <field name="heure_retour_char"/>
+                                            <field name="vehicule"/>
+                                            <separator/>
+                                            <field name="lieu_retour"/>
+                                            <field name="opt_payment"/>
+                                            <field name="opt_klm"/>
+                                            <field name="opt_protection"/>
+                                            <field name="opt_siege_b"/>
+                                            <field name="opt_siege_c"/>
+                                            <field name="date_nd_condicteur"/>
+                                            <field name="email_nd_condicteur"/>
+                                        </group>
                                     </group>
-                                </group>
+                                </sheet>
                             </page>
                             <page string="Tarifs" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo">
+                                                                
+                                <header>
+
+                                    
+                                    <button name="action_ouvrir_ecart_pop_up"
+                                            string="Ajouter Écart"
+                                            type="object"
+                                            class="btn-primary"/>
+                                </header>
                                 <group>
                                     <group>
                                         <groupe>
@@ -479,9 +531,9 @@
                                             <field name="prix_jour_afficher_reduit"/>
                                             <field name="options_total_reduit"/>
                                             <field name="total_reduit"/>
-                                            <field name="lecart"/>
-                                            <field name="total_degrader" readonly="1"/>
-                                            <field name="total_ecce_klm" readonly="1"/>
+                                            <field name="lecart" invisible="1"/>
+                                            <field name="total_degrader" invisible="not total_degrader" readonly="1"/>
+                                            <field name="total_ecce_klm" invisible="not total_ecce_klm" readonly="1"/>
                                         </group>
                                     </group>
                                 </group>
@@ -537,6 +589,7 @@
                                         <field name="action_date"/>
                                         <field name="action_lieu"/>
                                         <field name="livrer_par" widget="many2one_avatar_user"/>
+                                        <field name="date_de_livraison"/>
                                         <field name="lv_note"/>
                                         <field name="kilomtrage"/>
                                     </tree>

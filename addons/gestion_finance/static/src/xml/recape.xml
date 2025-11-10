@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <t t-name="RecapeTree" owl="1">
+        <head>
+            <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"></link>
+            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700display=swap" rel="stylesheet"></link>
+            <meta charset="UTF-8" />
+            <title>Récap des Dépenses</title>
+        </head>
+        <body>
+            <div class="balance-container">
+                <div class="main-container">
+                    <div class="container-fluid">
+
+                        <!-- En-tête -->
+
+                        <!-- Section Filtres -->
+                        <div class="filters-section">
+                            <div class="row g-3">
+                                <!-- Première ligne - 3 champs -->
+                                <div class="col-md-4">
+                                    <div class="filter-label">Mois</div>
+                                    <select id="mois" class="filter-select">
+                                        <option value="1">Janvier</option>
+                                        <option value="2">Février</option>
+                                        <option value="3">Mars</option>
+                                        <option value="4">Avril</option>
+                                        <option value="5">Mai</option>
+                                        <option value="6">Juin</option>
+                                        <option value="7">Juillet</option>
+                                        <option value="8">Août</option>
+                                        <option value="9">Septembre</option>
+                                        <option value="10">Octobre</option>
+                                        <option value="11">Novembre</option>
+                                        <option value="12">Décembre</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="filter-label">Année</div>
+                                    <input type="number" id="annee" class="filter-select" placeholder="Année"/>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="filter-label">Zone</div>
+                                    <select id="zone" class="filter-select">
+                                        <option value="">Toutes les zones</option>
+                                        <t t-foreach="state.zones" t-as="zone" t-key="zone.id">
+                                            <option t-att-value="zone.id" t-esc="zone.name"/>
+                                        </t>
+                                    </select>
+                                </div>
+
+                                <!-- Deuxième ligne - 3 champs -->
+                                <div class="col-md-4">
+                                    <div class="filter-label">Type de dépense</div>
+                                    <select id="type_depense" class="filter-select">
+                                        <option value="">Tous les types</option>
+                                        <t t-foreach="state.typesDepense" t-as="type" t-key="type.id">
+                                            <option t-att-value="type.id" t-esc="type.name"/>
+                                        </t>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="filter-label">Véhicule</div>
+                                    <select id="vehicule" class="filter-select">
+                                        <option value="">Tous les véhicules</option>
+                                        <t t-foreach="state.vehicules" t-as="vehicule" t-key="vehicule.id">
+                                            <option t-att-value="vehicule.id" t-esc="vehicule.name"/>
+                                        </t>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="filter-label">État</div>
+                                    <select id="statut" class="filter-select">
+                                        <option value="">Tous les états</option>
+                                        <option value="en_attente">En attente</option>
+                                        <option value="valde_mr">Validé par MR</option>
+                                        <option value="valide_mg">Validé par MG</option>
+                                        <option value="valide" selected="selected">Validé</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Ligne des résultats et boutons -->
+                            <div class="filter-buttons">
+                                <div class="filter-label" >
+                                    <span style="font-weight: bold; font-size: 20px;">
+                                         Total : <t t-esc="state.totalMontant.toLocaleString('fr-FR')"/> DA
+                                    </span>
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="butn123" t-on-click="searchDepenses">
+                                        Rechercher
+                                    </button>
+                                    <button class="butn123 " t-on-click="resetFilters">
+                                        Rétablir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tableau principal -->
+                        <div class="annual-table-wrapper">
+                            <table class="annual-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date de réalisation</th>
+                                        <th>Zone</th>
+                                        <th>Type de dépense</th>
+                                        <th>Montant (DA)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="state.depenses" t-as="depense" t-key="depense.id">
+                                        <tr>
+                                            <td t-esc="depense.date_de_realisation"/>
+                                            <td t-esc="depense.zone"/>
+                                            <td t-esc="depense.type_depense"/>
+                                            <td style="color: #e74c3c; font-weight: 600;" t-esc="depense.montant_da"/>
+
+                                        </tr>
+                                    </t>
+                                    <tr t-if="state.depenseCount === 0">
+                                        <td colspan="8" style="text-align:center">Aucune dépense trouvée</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="pagination-controls" t-if="state.totalPages > 1">
+                            <div class="items-per-page">
+                                <select class="filter-select" t-on-change="changeItemsPerPage" style="width: auto;">
+                                    <option value="10">10</option>
+                                    <option value="30" selected="selected">30</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <button class="butn123 pagination-btn search-btn" t-on-click="prevPage" t-att-disabled="state.currentPage === 1">
+                                    ‹
+                                </button>
+                                <span class="page-info">
+                                    Page <t t-esc="state.currentPage"/> sur <t t-esc="state.totalPages"/>
+                                </span>
+                                <button class="butn123 pagination-btn search-btn" t-on-click="nextPage" t-att-disabled="state.currentPage === state.totalPages">
+                                    ›
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </body>
+
+        <style>
+            /* ✅ Même style CSS que balance.xml */
+            .o_action_manager .o_action > div {
+                height: 100%;
+            }
+
+            .balance-container {
+                font-family: 'Poppins', sans-serif !important;
+                background: linear-gradient(130deg,#6770b7, #cab1d9) !important;
+                min-height: 100%;
+                height: 100%;
+                overflow-y: auto !important;
+                padding: 20px 0 40px 0;
+                position: relative;
+                width: 100%;
+            }
+
+            .balance-container::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: url('https://i.ibb.co/ZR4bt0Cw/6f09b0e8-6820-4ac0-bedd-5797e92814c18.jpg') center/cover no-repeat;
+                opacity: 0.15;
+                z-index: 0;
+                pointer-events: none;
+            }
+
+            .balance-container .main-container {
+                position: relative;
+                z-index: 1;
+            }
+
+            .balance-container .header-section {
+                text-align: center;
+                margin-bottom: 30px;
+                padding: 30px 20px;
+                background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%) !important;
+                border-radius: 20px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+                backdrop-filter: blur(10px);
+                animation: fadeInDown 0.8s ease;
+            }
+
+            @keyframes fadeInDown {
+                from { opacity: 0; transform: translateY(-30px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            .balance-container .balance-title {
+                font-weight: 700;
+                background: linear-gradient(-135deg, #406085 0%, #65748B 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                font-size: 48px;
+                margin-bottom: 10px;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+            }
+
+            .balance-container .sub-title {
+                color: #5f6368;
+                font-size: 18px;
+                font-weight: 400;
+                letter-spacing: 1px;
+            }
+
+            /* ✅ Section Filtres */
+            .balance-container .filters-section {
+                background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(236,245,252,0.9) 100%) !important;
+                border-radius: 16px;
+                padding: 24px;
+                margin-bottom: 30px;
+                border: 2px solid rgba(255,255,255,0.5);
+                box-shadow: 0 8px 32px rgba(31,38,135,0.15);
+                backdrop-filter: blur(8px);
+                animation: fadeInUp 0.6s ease;
+            }
+
+            @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(30px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            .balance-container .filter-label {
+                font-weight: 600;
+                color: #406085;
+                margin-bottom: 8px;
+                font-size: 14px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .balance-container .filter-select {
+                width: 100%;
+                padding: 10px 15px;
+                border: 2px solid rgba(103,112,183,0.2);
+                border-radius: 8px;
+                font-size: 15px;
+                background: white;
+                transition: all 0.3s ease;
+                font-family: 'Poppins', sans-serif;
+            }
+
+            .balance-container .filter-select:focus {
+                outline: none;
+                border-color: #6770b7;
+                box-shadow: 0 0 0 3px rgba(103,112,183,0.1);
+            }
+
+            /* ✅ Boutons Rechercher et Rétablir */
+            .balance-container .filter-buttons {
+                display: flex;
+                gap: 10px;
+                justify-content: space-between;
+                margin-top: 20px;
+                align-items: center;
+            }
+
+            .balance-container .resulspan {
+                flex-grow: 1;
+                text-align: left;
+            }
+
+            .balance-container .butn123 {
+                padding: 10px 24px;
+                border: none;
+                border-radius: 8px;
+                font-size: 15px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-family: 'Poppins', sans-serif;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                color: white;
+            }
+
+            /* ✅ Couleurs des boutons */
+            .balance-container .search-btn {
+                background: linear-gradient(135deg, #406085 0%, #535da9 100%);
+            }
+
+            .balance-container .reset-btn {
+                background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            }
+
+            .balance-container .butn123:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(64,96,133,0.3);
+            }
+
+            /* ✅ Tableau style */
+            .balance-container .annual-table-wrapper {
+                background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(236,245,252,0.9) 100%) !important;
+                border-radius: 16px;
+                padding: 24px;
+                border: 2px solid rgba(255,255,255,0.5);
+                box-shadow: 0 8px 32px rgba(31,38,135,0.15);
+                backdrop-filter: blur(8px);
+                overflow-x: auto;
+            }
+
+            .balance-container .annual-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+
+            .balance-container .annual-table th {
+                background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+                color: white;
+                padding: 15px;
+                text-align: center;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                border: 2px solid #1a252f;
+                font-size: 14px;
+            }
+
+            .balance-container .annual-table td {
+                padding: 12px 15px;
+                text-align: center;
+                border: 2px solid #d0d7de;
+                background: rgba(255,255,255,0.8);
+                font-size: 13px;
+                font-weight: 500;
+                transition: all 0.2s ease;
+            }
+
+            .balance-container .annual-table tr:hover td {
+                background: rgba(103,112,183,0.15);
+            }
+
+            /* Pagination */
+            .balance-container .pagination-controls {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 20px;
+                padding: 15px;
+                background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(236,245,252,0.9) 100%);
+                border-radius: 16px;
+                border: 2px solid rgba(255,255,255,0.5);
+            }
+
+            .balance-container .pagination-btn {
+                padding: 8px 16px;
+            }
+
+            .balance-container .page-info {
+                font-weight: 600;
+                color: #406085;
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .balance-container .balance-title { font-size: 36px; }
+                .balance-container .sub-title { font-size: 16px; }
+                .balance-container .filters-section { padding: 20px; }
+                .balance-container .annual-table th,
+                .balance-container .annual-table td {
+                    padding: 10px 8px;
+                    font-size: 12px;
+                }
+                .balance-container .filter-buttons {
+                    flex-direction: column;
+                    gap: 15px;
+                }
+                .balance-container .resulspan {
+                    text-align: center;
+                }
+            }
+
+            @media (max-width: 576px) {
+                .balance-container { padding: 10px 0 30px 0; }
+                .balance-container .balance-title { font-size: 28px; }
+                .balance-container .filters-section { padding: 16px; }
+                .balance-container .annual-table-wrapper { padding: 16px; }
+                .balance-container .annual-table th,
+                .balance-container .annual-table td {
+                    padding: 8px 5px;
+                    font-size: 11px;
+                }
+            }
+        </style>
+    </t>
+</templates>

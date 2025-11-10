@@ -16,13 +16,22 @@
                                 <field name="date_fin" invisible="1"/>
                                 <field name="active_passive"/>
                                 <field name="tout_modele" widget="radio"/>
-                                <field name="modele" invisible="tout_modele != 'non'" widget="many2many_tags"/>
+                                <field name="modele" readonly="tout_modele == 'aleatoire'"  invisible="tout_modele == 'oui'" widget="many2many_tags"/>
+                                <field name="next_changes" readonly="1"  invisible="tout_modele != 'aleatoire'"/>
+                                <field name="model_one" invisible="1"/>
+                                <field name="model_three" invisible="1"/>
+                                <field name="model_four" invisible="1"/>
+                                <field name="model_five" invisible="1"/>
+                                <field name="model_two" invisible="1"/>
                                 <field name="nbr_model" invisible="tout_modele != 'aleatoire'"/>
                             </group>
                         </groupe>
                         <group class="custom-group">
                             <field name="tout_zone" widget="radio"/>
                             <field name="zone" widget="many2many_tags" invisible="tout_zone != 'non'"/>
+                            <field name="zone_one" invisible="1"/>
+                            <field name="zone_two" invisible="1"/>
+                            <field name="zone_three" invisible="1"/>
                             <field name="debut_visibilite" widget="daterange" string="Dates de visibilité"
                                    options="{'end_date_field': 'fin_visibilite'}"/>
                             <field name="fin_visibilite" invisible="1"/>
@@ -43,9 +52,9 @@
             <tree string="promotion">
                 <field name="name"/>
                 <field name="active_passive"/>
-                <field name="zone"/>
+                <field name="zone"  widget="many2many_tags"/>
                 <field name="tout_modele" string="Appliquable"/>
-                <field name="modele"/>
+                <field name="modele"  widget="many2many_tags"/>
                 <field name="date_debut"/>
                 <field name="date_fin"/>
                 <field name="debut_visibilite"/>

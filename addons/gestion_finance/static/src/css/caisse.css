@@ -1,0 +1,110 @@
+.caisse-container {
+    padding: 30px;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+}
+
+.top-row,
+.bottom-row {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.caisse-box {
+    flex: 1;
+    min-width: 350px;
+    background-color: white;
+    border: 2px solid #1a4d6d;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.box-title {
+    background-color: white;
+    color: #1a4d6d;
+    padding: 12px 20px;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    border-bottom: 2px solid #1a4d6d;
+}
+
+.caisse-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.caisse-table tbody tr {
+    border-bottom: 1px solid #d0d0d0;
+}
+
+.caisse-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.label-cell {
+    width: 50px;
+    padding: 12px 15px;
+    text-align: center;
+    font-weight: 700;
+    color: #1a4d6d;
+    background-color: #f8f9fa;
+    border-right: 1px solid #d0d0d0;
+    font-size: 16px;
+}
+
+.content-cell {
+    padding: 12px 20px;
+    color: #333;
+    font-size: 15px;
+    border-right: 1px solid #d0d0d0;
+}
+
+.value-cell {
+    width: 100px;
+    padding: 12px 15px;
+    text-align: right;
+    font-weight: 600;
+    color: #1a4d6d;
+    font-size: 15px;
+}
+
+.empty-cell {
+    padding: 40px;
+    background-color: #fafafa;
+}
+
+.caisse-table.single-cell tbody tr {
+    height: 80px;
+}
+
+/* Hover effect */
+.caisse-table tbody tr:hover {
+    background-color: #f0f4f7;
+    transition: background-color 0.2s ease;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .top-row,
+    .bottom-row {
+        flex-direction: column;
+    }
+    
+    .caisse-box {
+        min-width: 100%;
+    }
+    
+    .value-cell {
+        width: 80px;
+        font-size: 14px;
+    }
+    
+    .content-cell {
+        font-size: 14px;
+    }
+}

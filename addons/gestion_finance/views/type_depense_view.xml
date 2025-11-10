@@ -45,7 +45,7 @@
     <menuitem id="menu_type_depens_sub"
               name="Type des dépenses"
               sequence="5"
-              parent="menu_depense_record_sub"
+              parent="menu_finance_depense"
               action="action_type_depens"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
 </odoo>

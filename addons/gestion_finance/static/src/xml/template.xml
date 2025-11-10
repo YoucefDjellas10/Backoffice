@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="FinanceStaticTemplate">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600display=swap" rel="stylesheet"/>
+
+        <style>
+            .fin-page-wrapper {
+                font-family: 'Poppins', sans-serif;
+                background: linear-gradient(130deg,#6770b7, #cab1d9);
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 40px;
+                margin: 0;
+            }
+
+            .fin-main-container {
+                background: rgba(255,255,255,0.9);
+                padding: 50px;
+                border-radius: 25px;
+                box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+                text-align: center;
+                width: 600px;
+                backdrop-filter: blur(8px);
+                animation: fin-fadeIn 1s ease;
+                position: relative;
+            }
+
+            .fin-box {
+                border: 3px solid #406085;
+                border-radius: 15px;
+                padding: 25px;
+                margin: 25px 0;
+                font-size: 28px;
+                font-weight: 600;
+                color: #273573;
+                background: linear-gradient(145deg, #ffffff, #f0f4ff);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                transition: all 0.3s ease;
+                cursor: pointer;
+                display: block;
+            }
+
+            .fin-box:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+                background: linear-gradient(145deg, #f9fbff, #ffffff);
+                border-color: #273573;
+            }
+
+            h1 {
+                font-size: 36px;
+                font-weight: 700;
+                color: #273573;
+                margin-bottom: 30px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            @keyframes fin-fadeIn {
+                from { opacity: 0; transform: translateY(30px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            .fin-box-container {
+                width: 100%;
+            }
+        </style>
+
+        <div class="fin-page-wrapper">
+            <div class="fin-main-container">
+                <h1>Finance</h1>
+
+                <div class="fin-box-container">
+                    
+                    <a class="fin-box"
+                       href="https://backoffice.safarelamir.com/web#action=751&amp;menu_id=561"
+                       target="_top"
+                       tabindex="0"
+                       role="link"
+                       onclick="window.location.href='https://backoffice.safarelamir.com/web#action=751&amp;menu_id=561'; return false;">
+                        Dépenses
+                    </a>
+
+                    
+                    <a class="fin-box"
+                       href="https://backoffice.safarelamir.com/web#action=761&amp;menu_id=564"
+                       target="_top"
+                       tabindex="0"
+                       role="link"
+                       onclick="window.location.href='https://backoffice.safarelamir.com/web#action=761&amp;menu_id=564'; return false;">
+                        Recette
+                    </a>
+
+
+                    <a class="fin-box"
+                       href="https://backoffice.safarelamir.com/web#action=765&amp;menu_id=570&amp;cids=1"
+                       target="_top"
+                       tabindex="0"
+                       role="link"
+                       onclick="window.location.href='https://backoffice.safarelamir.com/web#action=765&amp;menu_id=570&amp;cids=1'; return false;">
+                        Tableau de bord
+                    </a>
+                    
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

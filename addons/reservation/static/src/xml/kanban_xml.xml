@@ -53,26 +53,60 @@
             </div>
             <div class="entry-info">
                 <!-- Ligne 1 : Date -->
+                
                 <div class="entry-time">
-                    <t t-if="reservation.date_heure_debut and reservation.vehicule and reservation.vehicule[1]">
-                        <t t-esc="formatDateTime(reservation.date_heure_debut) + ' (' + reservation.vehicule[1] + ')'"/>
-                    </t>
-                </div>
-
-                <!-- Ligne 2 : Lieu Départ/Retour -->
-                <div class="entry-place">
-    <t t-if="reservation.lieu_depart and reservation.lieu_depart[1] and reservation.duree_dereservation">
-        <t t-esc="reservation.lieu_depart[1] + ' (' + reservation.duree_dereservation + ')'"/>
+    <t t-if="reservation.reservation_data">
+        <!-- Pour les livraisons (D) : afficher date_depart + heure_depart -->
+        <t t-if="reservation.lv_type === 'livraison'">
+            <t t-if="reservation.vehicule and reservation.vehicule[1]">
+                <t t-esc="(reservation.reservation_data.date_depart_char || '') + ' ' + (reservation.reservation_data.heure_depart_char || '') + ' (' + reservation.name + ')'"/>
+            </t>
+            <t t-else="">
+                <t t-esc="(reservation.reservation_data.date_depart_char || '') + ' ' + (reservation.reservation_data.heure_depart_char || '')"/>
+            </t>
+        </t>
+        
+        <!-- Pour les restitutions (R) : afficher date_retour + heure_retour -->
+        <t t-if="reservation.lv_type === 'restitution'">
+            <t t-if="reservation.vehicule and reservation.vehicule[1] and reservation.name">
+                <t t-esc="(reservation.reservation_data.date_retour_char || '') + ' ' + (reservation.reservation_data.heure_retour_char || '') + ' (' + reservation.name + ')'"/>
+            </t>
+            <t t-else="">
+                <t t-esc="(reservation.reservation_data.date_retour_char || '') + ' ' + (reservation.reservation_data.heure_retour_char || '')"/>
+            </t>
+        </t>
+    </t>
+    
+    <!-- Fallback si pas de reservation_data -->
+    <t t-else="">
+        <t t-if="reservation.date_heure_debut and reservation.vehicule and reservation.vehicule[1] and reservation.name">
+            <t t-esc="formatDateTime(reservation.date_heure_debut) + ' (' + reservation.name + ')'"/>
+        </t>
     </t>
 </div>
 
+                <!-- Ligne 2 : Lieu Départ/Retour -->
+                <div class="entry-place">
+    <t t-if="reservation.lieu_depart and reservation.lieu_depart[1] and reservation.duree_dereservation and reservation.lv_type == 'livraison'">
+        <t t-esc="reservation.lieu_depart[1] + ' (' + reservation.duree_dereservation + ')'"/>
+    </t>
+    <t t-if="reservation.lieu_retour and reservation.lieu_retour[1] and reservation.duree_dereservation and reservation.lv_type == 'restitution'">
+        <t t-esc="reservation.lieu_retour[1] + ' (' + reservation.duree_dereservation + ')'"/>
+    </t>
+</div>
 
                 <!-- Ligne 3 : Matricule -->
-                <div class="entry-veh">
-                    <t t-if="reservation.matricule">
-                        <t t-esc="reservation.matricule"/>
-                    </t>
-                </div>
+               <div class="entry-veh">
+                   <t t-if="reservation.modele and reservation.modele[1] and reservation.vehicule and reservation.vehicule[1]">
+                   <strong>
+                       <t t-esc="reservation.modele[1]"/>
+                       <t t-if="reservation.matricule">
+                           <t t-raw="' - ' + reservation.matricule"/>
+                       </t>
+                       <t t-raw="' (' + reservation.vehicule[1] + ')'"/>
+                   </strong>
+                   </t>
+              </div>
 
 
                 <!-- Ligne 4 : Options -->
@@ -99,7 +133,7 @@
                         </div>
                         <span style="font-size: 14px; font-style: italic; justify-content: center; text-align: left; padding-top: 2px; color: #555;">
                             <span style="color:#6a8fae; font-weight:bold;">
-                                <t t-esc="reservation.create_date and formatDateTime(reservation.create_date)"/>
+                                <t t-esc="reservation.date_de_livraison and formatDateTime(reservation.date_de_livraison)"/>
                             </span>
                             par <t t-esc="reservation.livrer_par[1]"/>
                         </span>

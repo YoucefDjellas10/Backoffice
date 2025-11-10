@@ -22,13 +22,20 @@ class CaisseRecord(models.Model):
     recevoir = fields.One2many('transfer.argent', 'vers', string='Recevoir')
     depenses = fields.One2many('depense.record', 'caisse', string='Dépenses')
 
+    depenses_en_attente = fields.One2many('depense.record', 'caisse', string="Dépenses", domain=[('status', '=', 'en_attente')])
+
+    @api.depends('depenses', 'depenses.status')
+    def _compute_depenses_en_attente(self):
+        for record in self:
+            record.depenses_en_attente = record.depenses.filtered(lambda d: d.status == 'en_attente')
+
     @api.depends('recevoir', 'recevoir.montant_dzd', 'trasfers', 'trasfers.montant_dzd', 'depenses',
-                 'depenses.montant_da')
+                 'depenses.montant_da', 'depenses.status')
     def _compute_caisse_dzd(self):
         for record in self:
             total_recevoir = sum(recevoir.montant_dzd for recevoir in record.recevoir)
             total_transfers = sum(transfer.montant_dzd for transfer in record.trasfers)
-            total_depenses = sum(depense.montant_da for depense in record.depenses)
+            total_depenses = sum(depense.montant_da for depense in record.depenses  if depense.status != 'annule')
             record.caisse_dzd = total_recevoir - total_transfers - total_depenses
 
     @api.model

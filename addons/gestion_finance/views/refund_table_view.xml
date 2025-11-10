@@ -1,63 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Définition de la vue formulaire -->
-    <record id="view_refund_table_form" model="ir.ui.view">
-        <field name="name">refund.table.form</field>
-        <field name="model">refund.table</field>
-        <field name="arch" type="xml">
-            <form string="refund.table">
-                <sheet>
-                    <group class="custom-group">
-                        <field name="name"/>
-                        <field name="reservation"/>
-                        <field name="currency" invisible="1"/>
-                        <field name="amount"/>
-                        <field name="status" readonly="1"/>
-                        <field name="date" readonly="1"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
+    <data>
 
-    <record id="view_refund_table_tree" model="ir.ui.view">
-        <field name="name">refund.table.tree</field>
-        <field name="model">refund.table</field>
-        <field name="arch" type="xml">
-            <tree string="refund.table">
-                <field name="name"/>
-                <field name="date" readonly="1"/>
-                <field name="reservation"/>
-                <field name="currency" optional="hide" invisible="1"/>
-                <field name="amount"/>
-                <field name="status" readonly="1"/>
-            </tree>
-        </field>
-    </record>
+        <!-- Vue Formulaire -->
+        <record id="view_refund_table_form" model="ir.ui.view">
+            <field name="name">refund.table.form</field>
+            <field name="model">refund.table</field>
+            <field name="arch" type="xml">
+                <form string="Remboursement">
 
-    <record id="view_refund_table_search" model="ir.ui.view">
-        <field name="name">refund.table.search</field>
-        <field name="model">refund.table</field>
-        <field name="arch" type="xml">
-            <search string="refund.table">
-                <field name="name"/>
-                <field name="reservation"/>
-                <field name="status"/>
-            </search>
-        </field>
-    </record>
+                    <header>
+                        <field name="status" widget="statusbar"/>
 
-    <record id="action_refund_table" model="ir.actions.act_window">
-        <field name="name">Romboussements</field>
-        <field name="res_model">refund.table</field>
-        <field name="view_mode">tree,form</field>
-    </record>
+                        <button name="action_effectuer"
+                                string="Marquer comme effectué"
+                                type="object"
+                                class="btn-primary"
+                                invisible="status == 'effectuer'"/>
+                    </header>
 
-    <!-- Définition du menu -->
-    <menuitem id="menu_refund_table_sub_"
-              name="Liste des remboussement"
-              sequence="5"
-              parent="menu_gestion_finance"
-              action="action_refund_table"
-              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+                    <sheet>
+                        <group class="custom-group">
+                            <field name="name"/>
+                            <field name="reservation"/>
+                            <field name="currency" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="status" readonly="1"/>
+                            <field name="date" readonly="1"/>
+                            <field name="note"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Vue Liste -->
+        <record id="view_refund_table_tree" model="ir.ui.view">
+            <field name="name">refund.table.tree</field>
+            <field name="model">refund.table</field>
+            <field name="arch" type="xml">
+                <tree string="Remboursements">
+                    <field name="name"/>
+                    <field name="date" readonly="1"/>
+                    <field name="reservation"/>
+                    <field name="currency" optional="hide" invisible="1"/>
+                    <field name="amount"/>
+                    <field name="status" readonly="1"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Vue Recherche -->
+        <record id="view_refund_table_search" model="ir.ui.view">
+            <field name="name">refund.table.search</field>
+            <field name="model">refund.table</field>
+            <field name="arch" type="xml">
+                <search string="Remboursements">
+                    <field name="name"/>
+                    <field name="reservation"/>
+                    <field name="status"/>
+                </search>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_refund_table" model="ir.actions.act_window">
+            <field name="name">Remboursements</field>
+            <field name="res_model">refund.table</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <!-- Menu -->
+        <menuitem id="menu_refund_table_sub_"
+                  name="Liste des remboursements"
+                  sequence="5"
+                  parent="menu_finance_depense"
+                  action="action_refund_table"
+                  groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+    </data>
 </odoo>

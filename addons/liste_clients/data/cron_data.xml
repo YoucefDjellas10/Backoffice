@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Cron pour suppression des doublons -->
+        <record id="cron_supprimer_doublons" model="ir.cron">
+            <field name="name">Supprimer les doublons clients</field>
+            <field name="model_id" ref="model_liste_client"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_supprimer_doublons()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="active" eval="False"/>
+            <field name="doall" eval="False"/>
+        </record>
+
+        <record id="_cron_generate_code_prime" model="ir.cron">
+            <field name="name">Génération quotidienne de code_prime</field>
+            <field name="model_id" ref="model_liste_client"/>
+            <field name="state">code</field>
+            <field name="code">model._generate_code_prime()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 06:00:00')"/>
+            <field name="numbercall">-1</field>
+            <field name="active" eval="True"/>
+        </record>
+
+    </data>
+</odoo>

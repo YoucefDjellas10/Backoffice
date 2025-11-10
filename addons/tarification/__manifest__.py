@@ -18,6 +18,7 @@
         'views/promition_view.xml',
         'views/type_degradation_view.xml',
         'views/bareme_degradation_view.xml',
+        'data/ir_cron.xml',
     ],
 
     # 'assets': {

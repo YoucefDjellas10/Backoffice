@@ -25,7 +25,7 @@
 
                 <footer>
                     <button name="action_verify_reservation"
-                        string="Vérifier Réservation"
+                        string="Vérifier la disponibilité"
                         type="object"
                         class="btn-primary"/>
                     <button string="Effectuer les changement" type="object" 

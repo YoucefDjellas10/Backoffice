@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Définition de la vue formulaire -->
+    <record id="view_reservation_correction_form" model="ir.ui.view">
+        <field name="name">reservation.correction.form</field>
+        <field name="model">reservation.correction</field>
+        <field name="arch" type="xml">
+            <form string="reservation correction">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="reservation"/>
+                            <field name="status"/>
+                            <field name="date_depart"/>
+                            <field name="date_retour"/>
+                            <field name="heure_depart"/>
+                            <field name="heure_retour"/>
+                            <field name="vehicule"/>
+                        </group>
+                        <group>
+                            <field name="status_new"/>
+                            <field name="date_depart_new"/>
+                            <field name="date_retour_new"/>
+                            <field name="heure_depart_new"/>
+                            <field name="heure_retour_new"/>
+                            <field name="vehicule_new"/>
+                        </group>
+
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Définition de la vue arborescente -->
+    <record id="view_reservation_correction_tree" model="ir.ui.view">
+        <field name="name">reservation.correction.tree</field>
+        <field name="model">reservation.correction</field>
+        <field name="arch" type="xml">
+            <tree string="reservation correction">
+                <field name="reservation"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Définition de l'action -->
+    <record id="action_reservation_correction" model="ir.actions.act_window">
+        <field name="name">reservation correction</field>
+        <field name="res_model">reservation.correction</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Définition du menu -->
+    <menuitem id="menu_reservation_correction_sub_menu"
+              name="reservation correction"
+              sequence="50"
+              parent="menu_configuration_sub"
+              action="action_reservation_correction"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+</odoo>

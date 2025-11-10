@@ -19,6 +19,12 @@
     <record id="group_manager_general" model="res.groups">
         <field name="name">MANAGER GENERAL</field>
     </record>
+    <record id="group_manager_general_caisse_one" model="res.groups">
+        <field name="name">MANAGER GENERAL caisse 1</field>
+    </record>
+    <record id="group_manager_general_caisse_two" model="res.groups">
+        <field name="name">MANAGER GENERAL caisse 2</field>
+    </record>
     <record id="group_marketing" model="res.groups">
         <field name="name">MARKETING MANAGER</field>
     </record>

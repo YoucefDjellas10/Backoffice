@@ -41,7 +41,7 @@
                               groups="access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo">
                             <header>
                                 <button name="action_open_depense_form" type="object"
-                                        groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"
+                                        groups="access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo"
                                         string="Ajouter une dépense" class="oe_highlight"/>
                             </header>
 
@@ -53,7 +53,7 @@
                                 <button name="action_open_depense_form" type="object"
                                         string="Ajouter une dépense" class="oe_highlight"/>
                             </header>
-                            <field name="depenses" readonly="1" domain="[('status', '=', 'en_attente')]"
+                            <field name="depenses_en_attente" readonly="1" 
                                    style="border: 2px solid #2F336B; padding: 10px; border-radius: 12px;">
                                 <tree default_order="create_date desc">
                                     <field name="name"/>
@@ -349,7 +349,7 @@
     <menuitem id="menu_gestion_finance"
               sequence="100"
               name="Finance"
-              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+              groups="access_rights_groups.group_admin"/>
 
     <menuitem id="menu_gestion_finance_sub"
               sequence="0"
@@ -373,8 +373,19 @@
               name="Ma Caisse"
               sequence="100"
               action="action_caisse_record_manager_general"
-              groups="access_rights_groups.group_manager_general"/>
+              groups="access_rights_groups.group_manager_general_caisse_one"/>
 
+    <record id="action_caisse_record_manager_general_two" model="ir.actions.act_window">
+        <field name="name">Caisse spécifique</field>
+        <field name="res_model">caisse.record</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">25</field> 
+    </record>
+    <menuitem id="menu_caisse_record_sub_two_mg"
+              name="Ma Caisse"
+              sequence="100"
+              action="action_caisse_record_manager_general_two"                                                                             
+              groups="access_rights_groups.group_manager_general_caisse_two"/>
 
     <record id="action_caisse_record_mohammed_test" model="ir.actions.act_window">
         <field name="name">Caisse spécifique</field>
@@ -445,6 +456,21 @@
               action="action_caisse_record_liste_est"
               parent="menu_caisse_record_sub_agent_c1"
               groups="access_rights_groups.group_constantine_one"/>
+
+
+    <record id="action_caisse_view" model="ir.actions.client">
+        <field name="name">Caisse</field>
+        <field name="tag">caisse_action</field>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem id="menu_caisse"
+              name="Caisse"
+              parent="menu_gestion_finance"
+              action="action_caisse_view"
+              groups="access_rights_groups.group_admin"
+              sequence="1"/>
+
 
 </odoo>
 

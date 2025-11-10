@@ -49,18 +49,18 @@
         <field name="name">revenue.record.tree</field>
         <field name="model">revenue.record</field>
         <field name="arch" type="xml">
-            <tree string="revenue record">
+            <tree string="revenue record" default_order="create_date desc">
                 <field name="name"/>
-                <field name="create_date" string="Date"/>
+                <field name="create_date" string="Date" />
                 <field name="create_uid" string="Effectuer par" widget="many2one_avatar_user"/>
                 <field name="reservation" string="Référence"/>
                 <field name="mode_paiement" widget="badge"
                        decoration-info="mode_paiement == 'liquide'"
                        decoration-primary="mode_paiement == 'carte'"/>
-                <field name="total_encaisse" decoration-bf="total_encaisse" sum="Total" widget="monetary"/>
+                <field name="montant" decoration-bf="montant" sum="Total" widget="monetary"/>
+                <field name="euro" invisible="1" optional="hide"/>
                 <field name="dinar" invisible="1" optional="hide"/>
-                <field name="ecart_da" decoration-bf="ecart_da"
-                       decoration-danger="ecart_da > 0" sum="Total" widget="monetary"/>
+                <field name="montant_dzd" decoration-bf="montant_dzd" sum="Total" widget="monetary"/>
                 <field name="note"/>
             </tree>
         </field>
@@ -72,8 +72,6 @@
         <field name="arch" type="xml">
             <search string="Encaissements" >
                 <searchpanel view_types="list,kanban">
-                    <field name="vehicule" icon="fa-car"/>
-                    <field name="modele" icon="fa-cogs"/>
                     <field name="zone" icon="fa-map-marker"/>
                 </searchpanel>
                 <field name="name"/>
@@ -104,13 +102,46 @@
         <field name="view_mode">tree,form</field>
 
     </record>
-
     <!-- Définition du menu -->
-    <menuitem id="menu_revenue_record_sub"
-              name="Encaissements"
-              sequence="5"
-              parent="menu_gestion_finance"
-              action="action_revenue_record"
+    <menuitem id="menu_finance_recette"
+              name="Recette"
+              sequence="1000"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
 
+
+    <!-- Définition du menu -->
+    
+
+    <record id="action_revenu_finance" model="ir.actions.client">
+        <field name="name">Revenus</field>
+        <field name="tag">revenu_finance</field>
+    </record>
+
+    <!-- Menu principal Finance -->
+    <menuitem id="menu_finance_root"
+              name="Finance"
+              sequence="100"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"
+              parent="menu_finance_recette"
+              action="action_revenu_finance"/>
+
+
+    <record id="action_revenue_record_manager_regionale" model="ir.actions.act_window">
+        <field name="name">Encaissements</field>
+        <field name="res_model">revenue.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">['&amp;','&amp;', ('mode_paiement', '=', 'liquide'), ('verifier', '!=', 'verifier'),'|', ('create_date', '>=', '2025-11-01 00:00:00'), '&amp;', ('create_date', '=', False), ('reservation.create_date', '>=', '2025-11-01 00:00:00')]</field>
+    </record>
+    <menuitem id="menu_revenue_record_sub_mr"
+              name="les Encaissements"
+              sequence="1000"
+              action="action_revenue_record_manager_regionale"
+              groups="access_rights_groups.group_constantine_one,access_rights_groups.group_alger_six,access_rights_groups.group_oran_one,access_rights_groups.group_tlemcen_two"/>
+
+    <menuitem id="menu_revenue_record_sub_recap_"
+              name="Encaissements Non versé"
+              sequence="60"
+              parent="menu_finance_recette"
+              action="action_revenue_record_manager_regionale"
+              groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
 </odoo>

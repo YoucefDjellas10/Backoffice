@@ -8,25 +8,35 @@
             <form string="depense.record">
                 <header>
                     <field name="status" invisible="1"/>
-                    <button name="action_valide_mr" type="object" string="valider ✔" invisible="status != 'en_attente'"
+
+
+                    <button name="action_annuler" type="object" string="Annuler" class="btn-danger" 
+                            groups="access_rights_groups.group_constantine_one,access_rights_groups.group_alger_six,access_rights_groups.group_oran_one,access_rights_groups.group_tlemcen_two,access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                    <button name="action_valide_mr" type="object" string="valider ✔" class="btn-success" invisible="status != 'en_attente'"
                             groups="access_rights_groups.group_constantine_one,access_rights_groups.group_alger_six,access_rights_groups.group_oran_one,access_rights_groups.group_tlemcen_two,access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
                     <button name="action_valide_mg" type="object" string="valider ✅" invisible="status != 'valde_mr'"
-                            groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                            groups="access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
                     <button name="action_valide" type="object" string="valider ✅" invisible="status != 'valide_mg'"
                             groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
                 </header>
                 <sheet>
 
                     <group class="custom-group">
+                                         
                         <field name="type_depense"/>
-                        <field name="carburant_motif" invisible="type_depense != 13"/>
+                        <field name="carburant_motif" invisible="type_depense == 13"/>
                         <field name="type_maintenance_id" invisible="type_depense != 12"/>
                         <field name="vehicule" invisible="type_depense != 12"/>
                         <field name="vehicule_numero"/>
-                        <field name="note"/>
-                        <field name="manager_note" groups="access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                        <field name="hors_zone"  widget="radio"/>
+                        <field name="matricule_numero" invisible="hors_zone != 'oui'"/>
+                        <field name="vehicule_hors_zone" readonly="1" invisible="hors_zone != 'oui'" groups="access_rights_groups.group_manager_general,access_rights_grhts_groups.group_admin,access_rights_groups.group_ceo"/>
                         <field name="dinar" invisible="1"/>
                         <field name="montant_da"/>
+                        <field name="date_de_realisation"/>
+                        <field name="note"/>
+                        <field name="manager_note" groups="access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+                   
                     </group>
                 </sheet>
             </form>
@@ -39,9 +49,11 @@
         <field name="model">depense.record</field>
         <field name="arch" type="xml">
             <tree string="depense record">
-                <field name="vehicule"/>
+                <field name="status"/>
+                <field name="vehicule_numero"/>
                 <field name="zone"/>
-                <field name="create_date"/>
+                <field name="create_date" string="date de creation"/>
+                <field name="date_de_realisation"/>
                 <field name="type_depense"/>
                 <field name="caisse" widget="badge"/>
                 <field name="euro" invisible="1" optional="hide"/>
@@ -61,8 +73,8 @@
             <search string="depense">
                 <searchpanel view_types="list,kanban">
                     <field name="zone" icon="fa fa-map-marker"/>
-                    <field name="type_depense" icon="fa fa-briefcase"/>
                     <field name="status"/>
+                    <field name="type_depense" icon="fa fa-briefcase"/>
                 </searchpanel>
                 <filter name="filter_en_attente" string="En Attente" domain="[('status', '=', 'en_attente')]"/>
                 <filter name="filter_valde_mr" string="Validé par MR" domain="[('status', '=', 'valde_mr')]"/>
@@ -82,10 +94,12 @@
 
 
     <!-- Définition de l'action -->
-    <record id="action_depense_record" model="ir.actions.act_window">
+    <record id="action_depense_record_" model="ir.actions.act_window">
         <field name="name">Les Dépenses</field>
         <field name="res_model">depense.record</field>
         <field name="view_mode">tree,form</field>
+        <field name="domain">[('status', 'in', ['en_attente','valde_mr','valide_mg'])]</field>       
+        <field name="context">{'search_default_filter_valide_mg': 1}</field>
     </record>
     <record id="action_depense_record_agent" model="ir.actions.act_window">
         <field name="name">Les Dépenses</field>
@@ -115,10 +129,10 @@
               parent="menu_gestion_finance"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
     <menuitem id="menu_depense_record_sub_sub"
-              name="Les Dépenses"
-              sequence="0"
-              parent="menu_depense_record_sub"
-              action="action_depense_record"
+              name="Dépenses a valider"
+              sequence="1"
+              parent="menu_finance_depense"
+              action="action_depense_record_"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
 
 

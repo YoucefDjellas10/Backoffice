@@ -13,3 +13,4 @@ from . import contact_message
 from . import condition_annumation
 from . import popup_confirmation
 from . import edit_reservation
+from . import reservation_correction

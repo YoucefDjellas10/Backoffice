@@ -55,6 +55,7 @@
     <menuitem id="menu_fournisseur_sub_agent"
               name="Liste des fournisseurs"
               sequence="5"
+              parent="menu_finance_depense"
               action="action_fournisseur"
               groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
 </odoo>

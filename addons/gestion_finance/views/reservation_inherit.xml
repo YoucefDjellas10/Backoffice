@@ -6,13 +6,14 @@
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
                 <page string="Encaissements">
+                    
                     <field name="revenue_ids" widget="one2many_list">
                         <tree editable="bottom">
                             <field name="mode_paiement"/>
                             <field name="montant"/>
                             <field name="montant_dzd"/>
-                            <field name="ecart_eur"/>
-                            <field name="ecart_da"/>
+                            <field name="create_date" string="Date" readonly="1"/>
+                            <field name="create_uid" string="Effectuer par" widget="many2one_avatar_user" readonly="1"/>
                             <field name="total_reduit_euro"/>
 
                         </tree>
@@ -22,6 +23,27 @@
                     </group>
 
                 </page>
+
+                <page string="Remboursement">
+                    <field name="refunds_ids" widget="one2many_list">                                                  
+                        <tree editable="bottom">                                                                
+                            <field name="name"/>
+                            <field name="create_uid"/>
+                            <field name="date"/>
+                            <field name="amount"/>
+                            <field name="currency"/>
+                            <field name="status"/>
+                            <field name="note"/>
+                        </tree>
+
+                    </field>
+
+                    <group>
+                        <field name="total_refunds"/>
+                    </group>
+
+                </page>
+
             </xpath>
         </field>
     </record>

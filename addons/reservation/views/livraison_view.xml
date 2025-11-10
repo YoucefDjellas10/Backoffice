@@ -47,6 +47,7 @@
                             <td>
                                 <field name="reservation" style=""
                                        readonly="1"/>
+                                <field name="resa_old" style="" readonly="1"/>
                             </td>
                         </tr>
                         <tr>
@@ -78,9 +79,15 @@
                                 Date :
                             </td>
                             <td>
-                                <field name="date_heure_debut_format" style=""
+                                
+                                <field name="date_depart_char_" style=""
                                        readonly="1" invisible="lv_type == 'restitution'"/>
-                                <field name="date_heure_fin" invisible="lv_type != 'restitution'"
+                               
+                                <field name="date_retour_char_" invisible="lv_type != 'restitution'"
+                                       style="" readonly="1"/>
+                               - <field name="heure_depart_char_" style=""
+                                       readonly="1" invisible="lv_type == 'restitution'"/>
+                                <field name="heure_retour_char_" invisible="lv_type != 'restitution'"
                                        style="" readonly="1"/>
                             </td>
                         </tr>
@@ -97,7 +104,8 @@
                                 Lieu :
                             </td>
                             <td>
-                                <field name="lieu_depart" style="" readonly="1"/>
+                                <field name="lieu_depart" style="" readonly="1" invisible="lv_type != 'livraison'"/>
+                                <field name="lieu_retour" style="" readonly="1" invisible="lv_type == 'livraison'"/>
                             </td>
                         </tr>
                         <tr>
@@ -108,6 +116,29 @@
                                 <field name="total_reduit_euro" style="" readonly="1"/>
                             </td>
                         </tr>
+
+                        <tr>
+                            <td style="padding: 5px; font-size: 20px; color: #2F336B;"
+                            >
+                                numéro de vol:
+                            </td>
+                            <td>
+                                <field name="num_vol" style="" readonly="1" invisible="lv_type == 'restitution' or not num_vol"/>
+                                
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td style="padding: 5px; font-size: 20px; color: #2F336B;"
+                            >
+                                Note:
+                            </td>
+                            <td>
+                                <field name="note_lv_depart" style="" readonly="1" invisible="lv_type == 'restitution' or not note_lv_depart"/>
+                                <field name="note_lv_retour" style="" readonly="1" invisible="lv_type != 'restitution' or not note_lv_retour"/> 
+                            </td>
+                        </tr>
+
                     </table>
                 </div>
                 <section invisible="lv_type == 'restitution'">
@@ -146,27 +177,27 @@
                                 <field name="opt_carburant" invisible="1"/>
                                 <field name="opt_carburant_check"
                                        invisible="lv_type == 'restitution' or not opt_carburant"
-                                       readonly="stage == 'livre'"/>
+                                       readonly="1"/>
                                 <field name="opt_klm" invisible="1"/>
                                 <field name="opt_klm_check"
                                        invisible="lv_type == 'restitution'  or not opt_klm"
-                                       readonly="stage == 'livre'"/>
+                                       readonly="1"/>
                                 <field name="opt_nd_driver" invisible="1"/>
                                 <field name="opt_nd_driver_check"
                                        invisible="lv_type == 'restitution' or not opt_nd_driver"
-                                       readonly="stage == 'livre'"/>
+                                       readonly="1"/>
                                 <field name="opt_sb_a" invisible="1"/>
                                 <field name="opt_sb_a_check"
                                        invisible="lv_type == 'restitution' or not opt_sb_a"
-                                       readonly="stage == 'livre'"/>
+                                       readonly="1"/>
                                 <field name="opt_sb_b" invisible="1"/>
                                 <field name="opt_sb_b_check"
                                        invisible="lv_type == 'restitution' or not opt_sb_b"
-                                       readonly="stage == 'livre'"/>
+                                       readonly="1"/>
                                 <field name="opt_sb_c" invisible="1"/>
                                 <field name="opt_sb_c_check"
                                        invisible="lv_type == 'restitution' or not opt_sb_c"
-                                       readonly="stage == 'livre'"/>
+                                       readonly="1"/>
                                 <field name="color" widget="color_picker" invisible="1"/>
                             </group>
                         </groupe>
@@ -402,8 +433,6 @@
 
 
                     </details>
-
-
                 </section>
                 <notebook>
                     <page string="reservation info" invisible="1">
@@ -461,6 +490,18 @@
                                     <field name="total"/>
                                 </group>
                             </group>
+                        </group>
+                    </page>
+
+                    <page groups="access_rights_groups.group_admin">
+                        <group>
+                            <field name="livrer_par" groups="access_rights_groups.group_admin"/>
+                            <field name="stage" groups="access_rights_groups.group_admin"/>
+                            <field name="date_de_livraison" groups="access_rights_groups.group_admin"/>
+                      
+                            <field name="note_lv_depart" style="" readonly="1" invisible="lv_type == 'restitution'"/>
+                            <field name="note_lv_retour" style="" readonly="1" invisible="lv_type != 'restitution'"/>
+                            <field name="num_vol" groups="access_rights_groups.group_admin"/>
                         </group>
                     </page>
                 </notebook>

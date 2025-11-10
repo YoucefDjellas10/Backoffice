@@ -103,7 +103,7 @@
                         </div>
                         <span style="font-size: 14px; font-style: italic; justify-content: center; text-align: left; padding-top: 2px; color: #555;">
                             <span style="color:#6a8fae; font-weight:bold;">
-                                <t t-esc="reservation.create_date and formatDateTime(reservation.create_date)"/>
+                                <t t-esc="reservation.date_de_livraison and formatDateTime(reservation.date_de_livraison)"/>
                             </span>
                             par
                             <t t-esc="reservation.livrer_par[1]"/>

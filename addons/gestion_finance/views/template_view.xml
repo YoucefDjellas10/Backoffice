@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Action client -->
+        <record id="action_finance_static" model="ir.actions.client">
+            <field name="name">Finance (Statique)</field>
+            <field name="tag">finance_static</field>
+        </record>
+
+        <!-- Menu -->
+        <menuitem
+            id="menu_finance_static"
+            name="Finance"
+            action="action_finance_static"
+            sequence="10"
+            groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+    </data>
+</odoo>
+

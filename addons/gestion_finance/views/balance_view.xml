@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="action_balance_client" model="ir.actions.client">
+            <field name="name">Balance</field>
+            <field name="tag">balance</field>
+        </record>
+
+        <menuitem
+            id="menu_finance_depense"
+            name="Les Depenses"
+            groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"
+            sequence="1000"/>
+        <menuitem
+            id="menu_balance"
+            name="Les Caisses"
+            parent="menu_finance_depense"
+            action="action_balance_client"
+            groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"
+            sequence="0"/>
+        
+        <record id="action_recape_depenses" model="ir.actions.client">
+            <field name="name">Récapératulation des Dépenses</field>
+            <field name="tag">recape</field>
+        </record>
+        
+        <menuitem id="menu_recape_depenses" name="Récapératulation Dépenses" parent="menu_finance_depense"
+                  action="action_recape_depenses" sequence="154" groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+        <record id="action_recape_encaissements" model="ir.actions.client">
+            <field name="name">Récapitulatif des Encaissements</field>
+            <field name="tag">recape_encaissement</field>
+        </record>
+        
+        <menuitem id="menu_recape_encaissements" name="Récapitulatif Encaissements" parent="menu_finance_recette"
+                  action="action_recape_encaissements" sequence="0"
+                  groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
+
+       <record id="action_annual_balance" model="ir.actions.client">
+            <field name="name">Bilan Annuel</field>
+            <field name="tag">annual_balance</field>
+        </record>
+
+        <menuitem
+                id="menu_annual_balance"
+                name="Bilan Annuel"
+                groups="access_rights_groups.group_admin,access_rights_groups.group_ceo"
+                action="action_annual_balance"
+                sequence="160"/>
+    </data>
+</odoo>

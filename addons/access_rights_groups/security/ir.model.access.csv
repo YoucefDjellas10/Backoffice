@@ -3,6 +3,7 @@ access_edit_reservation_admin,Access edit reservation for admin,reservation.mode
 access_edit_reservation_reservation,Access edit reservation for reservation,reservation.model_edit_reservation,access_rights_groups.group_reservation,1,1,1,0
 access_edit_reservation_agent,Access edit reservation for agent,reservation.model_edit_reservation,access_rights_groups.group_agent,1,1,1,0
 access_edit_reservation_ceo,Access edit reservation for ceo,reservation.model_edit_reservation,access_rights_groups.group_ceo,1,1,1,0
+access_edit_reservation_mg,Access edit reservation for mg,reservation.model_edit_reservation,access_rights_groups.group_manager_general,1,1,1,0
 
 access_categorie_admin,Access Categorie for admin,gestion_du_parc.model_categorie,access_rights_groups.group_admin,1,1,1,1
 access_categorie_ceo,Access Categorie for ceo,gestion_du_parc.model_categorie,access_rights_groups.group_ceo,1,1,1,1
@@ -130,7 +131,7 @@ access_reje_raison_agent,Access reje raison for agent,reservation.model_reje_rai
 access_reje_raison_reservation,Access reje raison for reservation,reservation.model_reje_raison,access_rights_groups.group_reservation,1,0,0,0
 
 access_reservation_admin,Access reservation for admin,reservation.model_reservation,access_rights_groups.group_admin,1,1,1,1
-access_reservation_ceo,Access reservation for ceo,reservation.model_reservation,access_rights_groups.group_ceo,1,1,1,0
+access_reservation_ceo,Access reservation for ceo,reservation.model_reservation,access_rights_groups.group_ceo,1,1,1,1
 access_reservation_agnet,Access reservation for agnet,reservation.model_reservation,access_rights_groups.group_agent,1,1,0,0
 access_reservation_reservation,Access reservation for reservation,reservation.model_reservation,access_rights_groups.group_reservation,1,1,0,0
 
@@ -196,6 +197,7 @@ access_caisse_record_reservation,Access caisse_record for reservation,gestion_fi
 access_fournisseur_admin,Access fournisseur for admin,gestion_finance.model_fournisseur,access_rights_groups.group_admin,1,1,1,1
 access_fournisseur_ceo,Access fournisseur for ceo,gestion_finance.model_fournisseur,access_rights_groups.group_ceo,1,1,1,1
 access_fournisseur_agent,Access fournisseur for agent,gestion_finance.model_fournisseur,access_rights_groups.group_agent,1,1,0,0
+access_fournisseur_mg,Access fournisseur for mg,gestion_finance.model_fournisseur,access_rights_groups.group_manager_general,1,1,1,0
 
 access_depense_record_admin,Access depense_record for admin,gestion_finance.model_depense_record,access_rights_groups.group_admin,1,1,1,1
 access_depense_record_ceo,Access depense_record for ceo,gestion_finance.model_depense_record,access_rights_groups.group_ceo,1,1,1,1
@@ -235,6 +237,9 @@ access_popup_confirmation_ceo,Access popup_confirmation for ceo,reservation.mode
 
 access_refund_admin,Access refund_table for admin,gestion_finance.model_refund_table,access_rights_groups.group_admin,1,1,1,1
 access_refund_table_ceo,Access refund_table for ceo,gestion_finance.model_refund_table,access_rights_groups.group_ceo,1,1,1,1
+access_refund_reservation,Access refund_table for reservation,gestion_finance.model_refund_table,access_rights_groups.group_reservation,1,0,0,0
+access_refund_table_mg,Access refund_table for mg,gestion_finance.model_refund_table,access_rights_groups.group_manager_general,1,0,0,0
+
 
 access_historique_admin,Access historique for admin,historique.model_historique_modification,access_rights_groups.group_admin,1,1,1,1
 
@@ -291,3 +296,19 @@ access_revenue_record_manager_general,Access revenue_record for manager general,
 access_transfer_argent_manager_general,Access transfer_argent for manager general,gestion_finance.model_transfer_argent,access_rights_groups.group_manager_general,1,1,1,0
 access_type_depens_manager_general,Access type_depens for manager general,gestion_finance.model_type_depens,access_rights_groups.group_manager_general,1,0,0,0
 access_planning_dashboard_manager_general,Access planning_dashboard for manager general,Planning_dashboard.model_planning_dashboard,access_rights_groups.group_manager_general,1,1,1,1
+
+access_block_reason_admin,Access block reason for admin,liste_clients.model_block_reason,access_rights_groups.group_admin,1,1,1,1
+access_block_reason_ceo,Access block reason for ceo,liste_clients.model_block_reason,access_rights_groups.group_ceo,1,1,1,1
+access_block_reason_reservation,Access block reason for reservation,liste_clients.model_block_reason,access_rights_groups.group_reservation,1,0,1,0
+access_block_reason_manager_general,Access block reason for manager_general,liste_clients.model_block_reason,access_rights_groups.group_manager_general,1,1,1,0
+
+access_reservation_correction_admin,Access reservation correction for admin,reservation.model_reservation_correction,access_rights_groups.group_admin,1,1,1,1
+access_reservation_correction_ceo,Access reservation correction for ceo,reservation.model_reservation_correction,access_rights_groups.group_ceo,1,1,1,0
+
+access_transfert_revenue_request_admin,Access transfert_revenue_requestn for admin,gestion_finance.model_transfert_revenue_request,access_rights_groups.group_admin,1,1,1,1
+access_transfert_revenue_request_ceo,Access transfert_revenue_request for ceo,gestion_finance.model_transfert_revenue_request,access_rights_groups.group_ceo,1,1,1,1
+
+
+access_balance_admin,Access balance for admin,gestion_finance.model_balance,access_rights_groups.group_admin,1,1,1,1
+access_balance_ceo,Access balance for ceo,gestion_finance.model_balance,access_rights_groups.group_ceo,1,1,1,1
+access_transfert_revenue_request_manager,Access transfert_revenue_request for manager,gestion_finance.model_transfert_revenue_request,access_rights_groups.group_agent,1,0,0,0

@@ -3,9 +3,11 @@
 import { registry } from '@web/core/registry';
 const { Component, onMounted, useState } = owl;
 import { jsonrpc } from "@web/core/network/rpc_service";
+import { useService } from "@web/core/utils/hooks";
 
 export class TreeReservationJs extends Component {
     setup() {
+        this.actionService = useService("action");
         this.state = useState({
             zones: [],
             selectedZone: null,
@@ -23,7 +25,7 @@ export class TreeReservationJs extends Component {
             reservationCount: 0,
             // Ajouts pour la pagination
             currentPage: 1,
-            itemsPerPage: 30,
+            itemsPerPage: 300,
             totalPages: 1,
         });
 
@@ -252,8 +254,7 @@ export class TreeReservationJs extends Component {
 
                     row.querySelector('.config-btn').addEventListener('click', (e) => {
                         const id = e.currentTarget.getAttribute('data-reservation-id');
-                        const url = `${window.location.origin}/web?debug=1#id=${id}&menu_id=1465&action=360&model=reservation&view_type=form`;
-                        window.open(url, '_blank');
+                        this.openReservationForm(id);
                     });
 
                     row.querySelector('.delete-btn').addEventListener('click', (e) => {
@@ -340,6 +341,17 @@ export class TreeReservationJs extends Component {
         } catch (e) {
             return dateString;
         }
+    }
+
+    openReservationForm(reservationId) {
+        this.actionService.doAction({
+            type: 'ir.actions.act_window',
+            res_model: 'reservation',
+            res_id: parseInt(reservationId),
+            views: [[false, 'form']],
+            target: 'current',  // 'current' = même page, 'new' = modal
+            context: {}
+        });
     }
 
 }

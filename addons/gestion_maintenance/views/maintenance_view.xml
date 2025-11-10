@@ -10,6 +10,14 @@
         <field name="model">maintenance.record</field>
         <field name="arch" type="xml">
             <form string="Maintenance">
+
+                <header>
+                    <button name="action_create_missing_depenses"
+                            type="object"
+                            string="valider ✅"
+                            groups="access_rights_groups.group_admin"/>
+
+                </header>
                 <sheet>
 
                     <groupe>
@@ -113,8 +121,8 @@
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_maintenance_search"/>
     </record>
-    <menuitem id="maintenance_menu" name="Maintenances" parent="maintenance_menu_root" action="action_maintenance"
+    <menuitem id="maintenance_menu_" name="Maintenances" parent="maintenance_menu_root" action="action_maintenance"
               sequence="3"
-              groups="access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo,access_rights_groups.group_agent"/>
+              groups="access_rights_groups.group_agent,access_rights_groups.group_manager_general,access_rights_groups.group_admin,access_rights_groups.group_ceo"/>
 
 </odoo>

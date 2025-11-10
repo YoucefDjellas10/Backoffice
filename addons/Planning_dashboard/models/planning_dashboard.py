@@ -91,7 +91,8 @@ class PlanningDashboard(models.Model):
             reservations = self.env['reservation'].search([
                 ('vehicule', '=', record.id),
                 ('date_heure_debut', '<=', end_date.strftime("%Y-%m-%d 23:59:59")),
-                ('date_heure_fin', '>=', start_date.strftime("%Y-%m-%d 00:00:00"))
+                ('date_heure_fin', '>=', start_date.strftime("%Y-%m-%d 00:00:00")),
+                ('status', '=', 'confirmee')
             ])
 
             for reservation in reservations:
@@ -110,13 +111,16 @@ class PlanningDashboard(models.Model):
                         if planning[day_str][0] != "BLOQUE" and planning[day_str][1] != "BLOQUE":
                             status = etat_reservation
 
-                            # Jour de début
-                            if current_check_date == start_res.date():
-                                planning[day_str][1] = f"{status} {start_res.strftime('%H:%M')}"
+                            heure_depart = reservation.heure_depart_char or "00:00"
+                            heure_retour = reservation.heure_retour_char or "00:00"
 
-                            # Jour de retour
+            
+                            if current_check_date == start_res.date():
+                                planning[day_str][1] = f"{status} {heure_depart}"
+
+           
                             elif current_check_date == end_res.date():
-                                planning[day_str][0] = f"{status} {end_res.strftime('%H:%M')}"
+                                planning[day_str][0] = f"{status} {heure_retour}"
 
                             # Jour entre début et fin
                             else:

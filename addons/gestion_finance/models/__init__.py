@@ -5,3 +5,5 @@ from . import depense_record
 from . import type_depense
 from . import fournisseur
 from . import refund_table
+from . import transfert_revenue_request
+from . import balance

@@ -1,3 +1,4 @@
+
 from odoo import fields, models, api
 from odoo.exceptions import ValidationError
 from odoo.exceptions import UserError
@@ -7,6 +8,8 @@ import requests
 from io import BytesIO
 from PyPDF2 import PdfMerger
 from odoo.fields import Datetime
+import logging
+_logger = logging.getLogger(__name__) 
 
 
 class Livraison(models.Model):
@@ -15,6 +18,23 @@ class Livraison(models.Model):
     _description = 'livraison des vehicules'
 
     name = fields.Char(string='Nom')
+    resa_old = fields.Char()
+    @api.model
+    def cron_mark_old_reservations(self):
+    
+        date_limite = datetime(2025, 11, 1, 11, 0, 0)
+        livraisons = self.search([
+            ('reservation.create_date', '<', date_limite),
+            ('reservation.date_heure_debut', '>', date_limite)
+        ])
+        if livraisons:
+            livraisons.write({'resa_old': '(ancienne)'})
+            _logger.info(f"Cron: {len(livraisons)} livraisons marquées comme anciennes")
+        else:
+            _logger.info("Cron: Aucune livraison trouvée pour marquage")
+    
+        return True
+
     reservation = fields.Many2one('reservation', string='Reservation')
     total_prolone = fields.Integer(string='Prolongation', related='reservation.total_prolone', store=True)
     total_prolone_eur = fields.Monetary(string='Prolongation', currency_field='currency_id',
@@ -23,6 +43,23 @@ class Livraison(models.Model):
     status = fields.Selection(string='Etat', related='reservation.status', store=True)
     note_lv_d = fields.Text(string='Note', related='reservation.note_lv_d', store=True)
     note_lv_r = fields.Text(string='Note', related='reservation.note_lv_r', store=True)
+    
+    note_lv_depart = fields.Text(string='Note', compute='_compute_notes')
+    note_lv_retour = fields.Text(string='Note', compute='_compute_notes')
+
+    @api.depends('lv_type', 'reservation.note_lv_d', 'reservation.note_lv_r')
+    def _compute_notes(self):
+        for record in self:
+            if record.lv_type == 'livraison':
+                record.note_lv_depart = record.reservation.note_lv_d or ''
+                record.note_lv_retour = ''
+            elif record.lv_type == 'restitution':
+                record.note_lv_depart = ''
+                record.note_lv_retour = record.reservation.note_lv_r or ''
+            else:
+                record.note_lv_depart = ''
+                record.note_lv_retour = ''
+
     date_heure_debut = fields.Datetime(string='Date', related='reservation.date_heure_debut', store=True)
     date_heure_debut_format = fields.Char(string='Date heure debut',
                                           compute='_compute_date_heure_debut_format')
@@ -77,7 +114,7 @@ class Livraison(models.Model):
     telephone = fields.Char(string='Téléphone', related='reservation.telephone', store=True)
     risque = fields.Selection(string='Risque', related='reservation.risque', store=True)
     note = fields.Text(string='Note', related='reservation.note', store=True)
-
+    num_vol = fields.Char(string='Numero de vol',related='reservation.num_vol', store=True)
     prix_jour = fields.Integer(string='Prix par jours', related='reservation.prix_jour', store=True)
     prix_jour_two = fields.Integer(string='Prix Jour Two', related='reservation.prix_jour_two', store=True)
     nbr_jour_two = fields.Integer(string='Nombre de Jours Two', related='reservation.nbr_jour_two', store=True)
@@ -104,6 +141,13 @@ class Livraison(models.Model):
                                         compute='action_calculate_klm_da', store=True)
     diff_klm = fields.Integer(string='Differance KM')
 
+
+    date_depart_char_ = fields.Char(string='date depart', related='reservation.date_depart_char', store=True)
+    date_retour_char_ = fields.Char(string='date retour', related='reservation.date_retour_char', store=True)
+    heure_depart_char_ = fields.Char(string='heure depart', related='reservation.heure_depart_char', store=True)
+    heure_retour_char_ = fields.Char(string='heure retour', related='reservation.heure_retour_char', store=True)
+
+
     @api.depends('penalit_klm', 'kilomtrage')
     def action_calculate_klm_da(self):
         for record in self:
@@ -115,7 +159,7 @@ class Livraison(models.Model):
         for record in self:
             if record.lv_type is not None and record.lv_type != 'livraison' and not record.reservation.opt_klm:
                 diff = 0
-                dif = diff
+                ecce = 0
                 penalite_klm = 0
                 diff = record.kilomtrage - record.kilometrage_depart
                 option_klm = self.env['options'].search([
@@ -126,15 +170,9 @@ class Livraison(models.Model):
                 limit_klm = option_klm.limit_Klm * record.nbr_jour_reservation
                 if diff > limit_klm:
                     penalite_klm = option_klm.penalite_Klm * (diff - limit_klm)
-                    baremes = self.env['bareme.degradation'].browse([135, 136, 137])
-                    type_deg = self.env['type.degradation'].browse(20)
-
-                    for bareme in baremes:
-                        if record.vehicule.modele.categorie.id == bareme.categorie.id and record.lv_type == 'restitution':
-                            dif = diff
-
+                    ecce = diff - limit_klm
                 record.penalit_klm = penalite_klm
-                record.diff_klm = (diff - limit_klm)
+                record.diff_klm = ecce
 
     etat_carburant_retour = fields.Selection([('plein', 'Plein carburant'),
                                               ('tiere', '3/4 Trois quarts'),
@@ -262,11 +300,69 @@ class Livraison(models.Model):
     is_available = fields.Selection([('oui', 'Oui'), ('non', 'non')], string='Disponible')
     appliquer = fields.Selection([('oui', 'Oui'), ('non', 'non')], string='Disponible')
 
+    @api.model
+    def cron_recalculer_notes_livraisons_recentes(self):
+        try:
+            hier = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1)
+
+            _logger.info(f"🔄 CRON : Début du recalcul des notes (réservations après {hier})")
+
+            domain = [
+                ('reservation', '!=', False),
+                '|',
+                ('reservation.date_heure_debut', '>', hier),
+                ('reservation.date_heure_fin', '>', hier)
+            ]
+
+            livraisons = self.search(domain)
+
+            if not livraisons:
+                _logger.info("✅ CRON : Aucune livraison récente à recalculer")
+                return True
+
+            _logger.info(f"📊 CRON : {len(livraisons)} livraison(s) trouvée(s)")
+
+            count_success = 0
+            count_errors = 0
+            livraisons_mises_a_jour = []
+
+            for livraison in livraisons:
+                try:
+                    old_note_d = livraison.note_lv_d
+                    old_note_r = livraison.note_lv_r
+
+                    if livraison.reservation:
+                        livraison.write({
+                            'note_lv_d': livraison.reservation.note_lv_d or '',
+                            'note_lv_r': livraison.reservation.note_lv_r or '',
+                        })
+
+                        if old_note_d != livraison.note_lv_d or old_note_r != livraison.note_lv_r:
+                            livraisons_mises_a_jour.append(livraison.id)
+                        count_success += 1
+
+                except Exception as e:
+                    count_errors += 1
+                    _logger.error(f"❌ CRON : Erreur livraison {livraison.id}: {str(e)}")
+
+            _logger.info(f"✅ CRON : Recalcul terminé")
+            _logger.info(f"   - Succès : {count_success}/{len(livraisons)}")
+            _logger.info(f"   - Erreurs : {count_errors}")
+            _logger.info(f"   - Mises à jour effectives : {len(livraisons_mises_a_jour)}")
+
+            if livraisons_mises_a_jour:
+                _logger.info(f"   - IDs mis à jour : {livraisons_mises_a_jour}")
+
+            return True
+
+        except Exception as e:
+            _logger.error(f"❌ CRON : Erreur globale - {str(e)}")
+            return False
+    
     def action_create_edit_livraison(self):
         for record in self:
             if not record.reservation.date_heure_debut or not record.reservation.date_heure_fin:
                 raise UserError("Les champs date_heure_debut et date_heure_fin doivent être renseignés.")
-
             date_depart = record.reservation.date_heure_debut.date()
             date_retour = record.reservation.date_heure_fin.date()
 
@@ -279,16 +375,19 @@ class Livraison(models.Model):
                 'lieu_depart': record.reservation.lieu_depart.id if record.reservation.lieu_depart else False,
                 'lieu_retour': record.reservation.lieu_retour.id if record.reservation.lieu_retour else False,
             })
+
             return {
                 'type': 'ir.actions.act_window',
                 'name': 'Modifier la réservation',
                 'res_model': 'edit.reservation',
                 'view_mode': 'form',
                 'res_id': edit_res.id,
-                'target': 'new',  
+                'target': 'new',
+                'context': {
+                    'source_model': 'livraison',
+                    'source_id': record.id,
+                }
             }
-
-
 
     def _convert_to_float(self, heure_datetime):
         return heure_datetime.hour + heure_datetime.minute / 60
@@ -949,17 +1048,17 @@ class Livraison(models.Model):
                 record.carburant_total_f = 0
 
             taux_change = self.env['taux.change'].search([('id', '=', 2)], limit=1)
-
-            self.env['revenue.record'].create({
-                'reservation': record.reservation.id,
-                'livraison': record.id,
-                'montant': record.montant_euro_pay,
-                'montant_dzd': record.montant_dz_pay,
-                'ecart_eur': record.montant_euro_ecart,
-                'ecart_da': record.montant_dz_ecart,
-                'mode_paiement': 'liquide',
-                'total_encaisse': record.montant_dz_pay + record.montant_euro_pay * taux_change.montant
-            })
+            if record.total_payer > 20 or record.montant_euro_pay > 0 or record.montant_dz_pay :
+                self.env['revenue.record'].create({
+                    'reservation': record.reservation.id,
+                    'livraison': record.id,
+                    'montant': record.montant_euro_pay,
+                    'montant_dzd': record.montant_dz_pay,
+                    'ecart_eur': record.montant_euro_ecart,
+                    'ecart_da': record.montant_dz_ecart,
+                    'mode_paiement': 'liquide',
+                    'total_encaisse': record.montant_dz_pay + record.montant_euro_pay * taux_change.montant
+                })
 
             record.montant_euro_pay = 0
 
@@ -974,7 +1073,7 @@ class Livraison(models.Model):
                         'sticky': True,
                     }
                 }
-            if record.action_date and record.action_date.date() != (datetime.today() + timedelta(hours=1)).date():
+            if record.action_date and record.action_date.date() > (datetime.today() + timedelta(hours=1)).date():
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
@@ -1022,13 +1121,7 @@ class Livraison(models.Model):
                print(f"Erreur inattendue: {str(e)}")
             return {
                 'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': "Vehicule Livré",
-                    'message': "Livraison effectuer avec succée.",
-                    'type': 'success',
-                    'sticky': True,
-                }
+                'tag': 'reload',
             }
 
     def action_set_livre_r(self):
@@ -1126,16 +1219,17 @@ class Livraison(models.Model):
 
             taux_change = self.env['taux.change'].search([('id', '=', 2)], limit=1)
 
-            self.env['revenue.record'].create({
-                'reservation': record.reservation.id,
-                'livraison': record.id,
-                'montant': record.montant_euro_pay,
-                'montant_dzd': record.montant_dz_pay,
-                'ecart_eur': record.montant_euro_ecart,
-                'ecart_da': record.montant_dz_ecart,
-                'mode_paiement': 'liquide',
-                'total_encaisse': record.montant_dz_pay + record.montant_euro_pay * taux_change.montant
-            })
+            if record.total_payer > 20 or record.montant_euro_pay > 0 or record.montant_dz_pay :
+                self.env['revenue.record'].create({
+                    'reservation': record.reservation.id,
+                    'livraison': record.id,
+                    'montant': record.montant_euro_pay,
+                    'montant_dzd': record.montant_dz_pay,
+                    'ecart_eur': record.montant_euro_ecart,
+                    'ecart_da': record.montant_dz_ecart,
+                    'mode_paiement': 'liquide',
+                    'total_encaisse': record.montant_dz_pay + record.montant_euro_pay * taux_change.montant
+                })
 
             record.montant_euro_pay = 0
 
@@ -1150,7 +1244,7 @@ class Livraison(models.Model):
                         'sticky': True,
                     }
                 }
-            if record.action_date and record.action_date.date() != (datetime.today() + timedelta(hours=1)).date():
+            if record.action_date and record.action_date.date() > (datetime.today() + timedelta(hours=1)).date():
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
@@ -1194,13 +1288,7 @@ class Livraison(models.Model):
 
             return {
                 'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': "Vehicule Livré",
-                    'message': "Restitution effectuer avec succée.",
-                    'type': 'success',
-                    'sticky': True,
-                }
+                'tag': 'reload',
             }
 
     @api.constrains('kilomtrage')

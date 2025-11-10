@@ -90,53 +90,6 @@ class MaintenanceRecord(models.Model):
             except Exception as e:
                 record.date_prochaine_alerte = False
 
-    @api.model
-    def create(self, vals):
-        record = super(MaintenanceRecord, self).create(vals)
-        current_user = self.env.user
-        montant = float(vals.get('prix_da', 0))
-        maintenance = vals.get('id', None)
-        caisse_record = self.env['caisse.record'].search([('user_id', '=', current_user.id)], limit=1)
-        caisse_id = caisse_record.id if caisse_record else False
-        depense_vals = {
-            'type_depense': 12,
-            'montant_da': montant,
-            'caisse': caisse_id,
-            'maintenance': maintenance,
-        }
-        self.env['depense.record'].create(depense_vals)
-
-        if record.dernier_klm is not None and record.kilometrage_restant is not None and record.km is not None:
-            alert_km = record.dernier_klm + record.kilometrage_restant - record.km
-            record.write({'alert_km': alert_km})
-        else:
-            _logger.warning("Missing values for alert_km calculation after create: %s", vals)
-
-        alert_id = self.env.context.get('default_alert_id')
-        if alert_id:
-            alert_record = self.env['alert.record'].browse(alert_id)
-            alert_record.write({'maintenance_created': True})
-
-        if record.type == 'duree':
-            duree_unite_mapping = {'jour': 1, 'mois': 30, 'annee': 365}
-            delai_unite_mapping = {'jour': 1, 'mois': 30, 'annee': 365}
-
-            duree_unite = duree_unite_mapping.get(record.duree_unite, 1)
-            delai_unite = delai_unite_mapping.get(record.delai_unite, 1)
-
-            # Calculer la date de prochaine alerte
-            alert_date = record.date + timedelta(days=record.duree_nombre * duree_unite) - timedelta(
-                days=record.delai_nombre * delai_unite)
-
-            # Créer un enregistrement dans alert.record
-            self.env['alert.record'].create({
-                'vehicule_id': record.vehicule_id.id,
-                'maintenance_id': record.id,
-                'date_prochaine_alerte': alert_date,
-            })
-            record.write({'alert_created': True})
-        return record
-
     def action_set_en_cours(self):
         self.write({'status': 'en_cours'})
 
@@ -156,3 +109,103 @@ class MaintenanceRecord(models.Model):
 
     def action_set_verifie(self):
         self.write({'status': 'verifie'})
+
+    @api.model
+    def create(self, vals):
+        record = super(MaintenanceRecord, self).create(vals)
+        current_user = self.env.user
+        caisse_record = self.env['caisse.record'].search([('user_id', '=', current_user.id)], limit=1)
+        if caisse_record and record.fournisseur_payer == 'oui':
+            depense_vals = {
+                'caisse': caisse_record.id,
+                'type_depense': 12,
+                'maintenance': record.id,
+                'montant_da': record.prix_da,
+                'vehicule_numero': record.vehicule_id.id,
+                'note': f"Maintenance {record.type_maintenance_id.name if record.type_maintenance_id else 'N/A'} - Véhicule {record.vehicule_id.numero if record.vehicule_id else 'N/A'}",
+                'date_de_realisation': record.date,
+            }
+            self.env['depense.record'].create(depense_vals)
+            _logger.info(f"Dépense créée automatiquement pour la maintenance {record.reference_id}")
+        else:
+            _logger.warning(
+                f"Aucune caisse trouvée pour l'utilisateur {current_user.name} lors de la création de la maintenance {record.reference_id}")
+
+        return record
+
+
+    def action_create_missing_depenses(self):
+
+        start_date = datetime(2025, 11, 9, 0, 0, 0)
+        end_date = datetime(2025, 11, 10, 7, 30, 0)
+
+        domain = [
+            ('create_date', '>=', start_date),
+            ('create_date', '<=', end_date),
+            ('fournisseur_payer', '=', 'oui')
+        ]
+
+        maintenances = self.search(domain)
+
+        _logger.info(f"Trouvé {len(maintenances)} maintenance(s) à traiter")
+
+        created_count = 0
+        skipped_count = 0
+        error_count = 0
+
+        for maintenance in maintenances:
+            try:
+                existing_depense = self.env['depense.record'].search([
+                    ('maintenance', '=', maintenance.id)
+                ], limit=1)
+
+                if existing_depense:
+                    _logger.info(f"Dépense déjà existante pour la maintenance {maintenance.reference_id}")
+                    skipped_count += 1
+                    continue
+                caisse_record = self.env['caisse.record'].search([
+                    ('user_id', '=', maintenance.create_uid.id)
+                ], limit=1)
+
+                if not caisse_record:
+                    _logger.warning(
+                        f"Aucune caisse trouvée pour l'utilisateur {maintenance.create_uid.name} - Maintenance {maintenance.reference_id}")
+                    error_count += 1
+                    continue
+
+                depense_vals = {
+                    'caisse': caisse_record.id,
+                    'type_depense': 12,
+                    'maintenance': maintenance.id,
+                    'montant_da': maintenance.prix_da,
+                    'vehicule_numero': maintenance.vehicule_id.id,
+                    'note': f"Maintenance {maintenance.type_maintenance_id.name if maintenance.type_maintenance_id else 'N/A'} - Véhicule {maintenance.vehicule_id.numero if maintenance.vehicule_id else 'N/A'}",
+                    'date_de_realisation': maintenance.date,
+                }
+
+                self.env['depense.record'].create(depense_vals)
+                created_count += 1
+                _logger.info(f"Dépense créée pour la maintenance {maintenance.reference_id}")
+
+            except Exception as e:
+                error_count += 1
+                _logger.error(f"Erreur lors de la création de la dépense pour {maintenance.reference_id}: {str(e)}")
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Migration terminée',
+                'message': f'Dépenses créées: {created_count}, Ignorées: {skipped_count}, Erreurs: {error_count}',
+                'type': 'success' if error_count == 0 else 'warning',
+                'sticky': False,
+            }
+        }
+
+
+
+class VehiculeInheritMaintenance(models.Model):
+    _inherit = 'vehicule'
+
+    vehicule_ids = fields.One2many('maintenance.record', 'vehicule_id', string='Vehicule')
+

@@ -1,7 +1,7 @@
 from odoo import fields, models, api
 import requests
 from requests.exceptions import RequestException, HTTPError
-#&é"
+
 
 class Prolongation(models.Model):
     _name = 'edit.reservation'
@@ -119,6 +119,7 @@ class Prolongation(models.Model):
                     }
                 }
 
+    
     def action_edit_reservation(self):
         for record in self:
             params = {
@@ -132,57 +133,89 @@ class Prolongation(models.Model):
                 'backoffice': "yes"
             }
             reservation = None
-            prolongation_id = None 
+            prolongation_id = None
             url = "https://api.safarelamir.com/verify-edit-ma-reservation/"
-            response = requests.get(url, params=params, timeout=20)
-            print('response : ', response)
-            response.raise_for_status()
-            data = response.json()
-            results = data.get('results', {})
 
-            reservation = results.get('reservation', 'unknown')
-            prolongation_id = results.get('prolongation_id', 'unknown')
-            retour_avance_id = results.get('retour_avance_id', 'unknown') 
+            try:
+                response = requests.get(url, params=params, timeout=20)
+                print('response : ', response)
+                response.raise_for_status()
+                data = response.json()
+                results = data.get('results', {})
+                reservation = results.get('reservation', 'unknown')
+                prolongation_id = results.get('prolongation_id', 'unknown')
+                retour_avance_id = results.get('retour_avance_id', 'unknown')
 
-            if prolongation_id and reservation:
-                prolongation_record = self.env['prolongation'].browse(prolongation_id)
-                if prolongation_record.exists():
-                    prolongation_record.effectuer_par = self.env.user
+                # Déterminer le modèle source (d'où vient l'appel)
+                context = self.env.context
+                source_model = context.get('source_model')  # 'reservation' ou 'livraison'
+                source_id = context.get('source_id')
 
-                return {
-                    'type': 'ir.actions.client',
-                    'tag': 'display_notification',
-                    'params': {
-                        'title': 'Succès',
-                        'message': "Modification effectuer avec succé",
-                        'type': 'success',
-                        'sticky': True,
+                if prolongation_id and reservation:
+                    prolongation_record = self.env['prolongation'].browse(prolongation_id)
+                    if prolongation_record.exists():
+                        prolongation_record.effectuer_par = self.env.user
+
+                    # Préparer le message de succès et le reload
+                    notification = {
+                        'type': 'ir.actions.client',
+                        'tag': 'display_notification',
+                        'params': {
+                            'title': 'Succès',
+                            'message': "Modification effectuée avec succès",
+                            'type': 'success',
+                            'sticky': False,
+                            'next': self._get_reload_action(source_model, source_id)
+                        }
                     }
-                }
 
-            elif retour_avance_id and reservation:
-                retour_avance_record = self.env['retour.avance'].browse(prolongation_id)
-                if retour_avance_record.exists():
-                    retour_avance_record.effectuer_par = self.env.user
+                    return self._get_reload_action(source_model, source_id)
 
-                return {
-                    'type': 'ir.actions.client',
-                    'tag': 'display_notification',
-                    'params': {
-                        'title': 'Succès',
-                        'message': "Modification effectuer avec succé",
-                        'type': 'success',
-                        'sticky': True,
+                elif retour_avance_id and reservation:
+                    retour_avance_record = self.env['retour.avance'].browse(retour_avance_id)
+                    if retour_avance_record.exists():
+                        retour_avance_record.effectuer_par = self.env.user
+
+                    return self._get_reload_action(source_model, source_id)
+                else:
+                    return {
+                        'type': 'ir.actions.client',
+                        'tag': 'display_notification',
+                        'params': {
+                            'title': 'Erreur',
+                            'message': "Pas de réservation ou prolongation",
+                            'type': 'danger',
+                            'sticky': True,
+                        }
                     }
-                }
-            else:
+            except Exception as e:
                 return {
                     'type': 'ir.actions.client',
                     'tag': 'display_notification',
                     'params': {
                         'title': 'Erreur',
-                        'message': "pas de reservation ou prollongation",
+                        'message': f"Erreur lors de l'appel API: {str(e)}",
                         'type': 'danger',
                         'sticky': True,
                     }
                 }
+
+    def _get_reload_action(self, source_model, source_id):
+        if source_model == 'reservation' and source_id:
+            return {
+                'type': 'ir.actions.act_window',
+                'res_model': 'reservation',
+                'res_id': source_id,
+                'view_mode': 'form',
+                'target': 'current',
+            }
+        elif source_model == 'livraison' and source_id:
+            return {
+                'type': 'ir.actions.act_window',
+                'res_model': 'livraison',
+                'res_id': source_id,
+                'view_mode': 'form',
+                'target': 'current',
+            }
+        else:
+            return {'type': 'ir.actions.act_window_close'}
